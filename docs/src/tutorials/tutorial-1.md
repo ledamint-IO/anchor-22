@@ -12,10 +12,16 @@ To get started, clone the repo.
 git clone https://github.com/project-serum/anchor
 ```
 
-And change directories to the [example](https://github.com/project-serum/anchor/tree/master/examples/tutorial/basic-1).
+Change directories to the [example](https://github.com/project-serum/anchor/tree/master/examples/tutorial/basic-1).
 
 ```bash
 cd anchor/examples/tutorial/basic-1
+```
+
+And install any additional JavaScript dependencies:
+
+```bash
+yarn install
 ```
 
 ## Defining a Program
@@ -77,7 +83,7 @@ The last element passed into the method is common amongst all dynamically genera
 methods on the `rpc` namespace, containing several options for a transaction. Here,
 we specify the `accounts` field, an object of all the addresses the transaction
 needs to touch, and the `signers` array of all `Signer` objects needed to sign the
-transaction. Because `myAccount` is being created, the Solana runtime requries it
+transaction. Because `myAccount` is being created, the Solana runtime requires it
 to sign the transaction.
 
 ::: details

@@ -34,7 +34,7 @@ pub fn generate(accs: &AccountsStruct) -> proc_macro2::TokenStream {
             AccountField::Field(f) => {
                 let name = &f.ident;
                 quote! {
-                    pub #name: anchor_lang::safecoin_program::account_info::AccountInfo<'info>
+                    pub #name: anchor_lang::solana_program::account_info::AccountInfo<'info>
                 }
             }
         })
@@ -60,8 +60,8 @@ pub fn generate(accs: &AccountsStruct) -> proc_macro2::TokenStream {
                     true => quote! {true},
                 };
                 let meta = match f.constraints.is_mutable() {
-                    false => quote! { anchor_lang::safecoin_program::instruction::AccountMeta::new_readonly },
-                    true => quote! { anchor_lang::safecoin_program::instruction::AccountMeta::new },
+                    false => quote! { anchor_lang::solana_program::instruction::AccountMeta::new_readonly },
+                    true => quote! { anchor_lang::solana_program::instruction::AccountMeta::new },
                 };
                 let name = &f.ident;
                 quote! {
@@ -143,7 +143,7 @@ pub fn generate(accs: &AccountsStruct) -> proc_macro2::TokenStream {
 
             #[automatically_derived]
             impl#generics anchor_lang::ToAccountMetas for #name#generics {
-                fn to_account_metas(&self, is_signer: Option<bool>) -> Vec<anchor_lang::safecoin_program::instruction::AccountMeta> {
+                fn to_account_metas(&self, is_signer: Option<bool>) -> Vec<anchor_lang::solana_program::instruction::AccountMeta> {
                     let mut account_metas = vec![];
                     #(#account_struct_metas)*
                     account_metas
@@ -152,7 +152,7 @@ pub fn generate(accs: &AccountsStruct) -> proc_macro2::TokenStream {
 
             #[automatically_derived]
             impl<'info> anchor_lang::ToAccountInfos<'info> for #name#generics {
-                fn to_account_infos(&self) -> Vec<anchor_lang::safecoin_program::account_info::AccountInfo<'info>> {
+                fn to_account_infos(&self) -> Vec<anchor_lang::solana_program::account_info::AccountInfo<'info>> {
                     let mut account_infos = vec![];
                     #(#account_struct_infos)*
                     account_infos

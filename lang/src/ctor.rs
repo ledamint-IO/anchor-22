@@ -1,5 +1,5 @@
 use crate::{Accounts, ToAccountInfo};
-use safecoin_program::account_info::AccountInfo;
+use solana_program::account_info::AccountInfo;
 
 /// The Ctor accounts that can be used to create any account within the program
 /// itself (instead of creating the account on the client).

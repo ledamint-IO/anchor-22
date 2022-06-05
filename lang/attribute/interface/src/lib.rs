@@ -26,7 +26,7 @@ use syn::parse_macro_input;
 ///
 /// #[interface]
 /// pub trait Auth<'info, T: Accounts<'info>> {
-///     fn is_authorized(ctx: Context<T>, current: u64, new: u64) -> ProgramResult;
+///     fn is_authorized(ctx: Context<T>, current: u64, new: u64) -> anchor_lang::Result<()>;
 /// }
 ///
 /// #[program]
@@ -74,13 +74,13 @@ use syn::parse_macro_input;
 /// impl<'info> SetCount<'info> {
 ///     pub fn accounts(counter: &Counter, ctx: &Context<SetCount>) -> Result<()> {
 ///         if ctx.accounts.auth_program.key != &counter.auth_program {
-///             return Err(ErrorCode::InvalidAuthProgram.into());
+///             return Err(error!(ErrorCode::InvalidAuthProgram));
 ///         }
 ///         Ok(())
 ///     }
 /// }
 ///
-/// #[error]
+/// #[error_code]
 /// pub enum ErrorCode {
 ///     #[msg("Invalid auth program.")]
 ///     InvalidAuthProgram,
@@ -104,14 +104,14 @@ use syn::parse_macro_input;
 ///     pub struct CounterAuth;
 ///
 ///     impl<'info> Auth<'info, Empty> for CounterAuth {
-///         fn is_authorized(_ctx: Context<Empty>, current: u64, new: u64) -> ProgramResult {
+///         fn is_authorized(_ctx: Context<Empty>, current: u64, new: u64) -> Result<()> {
 ///             if current % 2 == 0 {
 ///                 if new % 2 == 0 {
-///                     return Err(ProgramError::Custom(50)); // Arbitrary error code.
+///                     return Err(ProgramError::Custom(50).into()); // Arbitrary error code.
 ///                 }
 ///             } else {
 ///                 if new % 2 == 1 {
-///                     return Err(ProgramError::Custom(60)); // Arbitrary error code.
+///                     return Err(ProgramError::Custom(60).into()); // Arbitrary error code.
 ///                 }
 ///             }
 ///             Ok(())
@@ -127,7 +127,7 @@ use syn::parse_macro_input;
 /// The caller above uses a `Result` to act as a boolean. However, in order
 /// for this feature to be maximally useful, we need a way to return values from
 /// interfaces. For now, one can do this by writing to a shared account, e.g.,
-/// with the SPL's [Shared Memory Program](https://github.com/safecoin-labs/safecoin-program-library/tree/master/shared-memory).
+/// with the SPL's [Shared Memory Program](https://github.com/solana-labs/solana-program-library/tree/master/shared-memory).
 /// In the future, Anchor will add the ability to return values across CPI
 /// without having to worry about the details of shared memory accounts.
 #[proc_macro_attribute]
@@ -198,9 +198,9 @@ pub fn interface(
                 format!("{:?}", sighash_arr).parse().unwrap();
             quote! {
                 pub fn #method_name<'a,'b, 'c, 'info, T: anchor_lang::Accounts<'info> + anchor_lang::ToAccountMetas + anchor_lang::ToAccountInfos<'info>>(
-                    ctx: anchor_lang::CpiContext<'a, 'b, 'c, 'info, T>,
+                    ctx: anchor_lang::context::CpiContext<'a, 'b, 'c, 'info, T>,
                     #(#args),*
-                ) -> anchor_lang::safecoin_program::entrypoint::ProgramResult {
+                ) -> anchor_lang::Result<()> {
                     #args_struct
 
                     let ix = {
@@ -208,11 +208,11 @@ pub fn interface(
                             #(#args_no_tys),*
                         };
                         let mut ix_data = anchor_lang::AnchorSerialize::try_to_vec(&ix)
-                            .map_err(|_| anchor_lang::__private::ErrorCode::InstructionDidNotSerialize)?;
+                            .map_err(|_| anchor_lang::error::ErrorCode::InstructionDidNotSerialize)?;
                         let mut data = #sighash_tts.to_vec();
                         data.append(&mut ix_data);
                         let accounts = ctx.to_account_metas(None);
-                        anchor_lang::safecoin_program::instruction::Instruction {
+                        anchor_lang::solana_program::instruction::Instruction {
                             program_id: *ctx.program.key,
                             accounts,
                             data,
@@ -220,11 +220,11 @@ pub fn interface(
                     };
                     let mut acc_infos = ctx.to_account_infos();
                     acc_infos.push(ctx.program.clone());
-                    anchor_lang::safecoin_program::program::invoke_signed(
+                    anchor_lang::solana_program::program::invoke_signed(
                         &ix,
                         &acc_infos,
                         ctx.signer_seeds,
-                    )
+                    ).map_err(Into::into)
                 }
             }
         })

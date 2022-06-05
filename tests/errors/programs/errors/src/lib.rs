@@ -10,15 +10,32 @@ mod errors {
     use super::*;
 
     pub fn hello(_ctx: Context<Hello>) -> Result<()> {
-        Err(MyError::Hello.into())
+        err!(MyError::Hello)
     }
 
     pub fn hello_no_msg(_ctx: Context<Hello>) -> Result<()> {
-        Err(MyError::HelloNoMsg.into())
+        err!(MyError::HelloNoMsg)
     }
 
     pub fn hello_next(_ctx: Context<Hello>) -> Result<()> {
-        Err(MyError::HelloNext.into())
+        err!(MyError::HelloNext)
+    }
+
+    pub fn test_require(_ctx: Context<Hello>) -> Result<()> {
+        require!(false, MyError::Hello);
+        Ok(())
+    }
+
+    pub fn test_err(_ctx: Context<Hello>) -> Result<()> {
+        err!(MyError::Hello)
+    }
+
+    pub fn test_program_error(_ctx: Context<Hello>) -> Result<()> {
+        Err(ProgramError::InvalidAccountData.into())
+    }
+
+    pub fn test_program_error_with_source(_ctx: Context<Hello>) -> Result<()> {
+        Err(Error::from(ProgramError::InvalidAccountData).with_source(source!()))
     }
 
     pub fn mut_error(_ctx: Context<MutError>) -> Result<()> {
@@ -34,6 +51,10 @@ mod errors {
     }
 
     pub fn raw_custom_error(_ctx: Context<RawCustomError>) -> Result<()> {
+        Ok(())
+    }
+
+    pub fn account_not_initialized_error(_ctx: Context<AccountNotInitializedError>) -> Result<()> {
         Ok(())
     }
 }
@@ -56,8 +77,7 @@ pub struct HasOneError<'info> {
 
 #[derive(Accounts)]
 pub struct SignerError<'info> {
-    #[account(signer)]
-    my_account: AccountInfo<'info>,
+    my_account: Signer<'info>,
 }
 
 #[account]
@@ -68,10 +88,18 @@ pub struct HasOneAccount {
 #[derive(Accounts)]
 pub struct RawCustomError<'info> {
     #[account(constraint = *my_account.key == ID @ MyError::HelloCustom)]
-    my_account: AccountInfo<'info>
+    my_account: AccountInfo<'info>,
 }
 
-#[error]
+#[account]
+pub struct AnyAccount {}
+
+#[derive(Accounts)]
+pub struct AccountNotInitializedError<'info> {
+    not_initialized_account: Account<'info, AnyAccount>,
+}
+
+#[error_code]
 pub enum MyError {
     #[msg("This is an error message clients will automatically display")]
     Hello,

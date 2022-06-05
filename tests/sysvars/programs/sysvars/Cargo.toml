@@ -5,15 +5,13 @@ description = "Created with Anchor"
 edition = "2018"
 
 [lib]
-crate-type = [ "cdylib", "lib" ]
+crate-type = ["cdylib", "lib"]
 name = "sysvars"
 
 [features]
-no-entrypoint = [ ]
-cpi = [ "no-entrypoint" ]
+no-entrypoint = []
+cpi = ["no-entrypoint"]
 
-[dependencies.anchor-lang]
-path = "../../../../lang"
-
-[dependencies.anchor-spl]
-path = "../../../../spl"
+[dependencies]
+anchor-lang = { path = "../../../../lang" }
+anchor-spl = { path = "../../../../spl" }

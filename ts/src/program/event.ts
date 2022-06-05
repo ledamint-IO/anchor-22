@@ -1,9 +1,9 @@
-import { PublicKey } from "@safecoin/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import * as assert from "assert";
-import { IdlEvent, IdlEventField } from "../idl";
-import Coder from "../coder";
-import { DecodeType } from "./namespace/types";
-import Provider from "../provider";
+import { IdlEvent, IdlEventField } from "../idl.js";
+import { Coder } from "../coder/index.js";
+import { DecodeType } from "./namespace/types.js";
+import Provider from "../provider.js";
 
 const LOG_START_INDEX = "Program log: ".length;
 
@@ -95,7 +95,6 @@ export class EventManager {
       this._programId,
       (logs, ctx) => {
         if (logs.err) {
-          console.error(logs);
           return;
         }
         this._eventParser.parseLogs(logs.logs, (event) => {

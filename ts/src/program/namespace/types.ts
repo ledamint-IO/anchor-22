@@ -1,4 +1,4 @@
-import { PublicKey } from "@safecoin/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 import { Idl } from "../../";
 import {
@@ -65,6 +65,10 @@ export type MakeInstructionsNamespace<
     Mk[M];
 };
 
+export type MakeMethodsNamespace<IDL extends Idl, I extends IdlInstruction> = {
+  [M in keyof InstructionMap<I>]: MethodsFn<IDL, InstructionMap<I>[M], any>;
+};
+
 export type InstructionContextFn<
   IDL extends Idl,
   I extends AllInstructions<IDL>,
@@ -79,13 +83,22 @@ export type InstructionContextFnArgs<
   Context<Accounts<I["accounts"][number]>>
 ];
 
+export type MethodsFn<
+  IDL extends Idl,
+  I extends IDL["instructions"][number],
+  Ret
+> = (...args: ArgsTuple<I["args"], IdlTypes<IDL>>) => Ret;
+
 type TypeMap = {
   publicKey: PublicKey;
-  u64: BN;
-  i64: BN;
+  bool: boolean;
+  string: string;
 } & {
-  [K in "u8" | "i8" | "u16" | "i16" | "u32" | "i32"]: number;
-};
+  [K in "u8" | "i8" | "u16" | "i16" | "u32" | "i32" | "f32" | "f64"]: number;
+} &
+  {
+    [K in "u64" | "i64" | "u128" | "i128"]: BN;
+  };
 
 export type DecodeType<T extends IdlType, Defined> = T extends keyof TypeMap
   ? TypeMap[T]
@@ -93,6 +106,8 @@ export type DecodeType<T extends IdlType, Defined> = T extends keyof TypeMap
   ? Defined[T["defined"]]
   : T extends { option: { defined: keyof Defined } }
   ? Defined[T["option"]["defined"]] | null
+  : T extends { option: keyof TypeMap }
+  ? TypeMap[T["option"]] | null
   : T extends { vec: keyof TypeMap }
   ? TypeMap[T["vec"]][]
   : T extends { array: [defined: keyof TypeMap, size: number] }

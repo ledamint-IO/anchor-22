@@ -5,20 +5,16 @@ description = "Created with Anchor"
 edition = "2018"
 
 [lib]
-crate-type = [ "cdylib", "lib" ]
+crate-type = ["cdylib", "lib"]
 name = "pyth"
 
 [features]
-no-entrypoint = [ ]
-no-idl = [ ]
-cpi = [ "no-entrypoint" ]
-default = [ ]
+no-entrypoint = []
+no-idl = []
+cpi = ["no-entrypoint"]
+default = []
 
 [dependencies]
+anchor-lang = { path = "../../../../lang" }
 arrayref = "0.3.6"
-
-  [dependencies.anchor-lang]
-  path = "../../../../lang"
-
-  [dependencies.bytemuck]
-  version = "1.4.0"
+bytemuck = { version = "1.4.0" }

@@ -17,7 +17,7 @@ pub fn event(
     let event_name = &event_strct.ident;
 
     let discriminator: proc_macro2::TokenStream = {
-        let discriminator_preimage = format!("event:{}", event_name.to_string());
+        let discriminator_preimage = format!("event:{}", event_name);
         let mut discriminator = [0u8; 8];
         discriminator.copy_from_slice(
             &anchor_syn::hash::hash(discriminator_preimage.as_bytes()).to_bytes()[..8],
@@ -47,7 +47,7 @@ pub fn event(
 
 /// Creates an event that can be subscribed to by clients. Calling this method
 /// will internally borsh serialize the [event](./attr.event.html), base64
-/// encode the bytes, and then add a [msg!](../safecoin_program/macro.msg.html)
+/// encode the bytes, and then add a [msg!](../solana_program/macro.msg.html)
 /// log to the transaction.
 #[proc_macro]
 pub fn emit(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -56,7 +56,7 @@ pub fn emit(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         {
             let data = anchor_lang::Event::data(&#data);
             let msg_str = &anchor_lang::__private::base64::encode(data);
-            anchor_lang::safecoin_program::msg!(msg_str);
+            anchor_lang::solana_program::msg!(msg_str);
         }
     })
 }

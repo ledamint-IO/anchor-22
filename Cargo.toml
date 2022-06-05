@@ -6,16 +6,17 @@ codegen-units = 1
 
 [workspace]
 members = [
-  "cli",
-  "client",
-  "lang",
-  "lang/attribute/*",
-  "lang/derive/*",
-  "lang/syn",
-  "spl"
+    "avm",
+    "cli",
+    "client",
+    "lang",
+    "lang/attribute/*",
+    "lang/derive/*",
+    "lang/syn",
+    "spl",
 ]
 exclude = [
-  "tests/swap/deps/serum-dex",
-  "tests/cfo/deps/serum-dex",
-  "tests/permissioned-markets/deps/serum-dex"
+    "tests/swap/deps/serum-dex",
+    "tests/cfo/deps/serum-dex",
+    "tests/permissioned-markets/deps/serum-dex",
 ]

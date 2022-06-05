@@ -29,25 +29,25 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
 
                             quote! {
                                 pub fn #method_name<'a, 'b, 'c, 'info>(
-                                    ctx: CpiStateContext<'a, 'b, 'c, 'info, #accounts_ident<'info>>,
+                                    ctx: anchor_lang::context::CpiStateContext<'a, 'b, 'c, 'info, #accounts_ident<'info>>,
                                     #(#args),*
-                                ) -> ProgramResult {
+                                ) -> anchor_lang::Result<()> {
                                     let ix = {
                                         let ix = instruction::state::#ix_variant;
                                         let data = anchor_lang::InstructionData::data(&ix);
                                         let accounts = ctx.to_account_metas(None);
-                                        anchor_lang::safecoin_program::instruction::Instruction {
+                                        anchor_lang::solana_program::instruction::Instruction {
                                             program_id: crate::ID,
                                             accounts,
                                             data,
                                         }
                                     };
                                     let mut acc_infos = ctx.to_account_infos();
-                                    anchor_lang::safecoin_program::program::invoke_signed(
+                                    anchor_lang::solana_program::program::invoke_signed(
                                         &ix,
                                         &acc_infos,
                                         ctx.signer_seeds(),
-                                    )
+                                    ).map_err(Into::into)
                                 }
                             }
                         })
@@ -72,28 +72,28 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                     format!("{:?}", sighash_arr).parse().unwrap();
                 quote! {
                     pub fn #method_name<'a, 'b, 'c, 'info>(
-                        ctx: CpiContext<'a, 'b, 'c, 'info, #accounts_ident<'info>>,
+                        ctx: anchor_lang::context::CpiContext<'a, 'b, 'c, 'info, #accounts_ident<'info>>,
                         #(#args),*
-                    ) -> ProgramResult {
+                    ) -> anchor_lang::Result<()> {
                         let ix = {
                             let ix = instruction::#ix_variant;
                             let mut ix_data = AnchorSerialize::try_to_vec(&ix)
-                                .map_err(|_| anchor_lang::__private::ErrorCode::InstructionDidNotSerialize)?;
+                                .map_err(|_| anchor_lang::error::ErrorCode::InstructionDidNotSerialize)?;
                             let mut data = #sighash_tts.to_vec();
                             data.append(&mut ix_data);
                             let accounts = ctx.to_account_metas(None);
-                            anchor_lang::safecoin_program::instruction::Instruction {
+                            anchor_lang::solana_program::instruction::Instruction {
                                 program_id: crate::ID,
                                 accounts,
                                 data,
                             }
                         };
                         let mut acc_infos = ctx.to_account_infos();
-                        anchor_lang::safecoin_program::program::invoke_signed(
+                        anchor_lang::solana_program::program::invoke_signed(
                             &ix,
                             &acc_infos,
                             ctx.signer_seeds,
-                        )
+                        ).map_err(Into::into)
                     }
                 }
             };

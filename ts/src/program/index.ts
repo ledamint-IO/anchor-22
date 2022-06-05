@@ -1,8 +1,8 @@
 import { inflate } from "pako";
-import { PublicKey } from "@safecoin/web3.js";
-import Provider from "../provider";
-import { Idl, idlAddress, decodeIdlAccount } from "../idl";
-import Coder from "../coder";
+import { PublicKey } from "@solana/web3.js";
+import Provider, { getProvider } from "../provider.js";
+import { Idl, idlAddress, decodeIdlAccount } from "../idl.js";
+import { Coder, BorshCoder } from "../coder/index.js";
 import NamespaceFactory, {
   RpcNamespace,
   InstructionNamespace,
@@ -10,16 +10,16 @@ import NamespaceFactory, {
   AccountNamespace,
   StateClient,
   SimulateNamespace,
-} from "./namespace";
-import { getProvider } from "../";
-import { utf8 } from "../utils/bytes";
-import { EventManager } from "./event";
-import { Address, translateAddress } from "./common";
+  MethodsNamespace,
+} from "./namespace/index.js";
+import { utf8 } from "../utils/bytes/index.js";
+import { EventManager } from "./event.js";
+import { Address, translateAddress } from "./common.js";
 
-export * from "./common";
-export * from "./context";
-export * from "./event";
-export * from "./namespace";
+export * from "./common.js";
+export * from "./context.js";
+export * from "./event.js";
+export * from "./namespace/index.js";
 
 /**
  * ## Program
@@ -208,6 +208,12 @@ export class Program<IDL extends Idl = Idl> {
   readonly state?: StateClient<IDL>;
 
   /**
+   * The namespace provides a builder API for all APIs on the program.
+   * This is an alternative to using namespace the other namespaces..
+   */
+  readonly methods: MethodsNamespace<IDL>;
+
+  /**
    * Address of the program.
    */
   public get programId(): PublicKey {
@@ -250,7 +256,12 @@ export class Program<IDL extends Idl = Idl> {
    * @param provider  The network and wallet context to use. If not provided
    *                  then uses [[getProvider]].
    */
-  public constructor(idl: IDL, programId: Address, provider?: Provider) {
+  public constructor(
+    idl: IDL,
+    programId: Address,
+    provider?: Provider,
+    coder?: Coder
+  ) {
     programId = translateAddress(programId);
 
     if (!provider) {
@@ -261,7 +272,7 @@ export class Program<IDL extends Idl = Idl> {
     this._idl = idl;
     this._provider = provider;
     this._programId = programId;
-    this._coder = new Coder(idl);
+    this._coder = coder ?? new BorshCoder(idl);
     this._events = new EventManager(this._programId, provider, this._coder);
 
     // Dynamic namespaces.
@@ -271,6 +282,7 @@ export class Program<IDL extends Idl = Idl> {
       transaction,
       account,
       simulate,
+      methods,
       state,
     ] = NamespaceFactory.build(idl, this._coder, programId, provider);
     this.rpc = rpc;
@@ -278,6 +290,7 @@ export class Program<IDL extends Idl = Idl> {
     this.transaction = transaction;
     this.account = account;
     this.simulate = simulate;
+    this.methods = methods;
     this.state = state;
   }
 

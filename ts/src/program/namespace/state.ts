@@ -5,25 +5,25 @@ import {
   SystemProgram,
   Commitment,
   AccountMeta,
-} from "@safecoin/web3.js";
-import Provider from "../../provider";
+} from "@solana/web3.js";
+import Provider, { getProvider } from "../../provider.js";
+import { Idl, IdlInstruction, IdlStateMethod, IdlTypeDef } from "../../idl.js";
+import { BorshCoder, Coder, stateDiscriminator } from "../../coder/index.js";
 import {
-  Idl,
-  IdlAccountItem,
-  IdlInstruction,
-  IdlStateMethod,
-  IdlTypeDef,
-} from "../../idl";
-import Coder, { stateDiscriminator } from "../../coder";
-import { RpcNamespace, InstructionNamespace, TransactionNamespace } from "./";
-import { getProvider } from "../../";
-import { Subscription, validateAccounts, parseIdlErrors } from "../common";
-import { findProgramAddressSync, createWithSeedSync } from "../../utils/pubkey";
-import { Accounts } from "../context";
-import InstructionNamespaceFactory from "./instruction";
-import RpcNamespaceFactory from "./rpc";
-import TransactionNamespaceFactory from "./transaction";
-import { IdlTypes, TypeDef } from "./types";
+  RpcNamespace,
+  InstructionNamespace,
+  TransactionNamespace,
+} from "./index.js";
+import { Subscription, validateAccounts, parseIdlErrors } from "../common.js";
+import {
+  findProgramAddressSync,
+  createWithSeedSync,
+} from "../../utils/pubkey.js";
+import { Accounts } from "../context.js";
+import InstructionNamespaceFactory from "./instruction.js";
+import RpcNamespaceFactory from "./rpc.js";
+import TransactionNamespaceFactory from "./transaction.js";
+import { IdlTypes, TypeDef } from "./types.js";
 
 export default class StateFactory {
   public static build<IDL extends Idl>(
@@ -87,7 +87,7 @@ export class StateClient<IDL extends Idl> {
     /**
      * Returns the coder.
      */
-    public readonly coder: Coder = new Coder(idl)
+    public readonly coder: Coder = new BorshCoder(idl)
   ) {
     this._idl = idl;
     this._programId = programId;
@@ -115,7 +115,11 @@ export class StateClient<IDL extends Idl> {
           ixItem["accounts"] = (accounts) => {
             const keys = stateInstructionKeys(programId, provider, m, accounts);
             return keys.concat(
-              InstructionNamespaceFactory.accountsArray(accounts, m.accounts)
+              InstructionNamespaceFactory.accountsArray(
+                accounts,
+                m.accounts,
+                m.name
+              )
             );
           };
           // Build transaction method.

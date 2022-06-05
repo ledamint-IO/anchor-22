@@ -1,9 +1,9 @@
 import camelCase from "camelcase";
 import * as toml from "toml";
-import { PublicKey } from "@safecoin/web3.js";
-import { Program } from "./program";
-import { Idl } from "./idl";
-import { isBrowser } from "./utils/common";
+import { PublicKey } from "@solana/web3.js";
+import { Program } from "./program/index.js";
+import { Idl } from "./idl.js";
+import { isBrowser } from "./utils/common.js";
 
 let _populatedWorkspace = false;
 
@@ -17,8 +17,7 @@ let _populatedWorkspace = false;
 const workspace = new Proxy({} as any, {
   get(workspaceCache: { [key: string]: Program }, programName: string) {
     if (isBrowser) {
-      console.log("Workspaces aren't available in the browser");
-      return undefined;
+      throw new Error("Workspaces aren't available in the browser");
     }
 
     const fs = require("fs");
@@ -48,19 +47,21 @@ const workspace = new Proxy({} as any, {
       }
 
       const idlMap = new Map<string, Idl>();
-      fs.readdirSync(idlFolder).forEach((file) => {
-        const filePath = `${idlFolder}/${file}`;
-        const idlStr = fs.readFileSync(filePath);
-        const idl = JSON.parse(idlStr);
-        idlMap.set(idl.name, idl);
-        const name = camelCase(idl.name, { pascalCase: true });
-        if (idl.metadata && idl.metadata.address) {
-          workspaceCache[name] = new Program(
-            idl,
-            new PublicKey(idl.metadata.address)
-          );
-        }
-      });
+      fs.readdirSync(idlFolder)
+        .filter((file) => file.endsWith(".json"))
+        .forEach((file) => {
+          const filePath = `${idlFolder}/${file}`;
+          const idlStr = fs.readFileSync(filePath);
+          const idl = JSON.parse(idlStr);
+          idlMap.set(idl.name, idl);
+          const name = camelCase(idl.name, { pascalCase: true });
+          if (idl.metadata && idl.metadata.address) {
+            workspaceCache[name] = new Program(
+              idl,
+              new PublicKey(idl.metadata.address)
+            );
+          }
+        });
 
       // Override the workspace programs if the user put them in the config.
       const anchorToml = toml.parse(

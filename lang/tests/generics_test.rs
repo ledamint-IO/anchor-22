@@ -3,7 +3,7 @@
 use anchor_lang::prelude::borsh::maybestd::io::Write;
 use anchor_lang::prelude::*;
 use borsh::{BorshDeserialize, BorshSerialize};
-use safecoin_program::pubkey::Pubkey;
+use solana_program::pubkey::Pubkey;
 
 // Needed to declare accounts.
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
@@ -16,7 +16,8 @@ where
 {
     pub non_generic: AccountInfo<'info>,
     pub generic: Account<'info, T>,
-    pub const_generic: Loader<'info, FooAccount<N>>,
+
+    pub const_generic: AccountLoader<'info, FooAccount<N>>,
     pub const_generic_loader: AccountLoader<'info, FooAccount<N>>,
     pub associated: Account<'info, Associated<U>>,
 }

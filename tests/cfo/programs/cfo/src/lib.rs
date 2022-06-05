@@ -1,13 +1,13 @@
 // WIP. This program has been checkpointed and is not production ready.
 
 use anchor_lang::prelude::*;
-use anchor_lang::safecoin_program::sysvar::instructions as tx_instructions;
+use anchor_lang::solana_program::sysvar::instructions as tx_instructions;
 use anchor_spl::dex::{self, Dex};
 use anchor_spl::token::{self, Mint, Token, TokenAccount};
 use lockup::program::Lockup;
 use registry::program::Registry;
 use registry::{Registrar, RewardVendorKind};
-use serum_dex_0_4_0::state::OpenOrders;
+use serum_dex::state::OpenOrders;
 use std::convert::TryInto;
 use std::mem::size_of;
 use swap::program::Swap;
@@ -155,7 +155,7 @@ pub mod cfo {
             .checked_div(100)
             .unwrap()
             .try_into()
-            .map_err(|_| ErrorCode::U128CannotConvert)?;
+            .map_err(|_| error!(ErrorCode::U128CannotConvert))?;
         token::burn(ctx.accounts.into_burn().with_signer(&[&seeds]), burn_amount)?;
 
         // Stake.
@@ -165,7 +165,7 @@ pub mod cfo {
             .checked_div(100)
             .unwrap()
             .try_into()
-            .map_err(|_| ErrorCode::U128CannotConvert)?;
+            .map_err(|_| error!(ErrorCode::U128CannotConvert))?;
         token::transfer(
             ctx.accounts.into_stake_transfer().with_signer(&[&seeds]),
             stake_amount,
@@ -178,7 +178,7 @@ pub mod cfo {
             .checked_div(100)
             .unwrap()
             .try_into()
-            .map_err(|_| ErrorCode::U128CannotConvert)?;
+            .map_err(|_| error!(ErrorCode::U128CannotConvert))?;
         token::transfer(
             ctx.accounts.into_treasury_transfer().with_signer(&[&seeds]),
             treasury_amount,
@@ -195,7 +195,7 @@ pub mod cfo {
         let expiry_ts = 1853942400; // 9/30/2028.
         let expiry_receiver = *ctx.accounts.officer.to_account_info().key;
         let locked_kind = {
-            let start_ts = 1633017600; // 9/30/2021.
+            let start_ts = 1633017600; // 9/30.22.0.
             let end_ts = 1822320000; // 9/30/2027.
             let period_count = 2191;
             RewardVendorKind::Locked {
@@ -236,7 +236,7 @@ pub mod cfo {
             .checked_div(total_pool_value)
             .unwrap()
             .try_into()
-            .map_err(|_| ErrorCode::U128CannotConvert)?;
+            .map_err(|_| error!(ErrorCode::U128CannotConvert))?;
 
         // Proportion of the reward going to the msrm pool.
         //
@@ -248,7 +248,7 @@ pub mod cfo {
             .checked_div(total_pool_value)
             .unwrap()
             .try_into()
-            .map_err(|_| ErrorCode::U128CannotConvert)?;
+            .map_err(|_| error!(ErrorCode::U128CannotConvert))?;
 
         // SRM drop.
         {
@@ -322,14 +322,14 @@ pub struct CreateOfficer<'info> {
     #[account(
         init,
         seeds = [dex_program.key.as_ref()],
-        bump = bumps.bump,
+        bump,
         payer = authority,
     )]
     officer: Box<Account<'info, Officer>>,
     #[account(
         init,
         seeds = [b"token", officer.key().as_ref(), srm_mint.key().as_ref()],
-        bump = bumps.srm,
+        bump,
         payer = authority,
         token::mint = srm_mint,
         token::authority = officer,
@@ -338,7 +338,7 @@ pub struct CreateOfficer<'info> {
     #[account(
         init,
         seeds = [b"token", officer.key().as_ref(), usdc_mint.key().as_ref()],
-        bump = bumps.usdc,
+        bump,
         payer = authority,
         token::mint = usdc_mint,
         token::authority = officer,
@@ -347,7 +347,7 @@ pub struct CreateOfficer<'info> {
     #[account(
         init,
         seeds = [b"stake", officer.key().as_ref()],
-        bump = bumps.stake,
+        bump,
         payer = authority,
         token::mint = srm_mint,
         token::authority = officer,
@@ -356,12 +356,13 @@ pub struct CreateOfficer<'info> {
     #[account(
         init,
         seeds = [b"treasury", officer.key().as_ref()],
-        bump = bumps.treasury,
+        bump,
         payer = authority,
         token::mint = srm_mint,
         token::authority = officer,
     )]
     treasury: Box<Account<'info, TokenAccount>>,
+    #[account(mut)]
     authority: Signer<'info>,
     #[cfg_attr(
         not(feature = "test"),
@@ -390,9 +391,10 @@ pub struct AuthorizeMarket<'info> {
         init,
         payer = payer,
         seeds = [b"market-auth", officer.key().as_ref(), market.key.as_ref()],
-        bump = bump,
+        bump,
     )]
     market_auth: Account<'info, MarketAuth>,
+    #[account(mut)]
     payer: Signer<'info>,
     // Not read or written to so not validated.
     market: UncheckedAccount<'info>,
@@ -416,7 +418,7 @@ pub struct CreateOfficerToken<'info> {
     #[account(
         init,
         seeds = [b"token", officer.key().as_ref(), mint.key().as_ref()],
-        bump = bump,
+        bump,
         token::mint = mint,
         token::authority = officer,
         payer = payer,
@@ -437,7 +439,7 @@ pub struct CreateOfficerOpenOrders<'info> {
     #[account(
         init,
         seeds = [b"open-orders", officer.key().as_ref(), market.key.as_ref()],
-        bump = bump,
+        bump,
         space = 12 + size_of::<OpenOrders>(),
         payer = payer,
         owner = dex::ID,
@@ -579,7 +581,7 @@ pub struct DexMarketAccounts<'info> {
     bids: UncheckedAccount<'info>,
     #[account(mut)]
     asks: UncheckedAccount<'info>,
-    // The `safe_token::Account` that funds will be taken from, i.e., transferred
+    // The `spl_token::Account` that funds will be taken from, i.e., transferred
     // from the user into the market's vault.
     //
     // For bids, this is the base currency. For asks, the quote.
@@ -604,9 +606,9 @@ pub struct Distribute<'info> {
         has_one = treasury,
         has_one = stake,
     )]
-    officer: Account<'info, Officer>,
+    officer: Box<Account<'info, Officer>>,
     #[account(mut)]
-    treasury: Account<'info, TokenAccount>,
+    treasury: Box<Account<'info, TokenAccount>>,
     #[account(mut)]
     stake: Account<'info, TokenAccount>,
     #[account(mut)]
@@ -898,7 +900,7 @@ pub struct OfficerDidCreate {
 
 // Error.
 
-#[error]
+#[error_code]
 pub enum ErrorCode {
     #[msg("Distribution does not add to 100")]
     InvalidDistribution,
@@ -916,14 +918,14 @@ pub enum ErrorCode {
 
 fn is_distribution_valid(d: &Distribution) -> Result<()> {
     if d.burn + d.stake + d.treasury != 100 {
-        return Err(ErrorCode::InvalidDistribution.into());
+        return err!(ErrorCode::InvalidDistribution);
     }
     Ok(())
 }
 
 fn is_distribution_ready(accounts: &Distribute) -> Result<()> {
     if accounts.srm_vault.amount < 1_000_000 {
-        return Err(ErrorCode::InsufficientDistributionAmount.into());
+        return err!(ErrorCode::InsufficientDistributionAmount);
     }
     Ok(())
 }
@@ -932,7 +934,7 @@ fn is_distribution_ready(accounts: &Distribute) -> Result<()> {
 fn is_not_trading(ixs: &UncheckedAccount) -> Result<()> {
     let data = ixs.try_borrow_data()?;
     match tx_instructions::load_instruction_at(1, &data) {
-        Ok(_) => Err(ErrorCode::TooManyInstructions.into()),
+        Ok(_) => err!(ErrorCode::TooManyInstructions),
         Err(_) => Ok(()),
     }
 }
@@ -941,7 +943,7 @@ fn is_stake_reward_ready(accounts: &DropStakeReward) -> Result<()> {
     // Min drop is 15,0000 SRM.
     let min_reward: u64 = 15_000_000_000;
     if accounts.stake.amount < min_reward {
-        return Err(ErrorCode::InsufficientStakeReward.into());
+        return err!(ErrorCode::InsufficientStakeReward);
     }
     Ok(())
 }

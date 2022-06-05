@@ -1,6 +1,5 @@
 import camelCase from "camelcase";
 import EventEmitter from "eventemitter3";
-import * as bs58 from "bs58";
 import {
   Signer,
   PublicKey,
@@ -8,19 +7,15 @@ import {
   TransactionInstruction,
   Commitment,
   GetProgramAccountsFilter,
-} from "@safecoin/web3.js";
-import Provider from "../../provider";
-import { Idl, IdlTypeDef } from "../../idl";
-import Coder, {
-  ACCOUNT_DISCRIMINATOR_SIZE,
-  accountSize,
-  AccountsCoder,
-} from "../../coder";
-import { Subscription, Address, translateAddress } from "../common";
-import { getProvider } from "../../";
-import { AllAccountsMap, IdlTypes, TypeDef } from "./types";
-import * as pubkeyUtil from "../../utils/pubkey";
-import * as rpcUtil from "../../utils/rpc";
+  AccountInfo,
+} from "@solana/web3.js";
+import Provider, { getProvider } from "../../provider.js";
+import { Idl, IdlTypeDef } from "../../idl.js";
+import { Coder, BorshCoder } from "../../coder/index.js";
+import { Subscription, Address, translateAddress } from "../common.js";
+import { AllAccountsMap, IdlTypes, TypeDef } from "./types.js";
+import * as pubkeyUtil from "../../utils/pubkey.js";
+import * as rpcUtil from "../../utils/rpc.js";
 
 export default class AccountFactory {
   public static build<IDL extends Idl>(
@@ -125,9 +120,8 @@ export class AccountClient<
     this._idlAccount = idlAccount;
     this._programId = programId;
     this._provider = provider ?? getProvider();
-    this._coder = coder ?? new Coder(idl);
-    this._size =
-      ACCOUNT_DISCRIMINATOR_SIZE + (accountSize(idl, idlAccount) ?? 0);
+    this._coder = coder ?? new BorshCoder(idl);
+    this._size = this._coder.accounts.size(idlAccount);
   }
 
   /**
@@ -135,22 +129,14 @@ export class AccountClient<
    *
    * @param address The address of the account to fetch.
    */
-  async fetchNullable(address: Address): Promise<T | null> {
-    const accountInfo = await this._provider.connection.getAccountInfo(
-      translateAddress(address)
-    );
+  async fetchNullable(
+    address: Address,
+    commitment?: Commitment
+  ): Promise<T | null> {
+    const accountInfo = await this.getAccountInfo(address, commitment);
     if (accountInfo === null) {
       return null;
     }
-
-    // Assert the account discriminator is correct.
-    const discriminator = AccountsCoder.accountDiscriminator(
-      this._idlAccount.name
-    );
-    if (discriminator.compare(accountInfo.data.slice(0, 8))) {
-      throw new Error("Invalid account discriminator");
-    }
-
     return this._coder.accounts.decode<T>(
       this._idlAccount.name,
       accountInfo.data
@@ -162,8 +148,8 @@ export class AccountClient<
    *
    * @param address The address of the account to fetch.
    */
-  async fetch(address: Address): Promise<T> {
-    const data = await this.fetchNullable(address);
+  async fetch(address: Address, commitment?: Commitment): Promise<T> {
+    const data = await this.fetchNullable(address, commitment);
     if (data === null) {
       throw new Error(`Account does not exist ${address.toString()}`);
     }
@@ -176,21 +162,19 @@ export class AccountClient<
    *
    * @param addresses The addresses of the accounts to fetch.
    */
-  async fetchMultiple(addresses: Address[]): Promise<(Object | null)[]> {
+  async fetchMultiple(
+    addresses: Address[],
+    commitment?: Commitment
+  ): Promise<(Object | null)[]> {
     const accounts = await rpcUtil.getMultipleAccounts(
       this._provider.connection,
-      addresses.map((address) => translateAddress(address))
+      addresses.map((address) => translateAddress(address)),
+      commitment
     );
 
-    const discriminator = AccountsCoder.accountDiscriminator(
-      this._idlAccount.name
-    );
     // Decode accounts where discriminator is correct, null otherwise
     return accounts.map((account) => {
       if (account == null) {
-        return null;
-      }
-      if (discriminator.compare(account?.account.data.slice(0, 8))) {
         return null;
       }
       return this._coder.accounts.decode(
@@ -217,24 +201,16 @@ export class AccountClient<
   async all(
     filters?: Buffer | GetProgramAccountsFilter[]
   ): Promise<ProgramAccount<T>[]> {
-    const discriminator = AccountsCoder.accountDiscriminator(
-      this._idlAccount.name
-    );
-
     let resp = await this._provider.connection.getProgramAccounts(
       this._programId,
       {
         commitment: this._provider.connection.commitment,
         filters: [
           {
-            memcmp: {
-              offset: 0,
-              bytes: bs58.encode(
-                filters instanceof Buffer
-                  ? Buffer.concat([discriminator, filters])
-                  : discriminator
-              ),
-            },
+            memcmp: this.coder.accounts.memcmp(
+              this._idlAccount.name,
+              filters instanceof Buffer ? filters : undefined
+            ),
           },
           ...(Array.isArray(filters) ? filters : []),
         ],
@@ -343,6 +319,16 @@ export class AccountClient<
     ...args: Array<PublicKey | Buffer>
   ): Promise<PublicKey> {
     return await pubkeyUtil.associated(this._programId, ...args);
+  }
+
+  async getAccountInfo(
+    address: Address,
+    commitment?: Commitment
+  ): Promise<AccountInfo<Buffer> | null> {
+    return await this._provider.connection.getAccountInfo(
+      translateAddress(address),
+      commitment
+    );
   }
 }
 

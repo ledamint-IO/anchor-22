@@ -3,7 +3,7 @@ use crate::VERSION;
 use anchor_syn::idl::Idl;
 use anyhow::Result;
 use heck::{CamelCase, MixedCase, SnakeCase};
-use safecoin_sdk::pubkey::Pubkey;
+use solana_sdk::pubkey::Pubkey;
 
 pub fn default_program_id() -> Pubkey {
     "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
@@ -30,15 +30,9 @@ token = "{}"
 
 pub fn idl_ts(idl: &Idl) -> Result<String> {
     let mut idl = idl.clone();
-    idl.accounts = idl
-        .accounts
-        .into_iter()
-        .map(|acc| {
-            let mut acc = acc;
-            acc.name = acc.name.to_mixed_case();
-            acc
-        })
-        .collect();
+    for acc in idl.accounts.iter_mut() {
+        acc.name = acc.name.to_mixed_case();
+    }
     let idl_json = serde_json::to_string_pretty(&idl)?;
     Ok(format!(
         r#"export type {} = {};
@@ -67,6 +61,7 @@ name = "{1}"
 [features]
 no-entrypoint = []
 no-idl = []
+no-log-ix-name = []
 cpi = ["no-entrypoint"]
 default = []
 
@@ -146,7 +141,7 @@ module.exports = async function (provider) {
   anchor.setProvider(provider);
 
   // Add your deploy script here.
-}
+};
 "#
 }
 
@@ -162,7 +157,7 @@ module.exports = async function (provider) {
   anchor.setProvider(provider);
 
   // Add your deploy script here.
-}
+};
 "#
 }
 
@@ -196,14 +191,13 @@ pub struct Initialize {{}}
 
 pub fn mocha(name: &str) -> String {
     format!(
-        r#"const anchor = require('@project-serum/anchor');
+        r#"const anchor = require("@project-serum/anchor");
 
-describe('{}', () => {{
-
+describe("{}", () => {{
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.Provider.env());
 
-  it('Is initialized!', async () => {{
+  it("Is initialized!", async () => {{
     // Add your test here.
     const program = anchor.workspace.{};
     const tx = await program.rpc.initialize();
@@ -253,18 +247,17 @@ pub fn ts_package_json() -> String {
 
 pub fn ts_mocha(name: &str) -> String {
     format!(
-        r#"import * as anchor from '@project-serum/anchor';
-import {{ Program }} from '@project-serum/anchor';
-import {{ {} }} from '../target/types/{}';
+        r#"import * as anchor from "@project-serum/anchor";
+import {{ Program }} from "@project-serum/anchor";
+import {{ {} }} from "../target/types/{}";
 
-describe('{}', () => {{
-
+describe("{}", () => {{
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.Provider.env());
 
   const program = anchor.workspace.{} as Program<{}>;
 
-  it('Is initialized!', async () => {{
+  it("Is initialized!", async () => {{
     // Add your test here.
     const tx = await program.rpc.initialize({{}});
     console.log("Your transaction signature", tx);
@@ -346,7 +339,7 @@ anchor.workspace.{} = new anchor.Program({}, new PublicKey("{}"), provider);
 "#,
             program.name.to_camel_case(),
             serde_json::to_string(&program.idl)?,
-            program.program_id.to_string()
+            program.program_id
         ));
     }
 

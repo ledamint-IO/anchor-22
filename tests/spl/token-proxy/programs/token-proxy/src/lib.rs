@@ -9,15 +9,15 @@ declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 mod token_proxy {
     use super::*;
 
-    pub fn proxy_transfer(ctx: Context<ProxyTransfer>, amount: u64) -> ProgramResult {
+    pub fn proxy_transfer(ctx: Context<ProxyTransfer>, amount: u64) -> Result<()> {
         token::transfer(ctx.accounts.into(), amount)
     }
 
-    pub fn proxy_mint_to(ctx: Context<ProxyMintTo>, amount: u64) -> ProgramResult {
+    pub fn proxy_mint_to(ctx: Context<ProxyMintTo>, amount: u64) -> Result<()> {
         token::mint_to(ctx.accounts.into(), amount)
     }
 
-    pub fn proxy_burn(ctx: Context<ProxyBurn>, amount: u64) -> ProgramResult {
+    pub fn proxy_burn(ctx: Context<ProxyBurn>, amount: u64) -> Result<()> {
         token::burn(ctx.accounts.into(), amount)
     }
 
@@ -25,7 +25,7 @@ mod token_proxy {
         ctx: Context<ProxySetAuthority>,
         authority_type: AuthorityType,
         new_authority: Option<Pubkey>,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         token::set_authority(ctx.accounts.into(), authority_type.into(), new_authority)
     }
 }
@@ -139,13 +139,13 @@ impl<'a, 'b, 'c, 'info> From<&mut ProxySetAuthority<'info>>
     }
 }
 
-impl From<AuthorityType> for safe_token::instruction::AuthorityType {
-    fn from(authority_ty: AuthorityType) -> safe_token::instruction::AuthorityType {
+impl From<AuthorityType> for spl_token::instruction::AuthorityType {
+    fn from(authority_ty: AuthorityType) -> spl_token::instruction::AuthorityType {
         match authority_ty {
-            AuthorityType::MintTokens => safe_token::instruction::AuthorityType::MintTokens,
-            AuthorityType::FreezeAccount => safe_token::instruction::AuthorityType::FreezeAccount,
-            AuthorityType::AccountOwner => safe_token::instruction::AuthorityType::AccountOwner,
-            AuthorityType::CloseAccount => safe_token::instruction::AuthorityType::CloseAccount,
+            AuthorityType::MintTokens => spl_token::instruction::AuthorityType::MintTokens,
+            AuthorityType::FreezeAccount => spl_token::instruction::AuthorityType::FreezeAccount,
+            AuthorityType::AccountOwner => spl_token::instruction::AuthorityType::AccountOwner,
+            AuthorityType::CloseAccount => spl_token::instruction::AuthorityType::CloseAccount,
         }
     }
 }

@@ -1,3 +1,7 @@
 [workspace]
-members = [ "programs/*" ]
-exclude = [ "deps/serum-dex" ]
+members = [
+    "programs/*"
+]
+exclude = [
+    "deps/serum-dex"
+]

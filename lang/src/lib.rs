@@ -24,63 +24,30 @@
 extern crate self as anchor_lang;
 
 use bytemuck::{Pod, Zeroable};
-use safecoin_program::account_info::AccountInfo;
-use safecoin_program::entrypoint::ProgramResult;
-use safecoin_program::instruction::AccountMeta;
-use safecoin_program::program_error::ProgramError;
-use safecoin_program::pubkey::Pubkey;
+use solana_program::account_info::AccountInfo;
+use solana_program::instruction::AccountMeta;
+use solana_program::pubkey::Pubkey;
+use std::collections::BTreeMap;
 use std::io::Write;
 
-mod account;
-mod account_info;
 mod account_meta;
-mod boxed;
+pub mod accounts;
+mod bpf_upgradeable_state;
 mod common;
-mod context;
-mod cpi_account;
-mod cpi_state;
+pub mod context;
 mod ctor;
-mod error;
+pub mod error;
 #[doc(hidden)]
 pub mod idl;
-mod loader;
-mod loader_account;
-mod program;
-mod program_account;
-mod signer;
-pub mod state;
 mod system_program;
-mod sysvar;
-mod unchecked_account;
-mod vec;
 
-pub use crate::account::Account;
-#[doc(hidden)]
-#[allow(deprecated)]
-pub use crate::context::CpiStateContext;
-pub use crate::context::{Context, CpiContext};
-#[doc(hidden)]
-#[allow(deprecated)]
-pub use crate::cpi_account::CpiAccount;
-#[doc(hidden)]
-#[allow(deprecated)]
-pub use crate::cpi_state::CpiState;
-pub use crate::loader::Loader;
-pub use crate::loader_account::AccountLoader;
-pub use crate::program::Program;
-#[doc(hidden)]
-#[allow(deprecated)]
-pub use crate::program_account::ProgramAccount;
-pub use crate::signer::Signer;
-#[doc(hidden)]
-#[allow(deprecated)]
-pub use crate::state::ProgramState;
 pub use crate::system_program::System;
-pub use crate::sysvar::Sysvar;
-pub use crate::unchecked_account::UncheckedAccount;
+mod vec;
+pub use crate::bpf_upgradeable_state::*;
 pub use anchor_attribute_access_control::access_control;
 pub use anchor_attribute_account::{account, declare_id, zero_copy};
-pub use anchor_attribute_error::error;
+pub use anchor_attribute_constant::constant;
+pub use anchor_attribute_error;
 pub use anchor_attribute_event::{emit, event};
 pub use anchor_attribute_interface::interface;
 pub use anchor_attribute_program::program;
@@ -88,7 +55,9 @@ pub use anchor_attribute_state::state;
 pub use anchor_derive_accounts::Accounts;
 /// Borsh is the default serialization format for instructions and accounts.
 pub use borsh::{BorshDeserialize as AnchorDeserialize, BorshSerialize as AnchorSerialize};
-pub use safecoin_program;
+pub use solana_program;
+
+pub type Result<T> = std::result::Result<T, error::Error>;
 
 /// A data structure of validated accounts that can be deserialized from the
 /// input to a Solana program. Implementations of this trait should perform any
@@ -112,24 +81,28 @@ pub trait Accounts<'info>: ToAccountMetas + ToAccountInfos<'info> + Sized {
         program_id: &Pubkey,
         accounts: &mut &[AccountInfo<'info>],
         ix_data: &[u8],
-    ) -> Result<Self, ProgramError>;
+        bumps: &mut BTreeMap<String, u8>,
+    ) -> Result<Self>;
 }
 
 /// The exit procedure for an account. Any cleanup or persistence to storage
 /// should be done here.
 pub trait AccountsExit<'info>: ToAccountMetas + ToAccountInfos<'info> {
     /// `program_id` is the currently executing program.
-    fn exit(&self, program_id: &Pubkey) -> ProgramResult;
+    fn exit(&self, _program_id: &Pubkey) -> Result<()> {
+        // no-op
+        Ok(())
+    }
 }
 
 /// The close procedure to initiate garabage collection of an account, allowing
 /// one to retrieve the rent exemption.
 pub trait AccountsClose<'info>: ToAccountInfos<'info> {
-    fn close(&self, sol_destination: AccountInfo<'info>) -> ProgramResult;
+    fn close(&self, sol_destination: AccountInfo<'info>) -> Result<()>;
 }
 
 /// Transformation to
-/// [`AccountMeta`](../safecoin_program/instruction/struct.AccountMeta.html)
+/// [`AccountMeta`](../solana_program/instruction/struct.AccountMeta.html)
 /// structs.
 pub trait ToAccountMetas {
     /// `is_signer` is given as an optional override for the signer meta field.
@@ -141,7 +114,7 @@ pub trait ToAccountMetas {
 }
 
 /// Transformation to
-/// [`AccountInfo`](../safecoin_program/account_info/struct.AccountInfo.html)
+/// [`AccountInfo`](../solana_program/account_info/struct.AccountInfo.html)
 /// structs.
 pub trait ToAccountInfos<'info> {
     fn to_account_infos(&self) -> Vec<AccountInfo<'info>>;
@@ -152,9 +125,18 @@ pub trait ToAccountInfo<'info> {
     fn to_account_info(&self) -> AccountInfo<'info>;
 }
 
+impl<'info, T> ToAccountInfo<'info> for T
+where
+    T: AsRef<AccountInfo<'info>>,
+{
+    fn to_account_info(&self) -> AccountInfo<'info> {
+        self.as_ref().clone()
+    }
+}
+
 /// A data structure that can be serialized and stored into account storage,
 /// i.e. an
-/// [`AccountInfo`](../safecoin_program/account_info/struct.AccountInfo.html#structfield.data)'s
+/// [`AccountInfo`](../solana_program/account_info/struct.AccountInfo.html#structfield.data)'s
 /// mutable data slice.
 ///
 /// Implementors of this trait should ensure that any subsequent usage of the
@@ -165,27 +147,31 @@ pub trait ToAccountInfo<'info> {
 /// [`#[account]`](./attr.account.html) attribute.
 pub trait AccountSerialize {
     /// Serializes the account data into `writer`.
-    fn try_serialize<W: Write>(&self, writer: &mut W) -> Result<(), ProgramError>;
+    fn try_serialize<W: Write>(&self, _writer: &mut W) -> Result<()> {
+        Ok(())
+    }
 }
 
 /// A data structure that can be deserialized and stored into account storage,
 /// i.e. an
-/// [`AccountInfo`](../safecoin_program/account_info/struct.AccountInfo.html#structfield.data)'s
+/// [`AccountInfo`](../solana_program/account_info/struct.AccountInfo.html#structfield.data)'s
 /// mutable data slice.
 pub trait AccountDeserialize: Sized {
     /// Deserializes previously initialized account data. Should fail for all
     /// uninitialized accounts, where the bytes are zeroed. Implementations
     /// should be unique to a particular account type so that one can never
     /// successfully deserialize the data of one account type into another.
-    /// For example, if the SPL token program where to implement this trait,
-    /// it should impossible to deserialize a `Mint` account into a token
+    /// For example, if the SPL token program were to implement this trait,
+    /// it should be impossible to deserialize a `Mint` account into a token
     /// `Account`.
-    fn try_deserialize(buf: &mut &[u8]) -> Result<Self, ProgramError>;
+    fn try_deserialize(buf: &mut &[u8]) -> Result<Self> {
+        Self::try_deserialize_unchecked(buf)
+    }
 
     /// Deserializes account data without checking the account discriminator.
     /// This should only be used on account initialization, when the bytes of
     /// the account are zeroed.
-    fn try_deserialize_unchecked(buf: &mut &[u8]) -> Result<Self, ProgramError>;
+    fn try_deserialize_unchecked(buf: &mut &[u8]) -> Result<Self>;
 }
 
 /// An account data structure capable of zero copy deserialization.
@@ -237,9 +223,12 @@ pub trait Key {
     fn key(&self) -> Pubkey;
 }
 
-impl Key for Pubkey {
+impl<'info, T> Key for T
+where
+    T: AsRef<AccountInfo<'info>>,
+{
     fn key(&self) -> Pubkey {
-        *self
+        *self.as_ref().key
     }
 }
 
@@ -247,70 +236,76 @@ impl Key for Pubkey {
 /// All programs should include it via `anchor_lang::prelude::*;`.
 pub mod prelude {
     pub use super::{
-        access_control, account, declare_id, emit, error, event, interface, program, require,
-        state, zero_copy, Account, AccountDeserialize, AccountLoader, AccountSerialize, Accounts,
-        AccountsExit, AnchorDeserialize, AnchorSerialize, Context, CpiContext, Id, Key, Loader,
-        Owner, Program, ProgramAccount, Signer, System, Sysvar, ToAccountInfo, ToAccountInfos,
-        ToAccountMetas, UncheckedAccount,
+        access_control, account, accounts::account::Account,
+        accounts::account_loader::AccountLoader, accounts::program::Program,
+        accounts::signer::Signer, accounts::system_account::SystemAccount,
+        accounts::sysvar::Sysvar, accounts::unchecked_account::UncheckedAccount, constant,
+        context::Context, context::CpiContext, declare_id, emit, err, error, event, interface,
+        program, require, solana_program::bpf_loader_upgradeable::UpgradeableLoaderState, source,
+        state, zero_copy, AccountDeserialize, AccountSerialize, Accounts, AccountsExit,
+        AnchorDeserialize, AnchorSerialize, Id, Key, Owner, ProgramData, Result, System,
+        ToAccountInfo, ToAccountInfos, ToAccountMetas,
     };
-
-    #[allow(deprecated)]
-    pub use super::{CpiAccount, CpiState, CpiStateContext, ProgramState};
-
+    pub use anchor_attribute_error::*;
     pub use borsh;
-    pub use safecoin_program::account_info::{next_account_info, AccountInfo};
-    pub use safecoin_program::entrypoint::ProgramResult;
-    pub use safecoin_program::instruction::AccountMeta;
-    pub use safecoin_program::msg;
-    pub use safecoin_program::program_error::ProgramError;
-    pub use safecoin_program::pubkey::Pubkey;
-    pub use safecoin_program::sysvar::clock::Clock;
-    pub use safecoin_program::sysvar::epoch_schedule::EpochSchedule;
-    pub use safecoin_program::sysvar::fees::Fees;
-    pub use safecoin_program::sysvar::instructions::Instructions;
-    pub use safecoin_program::sysvar::recent_blockhashes::RecentBlockhashes;
-    pub use safecoin_program::sysvar::rent::Rent;
-    pub use safecoin_program::sysvar::rewards::Rewards;
-    pub use safecoin_program::sysvar::slot_hashes::SlotHashes;
-    pub use safecoin_program::sysvar::slot_history::SlotHistory;
-    pub use safecoin_program::sysvar::stake_history::StakeHistory;
-    pub use safecoin_program::sysvar::Sysvar as SolanaSysvar;
+    pub use error::*;
+    pub use solana_program::account_info::{next_account_info, AccountInfo};
+    pub use solana_program::instruction::AccountMeta;
+    pub use solana_program::msg;
+    pub use solana_program::program_error::ProgramError;
+    pub use solana_program::pubkey::Pubkey;
+    pub use solana_program::sysvar::clock::Clock;
+    pub use solana_program::sysvar::epoch_schedule::EpochSchedule;
+    pub use solana_program::sysvar::fees::Fees;
+    pub use solana_program::sysvar::instructions::Instructions;
+    pub use solana_program::sysvar::recent_blockhashes::RecentBlockhashes;
+    pub use solana_program::sysvar::rent::Rent;
+    pub use solana_program::sysvar::rewards::Rewards;
+    pub use solana_program::sysvar::slot_hashes::SlotHashes;
+    pub use solana_program::sysvar::slot_history::SlotHistory;
+    pub use solana_program::sysvar::stake_history::StakeHistory;
+    pub use solana_program::sysvar::Sysvar as SolanaSysvar;
     pub use thiserror;
 }
 
-// Internal module used by macros and unstable apis.
+/// Internal module used by macros and unstable apis.
 #[doc(hidden)]
 pub mod __private {
-    use safecoin_program::program_error::ProgramError;
-    use safecoin_program::pubkey::Pubkey;
+    use super::Result;
+    /// The discriminator anchor uses to mark an account as closed.
+    pub const CLOSED_ACCOUNT_DISCRIMINATOR: [u8; 8] = [255, 255, 255, 255, 255, 255, 255, 255];
 
     pub use crate::ctor::Ctor;
-    pub use crate::error::{Error, ErrorCode};
+
     pub use anchor_attribute_account::ZeroCopyAccessor;
+
     pub use anchor_attribute_event::EventIndex;
+
     pub use base64;
+
     pub use bytemuck;
 
-    pub mod state {
-        pub use crate::state::*;
-    }
+    use solana_program::pubkey::Pubkey;
 
-    // The starting point for user defined error codes.
-    pub const ERROR_CODE_OFFSET: u32 = 300;
+    pub mod state {
+        pub use crate::accounts::state::*;
+    }
 
     // Calculates the size of an account, which may be larger than the deserialized
     // data in it. This trait is currently only used for `#[state]` accounts.
     #[doc(hidden)]
     pub trait AccountSize {
-        fn size(&self) -> Result<u64, ProgramError>;
+        fn size(&self) -> Result<u64>;
     }
 
     // Very experimental trait.
+    #[doc(hidden)]
     pub trait ZeroCopyAccessor<Ty> {
         fn get(&self) -> Ty;
         fn set(input: &Ty) -> Self;
     }
 
+    #[doc(hidden)]
     impl ZeroCopyAccessor<Pubkey> for [u8; 32] {
         fn get(&self) -> Pubkey {
             Pubkey::new(self)
@@ -320,42 +315,94 @@ pub mod __private {
         }
     }
 
-    pub use crate::state::PROGRAM_STATE_SEED;
-    pub const CLOSED_ACCOUNT_DISCRIMINATOR: [u8; 8] = [255, 255, 255, 255, 255, 255, 255, 255];
+    #[doc(hidden)]
+    pub use crate::accounts::state::PROGRAM_STATE_SEED;
 }
 
-/// Ensures a condition is true, otherwise returns the given error.
+/// Ensures a condition is true, otherwise returns with the given error.
 /// Use this with a custom error type.
 ///
 /// # Example
-///
-/// After defining an `ErrorCode`
-///
 /// ```ignore
-/// #[error]
-/// pub struct ErrorCode {
-///     InvalidArgument,
+/// // Instruction function
+/// pub fn set_data(ctx: Context<SetData>, data: u64) -> Result<()> {
+///     require!(ctx.accounts.data.mutation_allowed, MyError::MutationForbidden);
+///     ctx.accounts.data.data = data;
+///     Ok(())
+/// }
+///
+/// // An enum for custom error codes
+/// #[error_code]
+/// pub enum MyError {
+///     MutationForbidden
+/// }
+///
+/// // An account definition
+/// #[account]
+/// #[derive(Default)]
+/// pub struct MyData {
+///     mutation_allowed: bool,
+///     data: u64
+/// }
+///
+/// // An account validation struct
+/// #[derive(Accounts)]
+/// pub struct SetData<'info> {
+///     #[account(mut)]
+///     pub data: Account<'info, MyData>
 /// }
 /// ```
-///
-/// One can write a `require` assertion as
-///
-/// ```ignore
-/// require!(condition, InvalidArgument);
-/// ```
-///
-/// which would exit the program with the `InvalidArgument` error code if
-/// `condition` is false.
 #[macro_export]
 macro_rules! require {
     ($invariant:expr, $error:tt $(,)?) => {
         if !($invariant) {
-            return Err(crate::ErrorCode::$error.into());
+            return Err(anchor_lang::anchor_attribute_error::error!(
+                crate::ErrorCode::$error
+            ));
         }
     };
     ($invariant:expr, $error:expr $(,)?) => {
         if !($invariant) {
-            return Err($error.into());
+            return Err(anchor_lang::anchor_attribute_error::error!($error));
+        }
+    };
+}
+
+/// Returns with the given error.
+/// Use this with a custom error type.
+///
+/// # Example
+/// ```ignore
+/// // Instruction function
+/// pub fn example(ctx: Context<Example>) -> Result<()> {
+///     err!(MyError::SomeError)
+/// }
+///
+/// // An enum for custom error codes
+/// #[error_code]
+/// pub enum MyError {
+///     SomeError
+/// }
+/// ```
+#[macro_export]
+macro_rules! err {
+    ($error:tt $(,)?) => {
+        Err(anchor_lang::anchor_attribute_error::error!(
+            crate::ErrorCode::$error
+        ))
+    };
+    ($error:expr $(,)?) => {
+        Err(anchor_lang::anchor_attribute_error::error!($error))
+    };
+}
+
+/// Creates a [`Source`](crate::error::Source)
+#[macro_export]
+macro_rules! source {
+    () => {
+        anchor_lang::error::Source {
+            filename: file!(),
+            line: line!(),
         }
     };
 }

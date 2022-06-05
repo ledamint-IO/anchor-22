@@ -11,42 +11,40 @@ declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 #[program]
 pub mod zero_copy {
-    use std::str::FromStr;
-
     use super::*;
 
-    pub fn create_foo(ctx: Context<CreateFoo>) -> ProgramResult {
+    pub fn create_foo(ctx: Context<CreateFoo>) -> Result<()> {
         let foo = &mut ctx.accounts.foo.load_init()?;
         foo.authority = *ctx.accounts.authority.key;
         foo.set_second_authority(ctx.accounts.authority.key);
         Ok(())
     }
 
-    pub fn update_foo(ctx: Context<UpdateFoo>, data: u64) -> ProgramResult {
+    pub fn update_foo(ctx: Context<UpdateFoo>, data: u64) -> Result<()> {
         let mut foo = ctx.accounts.foo.load_mut()?;
         foo.data = data;
         Ok(())
     }
 
-    pub fn update_foo_second(ctx: Context<UpdateFooSecond>, second_data: u64) -> ProgramResult {
+    pub fn update_foo_second(ctx: Context<UpdateFooSecond>, second_data: u64) -> Result<()> {
         let mut foo = ctx.accounts.foo.load_mut()?;
         foo.second_data = second_data;
         Ok(())
     }
 
-    pub fn create_bar(ctx: Context<CreateBar>) -> ProgramResult {
+    pub fn create_bar(ctx: Context<CreateBar>) -> Result<()> {
         let bar = &mut ctx.accounts.bar.load_init()?;
         bar.authority = *ctx.accounts.authority.key;
         Ok(())
     }
 
-    pub fn update_bar(ctx: Context<UpdateBar>, data: u64) -> ProgramResult {
+    pub fn update_bar(ctx: Context<UpdateBar>, data: u64) -> Result<()> {
         let bar = &mut ctx.accounts.bar.load_mut()?;
         bar.data = data;
         Ok(())
     }
 
-    pub fn create_large_account(_ctx: Context<CreateLargeAccount>) -> ProgramResult {
+    pub fn create_large_account(_ctx: Context<CreateLargeAccount>) -> Result<()> {
         Ok(())
     }
 
@@ -54,7 +52,7 @@ pub mod zero_copy {
         ctx: Context<UpdateLargeAccount>,
         idx: u32,
         data: u64,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         let event_q = &mut ctx.accounts.event_q.load_mut()?;
         event_q.events[idx as usize] = Event {
             data,
@@ -66,24 +64,21 @@ pub mod zero_copy {
 
 #[derive(Accounts)]
 pub struct SetEvent<'info> {
-    #[account(signer)]
-    authority: AccountInfo<'info>,
+    authority: Signer<'info>,
 }
 
 #[derive(Accounts)]
 pub struct CreateFoo<'info> {
     #[account(zero)]
     foo: AccountLoader<'info, Foo>,
-    #[account(signer)]
-    authority: AccountInfo<'info>,
+    authority: Signer<'info>,
 }
 
 #[derive(Accounts)]
 pub struct UpdateFoo<'info> {
     #[account(mut, has_one = authority)]
     foo: AccountLoader<'info, Foo>,
-    #[account(signer)]
-    authority: AccountInfo<'info>,
+    authority: Signer<'info>,
 }
 
 #[derive(Accounts)]
@@ -93,8 +88,7 @@ pub struct UpdateFooSecond<'info> {
         constraint = &foo.load()?.get_second_authority() == second_authority.key,
     )]
     foo: AccountLoader<'info, Foo>,
-    #[account(signer)]
-    second_authority: AccountInfo<'info>,
+    second_authority: Signer<'info>,
 }
 
 #[derive(Accounts)]
@@ -106,8 +100,8 @@ pub struct CreateBar<'info> {
         payer = authority, owner = *program_id
     )]
     bar: AccountLoader<'info, Bar>,
-    #[account(signer)]
-    authority: AccountInfo<'info>,
+    #[account(mut)]
+    authority: Signer<'info>,
     foo: AccountLoader<'info, Foo>,
     system_program: AccountInfo<'info>,
 }
@@ -120,8 +114,7 @@ pub struct UpdateBar<'info> {
         bump,
     )]
     pub bar: AccountLoader<'info, Bar>,
-    #[account(signer)]
-    pub authority: AccountInfo<'info>,
+    pub authority: Signer<'info>,
     pub foo: AccountLoader<'info, Foo>,
 }
 
@@ -135,11 +128,12 @@ pub struct CreateLargeAccount<'info> {
 pub struct UpdateLargeAccount<'info> {
     #[account(mut)]
     event_q: AccountLoader<'info, EventQ>,
-    #[account(signer)]
-    from: AccountInfo<'info>,
+    from: Signer<'info>,
 }
 
 #[account(zero_copy)]
+#[derive(Default)]
+#[repr(packed)]
 pub struct Foo {
     pub authority: Pubkey,
     pub data: u64,

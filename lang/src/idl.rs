@@ -17,8 +17,10 @@
 //! Note that IDL account instructions are automatically inserted into all
 //! Anchor programs. To remove them, one can use the `no-idl` feature.
 
+#[allow(deprecated)]
+use crate::accounts::program_account::ProgramAccount;
 use crate::prelude::*;
-use safecoin_program::pubkey::Pubkey;
+use solana_program::pubkey::Pubkey;
 
 // The first 8 bytes of an instruction to create or modify the IDL account. This
 // instruction is defined outside the main program's instruction enum, so that
@@ -48,6 +50,7 @@ pub type IdlCreateAccounts<'info> = crate::ctor::Ctor<'info>;
 #[derive(Accounts)]
 pub struct IdlAccounts<'info> {
     #[account(mut, has_one = authority)]
+    #[allow(deprecated)]
     pub idl: ProgramAccount<'info, IdlAccount>,
     #[account(signer, constraint = authority.key != &Pubkey::new_from_array([0u8; 32]))]
     pub authority: AccountInfo<'info>,
@@ -57,6 +60,7 @@ pub struct IdlAccounts<'info> {
 #[derive(Accounts)]
 pub struct IdlCreateBuffer<'info> {
     #[account(zero)]
+    #[allow(deprecated)]
     pub buffer: ProgramAccount<'info, IdlAccount>,
     #[account(signer, constraint = authority.key != &Pubkey::new_from_array([0u8; 32]))]
     pub authority: AccountInfo<'info>,
@@ -67,9 +71,11 @@ pub struct IdlCreateBuffer<'info> {
 pub struct IdlSetBuffer<'info> {
     // The buffer with the new idl data.
     #[account(mut, constraint = buffer.authority == idl.authority)]
+    #[allow(deprecated)]
     pub buffer: ProgramAccount<'info, IdlAccount>,
     // The idl account to be updated with the buffer's data.
     #[account(mut, has_one = authority)]
+    #[allow(deprecated)]
     pub idl: ProgramAccount<'info, IdlAccount>,
     #[account(signer, constraint = authority.key != &Pubkey::new_from_array([0u8; 32]))]
     pub authority: AccountInfo<'info>,

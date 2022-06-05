@@ -1,4 +1,5 @@
-import { PublicKey } from "@safecoin/web3.js";
+import { Buffer } from "buffer";
+import { PublicKey } from "@solana/web3.js";
 import * as borsh from "@project-serum/borsh";
 
 export type Idl = {
@@ -10,6 +11,16 @@ export type Idl = {
   types?: IdlTypeDef[];
   events?: IdlEvent[];
   errors?: IdlErrorCode[];
+  constants?: IdlConstant[];
+  metadata?: IdlMetadata;
+};
+
+export type IdlMetadata = any;
+
+export type IdlConstant = {
+  name: string;
+  type: IdlType;
+  value: string;
 };
 
 export type IdlEvent = {
@@ -42,7 +53,15 @@ export type IdlAccount = {
   name: string;
   isMut: boolean;
   isSigner: boolean;
+  pda?: IdlPda;
 };
+
+export type IdlPda = {
+  seeds: IdlSeed[];
+  programId?: IdlSeed;
+};
+
+export type IdlSeed = any; // TODO
 
 // A nested/recursive version of IdlAccount.
 export type IdlAccounts = {
@@ -82,8 +101,10 @@ export type IdlType =
   | "i16"
   | "u32"
   | "i32"
+  | "f32"
   | "u64"
   | "i64"
+  | "f64"
   | "u128"
   | "i128"
   | "bytes"
@@ -91,6 +112,7 @@ export type IdlType =
   | "publicKey"
   | IdlTypeDefined
   | IdlTypeOption
+  | IdlTypeCOption
   | IdlTypeVec
   | IdlTypeArray;
 
@@ -101,6 +123,10 @@ export type IdlTypeDefined = {
 
 export type IdlTypeOption = {
   option: IdlType;
+};
+
+export type IdlTypeCOption = {
+  coption: IdlType;
 };
 
 export type IdlTypeVec = {
