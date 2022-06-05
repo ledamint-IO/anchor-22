@@ -1,4 +1,4 @@
-//! Copied from solana/sdk/macro so that Anchor programs don't need to specify
+//! Copied from safecoin/sdk/macro so that Anchor programs don't need to specify
 //! `safecoin_program` as an additional crate dependency, but instead can access
 //! it via `anchor_lang::declare_id`.
 //!

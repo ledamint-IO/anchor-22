@@ -761,10 +761,10 @@ fn docker_build(
         return Err(anyhow!("Failed to build program"));
     }
 
-    // Set the solana version in the container, if given. Otherwise use the
+    // Set the safecoin version in the container, if given. Otherwise use the
     // default.
     if let Some(safecoin_version) = safecoin_version {
-        println!("Using solana version: {}", safecoin_version);
+        println!("Using safecoin version: {}", safecoin_version);
 
         // Fetch the installer.
         let exit = std::process::Command::new("docker")
@@ -773,16 +773,16 @@ fn docker_build(
                 container_name,
                 "curl",
                 "-sSfL",
-                &format!("https://release.solana.com/v{0}/install", safecoin_version,),
+                &format!("https://release.safecoin.com/v{0}/install", safecoin_version,),
                 "-o",
                 "safecoin_installer.sh",
             ])
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
             .output()
-            .map_err(|e| anyhow!("Failed to set solana version: {:?}", e))?;
+            .map_err(|e| anyhow!("Failed to set safecoin version: {:?}", e))?;
         if !exit.status.success() {
-            return Err(anyhow!("Failed to set solana version"));
+            return Err(anyhow!("Failed to set safecoin version"));
         }
 
         // Run the installer.
@@ -791,9 +791,9 @@ fn docker_build(
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
             .output()
-            .map_err(|e| anyhow!("Failed to set solana version: {:?}", e))?;
+            .map_err(|e| anyhow!("Failed to set safecoin version: {:?}", e))?;
         if !exit.status.success() {
-            return Err(anyhow!("Failed to set solana version"));
+            return Err(anyhow!("Failed to set safecoin version"));
         }
 
         // Remove the installer.
@@ -1549,9 +1549,9 @@ fn test(
     })
 }
 
-// Returns the solana-test-validator flags. This will embed the workspace
+// Returns the safecoin-test-validator flags. This will embed the workspace
 // programs in the genesis block so we don't have to deploy every time. It also
-// allows control of other solana-test-validator features.
+// allows control of other safecoin-test-validator features.
 fn validator_flags(cfg: &WithPath<Config>) -> Result<Vec<String>> {
     let programs = cfg.programs.get(&Cluster::Localnet);
 
@@ -1643,7 +1643,7 @@ fn stream_logs(config: &WithPath<Config>, rpc_url: &str) -> Result<Vec<std::proc
             program_logs_dir, metadata.address, program.lib_name,
         ))?;
         let stdio = std::process::Stdio::from(log_file);
-        let child = std::process::Command::new("solana")
+        let child = std::process::Command::new("safecoin")
             .arg("logs")
             .arg(metadata.address)
             .arg("--url")
@@ -1657,7 +1657,7 @@ fn stream_logs(config: &WithPath<Config>, rpc_url: &str) -> Result<Vec<std::proc
             for entry in genesis {
                 let log_file = File::create(format!("{}/{}.log", program_logs_dir, entry.address))?;
                 let stdio = std::process::Stdio::from(log_file);
-                let child = std::process::Command::new("solana")
+                let child = std::process::Command::new("safecoin")
                     .arg("logs")
                     .arg(entry.address.clone())
                     .arg("--url")
@@ -1700,7 +1700,7 @@ fn start_test_validator(
 
     let rpc_url = test_validator_rpc_url(cfg);
 
-    let mut validator_handle = std::process::Command::new("solana-test-validator")
+    let mut validator_handle = std::process::Command::new("safecoin-test-validator")
         .arg("--ledger")
         .arg(test_ledger_directory)
         .arg("--mint")
@@ -1738,7 +1738,7 @@ fn start_test_validator(
     Ok(validator_handle)
 }
 
-// Return the URL that solana-test-validator should be running on given the
+// Return the URL that safecoin-test-validator should be running on given the
 // configuration
 fn test_validator_rpc_url(cfg: &Config) -> String {
     match &cfg.test.as_ref() {
@@ -1750,7 +1750,7 @@ fn test_validator_rpc_url(cfg: &Config) -> String {
     }
 }
 
-// Setup and return paths to the solana-test-validator ledger directory and log
+// Setup and return paths to the safecoin-test-validator ledger directory and log
 // files given the configuration
 fn test_validator_file_paths(cfg: &Config) -> (String, String) {
     let ledger_directory = match &cfg.test.as_ref() {
@@ -1783,7 +1783,7 @@ fn cluster_url(cfg: &Config) -> String {
     let is_localnet = cfg.provider.cluster == Cluster::Localnet;
     match is_localnet {
         // Cluster is Localnet, assume the intent is to use the configuration
-        // for solana-test-validator
+        // for safecoin-test-validator
         true => test_validator_rpc_url(cfg),
         false => cfg.provider.cluster.url().to_string(),
     }
@@ -1816,7 +1816,7 @@ fn deploy(cfg_override: &ConfigOverride, program_str: Option<String>) -> Result<
             let file = program.keypair_file()?;
 
             // Send deploy transactions.
-            let exit = std::process::Command::new("solana")
+            let exit = std::process::Command::new("safecoin")
                 .arg("program")
                 .arg("deploy")
                 .arg("--url")
@@ -1866,7 +1866,7 @@ fn upgrade(
 
     with_workspace(cfg_override, |cfg| {
         let url = cluster_url(cfg);
-        let exit = std::process::Command::new("solana")
+        let exit = std::process::Command::new("safecoin")
             .arg("program")
             .arg("deploy")
             .arg("--url")
@@ -2104,9 +2104,9 @@ fn set_workspace_dir_or_exit() {
 fn airdrop(cfg_override: &ConfigOverride) -> Result<()> {
     let url = cfg_override
         .cluster
-        .unwrap_or_else(|| "https://api.devnet.solana.com".to_string());
+        .unwrap_or_else(|| "https://api.devnet.safecoin.com".to_string());
     loop {
-        let exit = std::process::Command::new("solana")
+        let exit = std::process::Command::new("safecoin")
             .arg("airdrop")
             .arg("10")
             .arg("--url")
@@ -2125,10 +2125,10 @@ fn airdrop(cfg_override: &ConfigOverride) -> Result<()> {
 
 fn cluster(_cmd: ClusterCommand) -> Result<()> {
     println!("Cluster Endpoints:\n");
-    println!("* Mainnet - https://solana-api.projectserum.com");
-    println!("* Mainnet - https://api.mainnet-beta.solana.com");
-    println!("* Devnet  - https://api.devnet.solana.com");
-    println!("* Testnet - https://api.testnet.solana.com");
+    println!("* Mainnet - https://safecoin-api.projectserum.com");
+    println!("* Mainnet - https://api.mainnet-beta.safecoin.com");
+    println!("* Devnet  - https://api.devnet.safecoin.com");
+    println!("* Testnet - https://api.testnet.safecoin.com");
     Ok(())
 }
 

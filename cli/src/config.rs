@@ -639,4 +639,4 @@ impl AnchorPackage {
     }
 }
 
-serum_common::home_path!(WalletPath, ".config/solana/id.json");
+serum_common::home_path!(WalletPath, ".config/safecoin/id.json");

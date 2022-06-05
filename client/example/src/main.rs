@@ -43,7 +43,7 @@ fn main() -> Result<()> {
     let opts = Opts::parse();
 
     // Wallet and cluster params.
-    let payer = read_keypair_file(&*shellexpand::tilde("~/.config/solana/id.json"))
+    let payer = read_keypair_file(&*shellexpand::tilde("~/.config/safecoin/id.json"))
         .expect("Example requires a keypair file");
     let url = Cluster::Custom(
         "http://localhost:8899".to_string(),
@@ -185,7 +185,7 @@ fn events(client: &Client, pid: Pubkey) -> Result<()> {
     assert_eq!(event.data, 5);
     assert_eq!(event.label, "hello".to_string());
 
-    // TODO: remove once https://github.com/solana-labs/solana/issues/16102
+    // TODO: remove once https://github.com/safecoin-labs/safecoin/issues/16102
     //       is addressed. Until then, drop the subscription handle in another
     //       thread so that we deadlock in the other thread as to not block
     //       this thread.

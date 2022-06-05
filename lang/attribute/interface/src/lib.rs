@@ -127,7 +127,7 @@ use syn::parse_macro_input;
 /// The caller above uses a `Result` to act as a boolean. However, in order
 /// for this feature to be maximally useful, we need a way to return values from
 /// interfaces. For now, one can do this by writing to a shared account, e.g.,
-/// with the SPL's [Shared Memory Program](https://github.com/solana-labs/solana-program-library/tree/master/shared-memory).
+/// with the SPL's [Shared Memory Program](https://github.com/safecoin-labs/safecoin-program-library/tree/master/shared-memory).
 /// In the future, Anchor will add the ability to return values across CPI
 /// without having to worry about the details of shared memory accounts.
 #[proc_macro_attribute]

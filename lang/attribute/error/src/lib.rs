@@ -38,7 +38,7 @@ use syn::parse_macro_input;
 /// Note that we generate a new `Error` type so that we can return either the
 /// user defined error enum *or* a
 /// [`ProgramError`](../safecoin_program/enum.ProgramError.html), which is used
-/// pervasively, throughout solana program crates. The generated `Error` type
+/// pervasively, throughout safecoin program crates. The generated `Error` type
 /// should almost never be used directly, as the user defined error is
 /// preferred. In the example above, `MyError::Hello.into()`.
 ///
