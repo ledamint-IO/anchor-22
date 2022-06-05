@@ -1,6 +1,6 @@
 use crate::error::ErrorCode;
 use crate::{AccountDeserialize, AccountSerialize, Owner, Result};
-use solana_program::{
+use safecoin_program::{
     bpf_loader_upgradeable::UpgradeableLoaderState, program_error::ProgramError, pubkey::Pubkey,
 };
 
@@ -45,14 +45,14 @@ impl AccountSerialize for ProgramData {
 }
 
 impl Owner for ProgramData {
-    fn owner() -> solana_program::pubkey::Pubkey {
-        anchor_lang::solana_program::bpf_loader_upgradeable::ID
+    fn owner() -> safecoin_program::pubkey::Pubkey {
+        anchor_lang::safecoin_program::bpf_loader_upgradeable::ID
     }
 }
 
 impl Owner for UpgradeableLoaderState {
     fn owner() -> Pubkey {
-        anchor_lang::solana_program::bpf_loader_upgradeable::ID
+        anchor_lang::safecoin_program::bpf_loader_upgradeable::ID
     }
 }
 

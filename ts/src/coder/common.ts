@@ -10,7 +10,7 @@ export function accountSize(idl: Idl, idlAccount: IdlTypeDef): number {
         }
         return variant.fields
           .map((f: IdlField | IdlType) => {
-            if (!(typeof f === "object" && "safecoin" in f)) {
+            if (!(typeof f === "object" && "name" in f)) {
               throw new Error("Tuple enum variants not yet implemented.");
             }
             return typeSize(idl, f.type);
@@ -75,7 +75,7 @@ function typeSize(idl: Idl, ty: IdlType): number {
         return 4 + typeSize(idl, ty.coption);
       }
       if ("defined" in ty) {
-        const filtered = idl.types?.filter((t) => t.safecoin === ty.defined) ?? [];
+        const filtered = idl.types?.filter((t) => t.name === ty.defined) ?? [];
         if (filtered.length !== 1) {
           throw new IdlError(`Type not found: ${JSON.stringify(ty)}`);
         }

@@ -4,7 +4,7 @@ import * as borsh from "@project-serum/borsh";
 
 export type Idl = {
   version: string;
-  safecoin: string;
+  name: string;
   instructions: IdlInstruction[];
   state?: IdlState;
   accounts?: IdlTypeDef[];
@@ -18,24 +18,24 @@ export type Idl = {
 export type IdlMetadata = any;
 
 export type IdlConstant = {
-  safecoin: string;
+  name: string;
   type: IdlType;
   value: string;
 };
 
 export type IdlEvent = {
-  safecoin: string;
+  name: string;
   fields: IdlEventField[];
 };
 
 export type IdlEventField = {
-  safecoin: string;
+  name: string;
   type: IdlType;
   index: boolean;
 };
 
 export type IdlInstruction = {
-  safecoin: string;
+  name: string;
   accounts: IdlAccountItem[];
   args: IdlField[];
 };
@@ -50,7 +50,7 @@ export type IdlStateMethod = IdlInstruction;
 export type IdlAccountItem = IdlAccount | IdlAccounts;
 
 export type IdlAccount = {
-  safecoin: string;
+  name: string;
   isMut: boolean;
   isSigner: boolean;
   pda?: IdlPda;
@@ -65,17 +65,17 @@ export type IdlSeed = any; // TODO
 
 // A nested/recursive version of IdlAccount.
 export type IdlAccounts = {
-  safecoin: string;
+  name: string;
   accounts: IdlAccountItem[];
 };
 
 export type IdlField = {
-  safecoin: string;
+  name: string;
   type: IdlType;
 };
 
 export type IdlTypeDef = {
-  safecoin: string;
+  name: string;
   type: IdlTypeDefTy;
 };
 
@@ -138,7 +138,7 @@ export type IdlTypeArray = {
 };
 
 export type IdlEnumVariant = {
-  safecoin: string;
+  name: string;
   fields?: IdlEnumFields;
 };
 
@@ -150,7 +150,7 @@ type IdlEnumFieldsTuple = IdlType[];
 
 export type IdlErrorCode = {
   code: number;
-  safecoin: string;
+  name: string;
   msg?: string;
 };
 

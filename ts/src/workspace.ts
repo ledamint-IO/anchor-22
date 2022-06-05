@@ -8,7 +8,7 @@ import { isBrowser } from "./utils/common.js";
 let _populatedWorkspace = false;
 
 /**
- * The `workspace` safecoinspace provides a convenience API to automatically
+ * The `workspace` namespace provides a convenience API to automatically
  * search for and deserialize [[Program]] objects defined by compiled IDLs
  * in an Anchor workspace.
  *
@@ -28,7 +28,7 @@ const workspace = new Proxy({} as any, {
 
       let projectRoot = process.cwd();
       while (!fs.existsSync(path.join(projectRoot, "Anchor.toml"))) {
-        const parentDir = path.dirsafecoin(projectRoot);
+        const parentDir = path.dirname(projectRoot);
         if (parentDir === projectRoot) {
           projectRoot = undefined;
         }
@@ -53,10 +53,10 @@ const workspace = new Proxy({} as any, {
           const filePath = `${idlFolder}/${file}`;
           const idlStr = fs.readFileSync(filePath);
           const idl = JSON.parse(idlStr);
-          idlMap.set(idl.safecoin, idl);
-          const safecoin = camelCase(idl.safecoin, { pascalCase: true });
+          idlMap.set(idl.name, idl);
+          const name = camelCase(idl.name, { pascalCase: true });
           if (idl.metadata && idl.metadata.address) {
-            workspaceCache[safecoin] = new Program(
+            workspaceCache[name] = new Program(
               idl,
               new PublicKey(idl.metadata.address)
             );

@@ -1,9 +1,9 @@
 //! Data structures that are used to provide non-argument inputs to program endpoints
 
 use crate::{Accounts, ToAccountInfos, ToAccountMetas};
-use solana_program::account_info::AccountInfo;
-use solana_program::instruction::AccountMeta;
-use solana_program::pubkey::Pubkey;
+use safecoin_program::account_info::AccountInfo;
+use safecoin_program::instruction::AccountMeta;
+use safecoin_program::pubkey::Pubkey;
 use std::collections::BTreeMap;
 use std::fmt;
 

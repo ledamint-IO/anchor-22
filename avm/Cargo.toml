@@ -1,14 +1,14 @@
 [package]
-safecoin = "avm"
+name = "avm"
 version = "0.22.0"
 edition = "2018"
 
 [[bin]]
-safecoin = "avm"
+name = "avm"
 path = "src/main.rs"
 
 [[bin]]
-safecoin = "anchor"
+name = "anchor"
 path = "src/anchor/main.rs"
 
 [dependencies]

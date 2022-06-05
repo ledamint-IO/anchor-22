@@ -4,8 +4,8 @@ use anyhow::{anyhow, Error, Result};
 use clap::{ArgEnum, Parser};
 use heck::SnakeCase;
 use serde::{Deserialize, Serialize};
-use solana_sdk::pubkey::Pubkey;
-use solana_sdk::signature::{Keypair, Signer};
+use safecoin_sdk::pubkey::Pubkey;
+use safecoin_sdk::signature::{Keypair, Signer};
 use std::collections::BTreeMap;
 use std::convert::TryFrom;
 use std::fs::{self, File};
@@ -60,13 +60,13 @@ impl Manifest {
             .map_err(Into::into)
     }
 
-    pub fn lib_safecoin(&self) -> Result<String> {
-        if self.lib.is_some() && self.lib.as_ref().unwrap().safecoin.is_some() {
+    pub fn lib_name(&self) -> Result<String> {
+        if self.lib.is_some() && self.lib.as_ref().unwrap().name.is_some() {
             Ok(self
                 .lib
                 .as_ref()
                 .unwrap()
-                .safecoin
+                .name
                 .as_ref()
                 .unwrap()
                 .to_string()
@@ -76,7 +76,7 @@ impl Manifest {
                 .package
                 .as_ref()
                 .ok_or_else(|| anyhow!("package section not provided"))?
-                .safecoin
+                .name
                 .to_string()
                 .to_snake_case())
         }
@@ -101,8 +101,8 @@ impl Manifest {
         while let Some(cwd) = cwd_opt {
             for f in fs::read_dir(cwd)? {
                 let p = f?.path();
-                if let Some(filesafecoin) = p.file_safecoin() {
-                    if filesafecoin.to_str() == Some("Cargo.toml") {
+                if let Some(filename) = p.file_name() {
+                    if filename.to_str() == Some("Cargo.toml") {
                         let m = WithPath::new(Manifest::from_path(&p)?, p);
                         return Ok(Some(m));
                     }
@@ -160,7 +160,7 @@ impl WithPath<Config> {
         let mut r = vec![];
         for path in self.get_program_list()? {
             let cargo = Manifest::from_path(&path.join("Cargo.toml"))?;
-            let lib_safecoin = cargo.lib_safecoin()?;
+            let lib_name = cargo.lib_name()?;
             let version = cargo.version();
             let idl = anchor_syn::idl::file::parse(
                 path.join("src/lib.rs"),
@@ -169,7 +169,7 @@ impl WithPath<Config> {
                 false,
             )?;
             r.push(Program {
-                lib_safecoin,
+                lib_name,
                 path,
                 idl,
             });
@@ -207,7 +207,7 @@ impl WithPath<Config> {
         Ok((members, exclude))
     }
 
-    pub fn get_program(&self, safecoin: &str) -> Result<Option<WithPath<Program>>> {
+    pub fn get_program(&self, name: &str) -> Result<Option<WithPath<Program>>> {
         for program in self.read_all_programs()? {
             let cargo_toml = program.path.join("Cargo.toml");
             if !cargo_toml.exists() {
@@ -216,8 +216,8 @@ impl WithPath<Config> {
                     program.path.display()
                 ));
             }
-            let p_lib_safecoin = Manifest::from_path(&cargo_toml)?.lib_safecoin()?;
-            if safecoin == p_lib_safecoin {
+            let p_lib_name = Manifest::from_path(&cargo_toml)?.lib_name()?;
+            if name == p_lib_name {
                 let path = self
                     .path()
                     .parent()
@@ -247,7 +247,7 @@ impl<T> std::ops::DerefMut for WithPath<T> {
 #[derive(Debug, Default)]
 pub struct Config {
     pub anchor_version: Option<String>,
-    pub solana_version: Option<String>,
+    pub safecoin_version: Option<String>,
     pub features: FeaturesConfig,
     pub registry: RegistryConfig,
     pub provider: ProviderConfig,
@@ -305,7 +305,7 @@ pub enum BootstrapMode {
 #[derive(Debug, Clone)]
 pub struct BuildConfig {
     pub verifiable: bool,
-    pub solana_version: Option<String>,
+    pub safecoin_version: Option<String>,
     pub docker_image: String,
     pub bootstrap: BootstrapMode,
 }
@@ -341,8 +341,8 @@ impl Config {
         while let Some(cwd) = cwd_opt {
             for f in fs::read_dir(cwd)? {
                 let p = f?.path();
-                if let Some(filesafecoin) = p.file_safecoin() {
-                    if filesafecoin.to_str() == Some("Anchor.toml") {
+                if let Some(filename) = p.file_name() {
+                    if filename.to_str() == Some("Anchor.toml") {
                         let cfg = Config::from_path(&p)?;
                         return Ok(Some(WithPath::new(cfg, p)));
                     }
@@ -365,7 +365,7 @@ impl Config {
     }
 
     pub fn wallet_kp(&self) -> Result<Keypair> {
-        solana_sdk::signature::read_keypair_file(&self.provider.wallet.to_string())
+        safecoin_sdk::signature::read_keypair_file(&self.provider.wallet.to_string())
             .map_err(|_| anyhow!("Unable to read keypair file"))
     }
 }
@@ -373,7 +373,7 @@ impl Config {
 #[derive(Debug, Serialize, Deserialize)]
 struct _Config {
     anchor_version: Option<String>,
-    solana_version: Option<String>,
+    safecoin_version: Option<String>,
     features: Option<FeaturesConfig>,
     programs: Option<BTreeMap<String, BTreeMap<String, serde_json::Value>>>,
     registry: Option<RegistryConfig>,
@@ -401,7 +401,7 @@ impl ToString for Config {
         };
         let cfg = _Config {
             anchor_version: self.anchor_version.clone(),
-            solana_version: self.solana_version.clone(),
+            safecoin_version: self.safecoin_version.clone(),
             features: Some(self.features.clone()),
             registry: Some(self.registry.clone()),
             provider: Provider {
@@ -430,7 +430,7 @@ impl FromStr for Config {
             .map_err(|e| anyhow::format_err!("Unable to deserialize config: {}", e.to_string()))?;
         Ok(Config {
             anchor_version: cfg.anchor_version,
-            solana_version: cfg.solana_version,
+            safecoin_version: cfg.safecoin_version,
             features: cfg.features.unwrap_or_default(),
             registry: cfg.registry.unwrap_or_default(),
             provider: ProviderConfig {
@@ -454,9 +454,9 @@ fn ser_programs(
             let cluster = cluster.to_string();
             let programs = programs
                 .iter()
-                .map(|(safecoin, deployment)| {
+                .map(|(name, deployment)| {
                     (
-                        safecoin.clone(),
+                        name.clone(),
                         to_value(&_ProgramDeployment::from(deployment)),
                     )
                 })
@@ -482,9 +482,9 @@ fn deser_programs(
             let cluster: Cluster = cluster.parse()?;
             let programs = programs
                 .iter()
-                .map(|(safecoin, program_id)| {
+                .map(|(name, program_id)| {
                     Ok((
-                        safecoin.clone(),
+                        name.clone(),
                         ProgramDeployment::try_from(match &program_id {
                             serde_json::Value::String(address) => _ProgramDeployment {
                                 address: address.parse()?,
@@ -531,7 +531,7 @@ pub struct AccountEntry {
     // Base58 pubkey string.
     pub address: String,
     // Name of JSON file containing the account data.
-    pub filesafecoin: String,
+    pub filename: String,
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
@@ -554,7 +554,7 @@ pub struct Validator {
     // Give the faucet address this much SOL in genesis. [default: 1000000]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub faucet_sol: Option<String>,
-    // Gossip DNS safecoin or IP address for the validator to advertise in gossip. [default: 127.0.0.1]
+    // Gossip DNS name or IP address for the validator to advertise in gossip. [default: 127.0.0.1]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub gossip_host: Option<String>,
     // Gossip port number for the validator
@@ -594,7 +594,7 @@ fn default_rpc_port() -> u16 {
 
 #[derive(Debug, Clone)]
 pub struct Program {
-    pub lib_safecoin: String,
+    pub lib_name: String,
     // Canonicalized path to the program directory.
     pub path: PathBuf,
     pub idl: Option<Idl>,
@@ -607,8 +607,8 @@ impl Program {
 
     pub fn keypair(&self) -> Result<Keypair> {
         let file = self.keypair_file()?;
-        solana_sdk::signature::read_keypair_file(file.path())
-            .map_err(|_| anyhow!("failed to read keypair for program: {}", self.lib_safecoin))
+        safecoin_sdk::signature::read_keypair_file(file.path())
+            .map_err(|_| anyhow!("failed to read keypair for program: {}", self.lib_name))
     }
 
     // Lazily initializes the keypair file with a new key if it doesn't exist.
@@ -616,7 +616,7 @@ impl Program {
         fs::create_dir_all("target/deploy/")?;
         let path = std::env::current_dir()
             .expect("Must have current dir")
-            .join(format!("target/deploy/{}-keypair.json", self.lib_safecoin));
+            .join(format!("target/deploy/{}-keypair.json", self.lib_name));
         if path.exists() {
             return Ok(WithPath::new(File::open(&path)?, path));
         }
@@ -629,7 +629,7 @@ impl Program {
     pub fn binary_path(&self) -> PathBuf {
         std::env::current_dir()
             .expect("Must have current dir")
-            .join(format!("target/deploy/{}.so", self.lib_safecoin))
+            .join(format!("target/deploy/{}.so", self.lib_name))
     }
 }
 
@@ -669,20 +669,20 @@ impl From<&ProgramDeployment> for _ProgramDeployment {
 }
 
 pub struct ProgramWorkspace {
-    pub safecoin: String,
+    pub name: String,
     pub program_id: Pubkey,
     pub idl: Idl,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AnchorPackage {
-    pub safecoin: String,
+    pub name: String,
     pub address: String,
     pub idl: Option<String>,
 }
 
 impl AnchorPackage {
-    pub fn from(safecoin: String, cfg: &WithPath<Config>) -> Result<Self> {
+    pub fn from(name: String, cfg: &WithPath<Config>) -> Result<Self> {
         let cluster = &cfg.provider.cluster;
         if cluster != &Cluster::Mainnet {
             return Err(anyhow!("Publishing requires the mainnet cluster"));
@@ -691,12 +691,12 @@ impl AnchorPackage {
             .programs
             .get(cluster)
             .ok_or_else(|| anyhow!("Program not provided in Anchor.toml"))?
-            .get(&safecoin)
+            .get(&name)
             .ok_or_else(|| anyhow!("Program not provided in Anchor.toml"))?;
         let idl = program_details.idl.clone();
         let address = program_details.address.to_string();
-        Ok(Self { safecoin, address, idl })
+        Ok(Self { name, address, idl })
     }
 }
 
-serum_common::home_path!(WalletPath, ".config/solana/id.json");
+serum_common::home_path!(WalletPath, ".config/safecoin/id.json");

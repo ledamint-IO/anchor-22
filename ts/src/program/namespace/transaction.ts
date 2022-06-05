@@ -31,7 +31,7 @@ export default class TransactionFactory {
 }
 
 /**
- * The safecoinspace provides functions to build [[Transaction]] objects for each
+ * The namespace provides functions to build [[Transaction]] objects for each
  * method of a program.
  *
  * ## Usage

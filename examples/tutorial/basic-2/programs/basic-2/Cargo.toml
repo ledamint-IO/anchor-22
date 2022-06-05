@@ -1,12 +1,12 @@
 [package]
-safecoin = "basic-2"
+name = "basic-2"
 version = "0.1.0"
 description = "Created with Anchor"
 edition = "2018"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-safecoin = "basic_2"
+name = "basic_2"
 
 [features]
 no-entrypoint = []

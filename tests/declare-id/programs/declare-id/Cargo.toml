@@ -1,12 +1,12 @@
 [package]
-safecoin = "declare-id"
+name = "declare-id"
 version = "0.1.0"
 description = "Created with Anchor"
 edition = "2018"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-safecoin = "declare_id"
+name = "declare_id"
 
 [features]
 no-entrypoint = []

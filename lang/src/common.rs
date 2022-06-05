@@ -1,7 +1,7 @@
 use crate::error::ErrorCode;
 use crate::prelude::error;
 use crate::Result;
-use solana_program::account_info::AccountInfo;
+use safecoin_program::account_info::AccountInfo;
 use std::io::Write;
 
 pub fn close<'info>(info: AccountInfo<'info>, sol_destination: AccountInfo<'info>) -> Result<()> {

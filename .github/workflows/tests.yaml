@@ -1,4 +1,4 @@
-safecoin: Tests
+name: Tests
 
 on:
   push:
@@ -13,7 +13,7 @@ env:
 
 jobs:
   test-core:
-    safecoin: Core Tests
+    name: Core Tests
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
       - uses: actions/cache@v2
-        safecoin: Cache Cargo registry + index
+        name: Cache Cargo registry + index
         id: cache-cargo-build
         with:
           path: |
@@ -47,14 +47,14 @@ jobs:
       - run: cd tests && yarn lint
 
   setup-anchor-cli:
-    safecoin: Setup Anchor cli
+    name: Setup Anchor cli
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
       - uses: ./.github/actions/setup/
 
       - uses: actions/cache@v2
-        safecoin: Cache Cargo registry + index
+        name: Cache Cargo registry + index
         id: cache-anchor
         with:
           path: |
@@ -67,49 +67,49 @@ jobs:
       - run: cargo install --path cli anchor-cli --locked --force
       - uses: actions/upload-artifact@v2
         with:
-          safecoin: anchor-binary
+          name: anchor-binary
           path: ~/.cargo/bin/anchor
 
   test-examples:
     needs: setup-anchor-cli
-    safecoin: Examples Test
+    name: Examples Test
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
         with:
-          safecoin: anchor-binary
+          name: anchor-binary
           path: ~/.cargo/bin/
       - run: chmod +rwx ~/.cargo/bin/anchor
       - uses: ./.github/actions/setup/
       - uses: ./.github/actions/setup-solana/
       - uses: ./.github/actions/setup-ts/
       - uses: actions/cache@v2
-        safecoin: basic-0 cache
+        name: basic-0 cache
         id: cache-basic-0
         with:
           path: ./examples/tutorial/basic-0/target
           key: cargo-${{ runner.os }}-${{ hashFiles('./examples/tutorial/basic-0/**/Cargo.toml') }}
       - uses: actions/cache@v2
-        safecoin: basic-1 cache
+        name: basic-1 cache
         id: cache-basic-1
         with:
           path: ./examples/tutorial/basic-1/target
           key: cargo-${{ runner.os }}-${{ hashFiles('./examples/tutorial/basic-1/**/Cargo.toml') }}
       - uses: actions/cache@v2
-        safecoin: basic-2 cache
+        name: basic-2 cache
         id: cache-basic-2
         with:
           path: ./examples/tutorial/basic-2/target
           key: cargo-${{ runner.os }}-${{ hashFiles('./examples/tutorial/basic-2/**/Cargo.toml') }}
       - uses: actions/cache@v2
-        safecoin: basic-3 cache
+        name: basic-3 cache
         id: cache-basic-3
         with:
           path: ./examples/tutorial/basic-3/target
           key: cargo-${{ runner.os }}-${{ hashFiles('./examples/tutorial/basic-3/**/Cargo.toml') }}
       - uses: actions/cache@v2
-        safecoin: basic-4 cache
+        name: basic-4 cache
         id: cache-basic-4
         with:
           path: ./examples/tutorial/basic-4/target
@@ -118,20 +118,20 @@ jobs:
 
   setup-client-example:
     needs: setup-anchor-cli
-    safecoin: Setup Client Example Test
+    name: Setup Client Example Test
     runs-on: ubuntu-18.04
     strategy:
       fail-fast: false
       matrix:
         node:
           - path: tests/events/
-            safecoin: events.so
+            name: events.so
           - path: examples/tutorial/basic-4/
-            safecoin: basic_4.so
+            name: basic_4.so
           - path: examples/tutorial/basic-2/
-            safecoin: basic_2.so
+            name: basic_2.so
           - path: tests/composite/
-            safecoin: composite.so
+            name: composite.so
     steps:
       - uses: actions/checkout@v2
       - uses: ./.github/actions/setup/
@@ -139,18 +139,18 @@ jobs:
 
       - uses: actions/download-artifact@v2
         with:
-          safecoin: anchor-binary
+          name: anchor-binary
           path: ~/.cargo/bin/
       - run: chmod +rwx ~/.cargo/bin/anchor
       - run: cd ${{ matrix.node.path }} && anchor build --skip-lint
       - uses: actions/upload-artifact@v2
         with:
-          safecoin: ${{ matrix.node.safecoin }}
-          path: ${{ matrix.node.path }}target/deploy/${{ matrix.node.safecoin }}
+          name: ${{ matrix.node.name }}
+          path: ${{ matrix.node.path }}target/deploy/${{ matrix.node.name }}
 
   test-client-example:
     needs: setup-client-example
-    safecoin: Client Example Test
+    name: Client Example Test
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
@@ -159,26 +159,26 @@ jobs:
 
       - uses: actions/download-artifact@v2
         with:
-          safecoin: anchor-binary
+          name: anchor-binary
           path: ~/.cargo/bin/
       - uses: actions/download-artifact@v2
         with:
-          safecoin: events.so
+          name: events.so
           path: tests/events/target/deploy/
       - uses: actions/download-artifact@v2
         with:
-          safecoin: basic_4.so
+          name: basic_4.so
           path: examples/tutorial/basic-4/target/deploy/
       - uses: actions/download-artifact@v2
         with:
-          safecoin: basic_2.so
+          name: basic_2.so
           path: examples/tutorial/basic-2/target/deploy/
       - uses: actions/download-artifact@v2
         with:
-          safecoin: composite.so
+          name: composite.so
           path: tests/composite/target/deploy/
       - uses: actions/cache@v2
-        safecoin: Cache client/example target
+        name: Cache client/example target
         id: cache-test-target
         with:
           path: client/example/target
@@ -188,7 +188,7 @@ jobs:
 
   test-bpf-upgradeable-state:
     needs: setup-anchor-cli
-    safecoin: Test tests/bpf-upgradeable-state
+    name: Test tests/bpf-upgradeable-state
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
@@ -197,7 +197,7 @@ jobs:
       - uses: ./.github/actions/setup-solana/
 
       - uses: actions/cache@v2
-        safecoin: Cache Cargo registry + index
+        name: Cache Cargo registry + index
         id: cache-anchor
         with:
           path: |
@@ -210,18 +210,18 @@ jobs:
 
       - uses: actions/download-artifact@v2
         with:
-          safecoin: anchor-binary
+          name: anchor-binary
           path: ~/.cargo/bin/
 
       - uses: actions/cache@v2
-        safecoin: Cache tests/bpf-upgradeable-state target
+        name: Cache tests/bpf-upgradeable-state target
         id: cache-test-target
         with:
           path: tests/bpf-upgradeable-state/target
           key: cargo-${{ runner.os }}-tests/bpf-upgradeable-state-${{ env.ANCHOR_VERSION }}
 
       - run: solana-test-validator -r --quiet &
-        safecoin: start validator
+        name: start validator
       - run: cd tests/bpf-upgradeable-state && yarn
       - run: cd tests/bpf-upgradeable-state && yarn link @project-serum/anchor
       - run: cd tests/bpf-upgradeable-state && anchor build --skip-lint
@@ -230,7 +230,7 @@ jobs:
 
   test-programs:
     needs: setup-anchor-cli
-    safecoin: Test ${{ matrix.node.path }}
+    name: Test ${{ matrix.node.path }}
     runs-on: ubuntu-18.04
     strategy:
       fail-fast: false
@@ -289,7 +289,7 @@ jobs:
       - uses: ./.github/actions/setup-solana/
 
       - uses: actions/cache@v2
-        safecoin: Cache Cargo registry + index
+        name: Cache Cargo registry + index
         id: cache-anchor
         with:
           path: |
@@ -302,15 +302,15 @@ jobs:
 
       - uses: actions/download-artifact@v2
         with:
-          safecoin: anchor-binary
+          name: anchor-binary
           path: ~/.cargo/bin/
 
       - uses: actions/cache@v2
-        safecoin: Cache ${{ matrix.node.path }} target
+        name: Cache ${{ matrix.node.path }} target
         id: cache-test-target
         with:
           path: ${{ matrix.node.path }}/target
           key: cargo-${{ runner.os }}-${{ matrix.node.path }}-${{ env.ANCHOR_VERSION }}
 
       - run: ${{ matrix.node.cmd }}
-        safecoin: ${{ matrix.node.path }} program test
+        name: ${{ matrix.node.path }} program test

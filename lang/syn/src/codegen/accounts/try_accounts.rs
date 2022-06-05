@@ -5,7 +5,7 @@ use syn::Expr;
 
 // Generates the `Accounts` trait implementation.
 pub fn generate(accs: &AccountsStruct) -> proc_macro2::TokenStream {
-    let safecoin = &accs.ident;
+    let name = &accs.ident;
     let ParsedGenerics {
         combined_generics,
         trait_generics,
@@ -20,12 +20,12 @@ pub fn generate(accs: &AccountsStruct) -> proc_macro2::TokenStream {
         .map(|af: &AccountField| {
             match af {
                 AccountField::CompositeField(s) => {
-                    let safecoin = &s.ident;
+                    let name = &s.ident;
                     let ty = &s.raw_field.ty;
                     quote! {
                         #[cfg(feature = "anchor-debug")]
-                        ::solana_program::log::sol_log(stringify!(#safecoin));
-                        let #safecoin: #ty = anchor_lang::Accounts::try_accounts(program_id, accounts, ix_data, __bumps)?;
+                        ::safecoin_program::log::sol_log(stringify!(#name));
+                        let #name: #ty = anchor_lang::Accounts::try_accounts(program_id, accounts, ix_data, __bumps)?;
                     }
                 }
                 AccountField::Field(f) => {
@@ -33,19 +33,19 @@ pub fn generate(accs: &AccountsStruct) -> proc_macro2::TokenStream {
                     // deserialized by constraints. Here, we just take out the
                     // AccountInfo for later use at constraint validation time.
                     if is_init(af) || f.constraints.zeroed.is_some() {
-                        let safecoin = &f.ident;
+                        let name = &f.ident;
                         quote!{
-                            let #safecoin = &accounts[0];
+                            let #name = &accounts[0];
                             *accounts = &accounts[1..];
                         }
                     } else {
-                        let safecoin = f.ident.to_string();
-                        let typed_safecoin = f.typed_ident();
+                        let name = f.ident.to_string();
+                        let typed_name = f.typed_ident();
                         quote! {
                             #[cfg(feature = "anchor-debug")]
-                            ::solana_program::log::sol_log(stringify!(#typed_safecoin));
-                            let #typed_safecoin = anchor_lang::Accounts::try_accounts(program_id, accounts, ix_data, __bumps)
-                                .map_err(|e| e.with_account_safecoin(#safecoin))?;
+                            ::safecoin_program::log::sol_log(stringify!(#typed_name));
+                            let #typed_name = anchor_lang::Accounts::try_accounts(program_id, accounts, ix_data, __bumps)
+                                .map_err(|e| e.with_account_name(#name))?;
                         }
                     }
                 }
@@ -60,7 +60,7 @@ pub fn generate(accs: &AccountsStruct) -> proc_macro2::TokenStream {
         None => quote! {},
         Some(ix_api) => {
             let strct_inner = &ix_api;
-            let field_safecoins: Vec<proc_macro2::TokenStream> = ix_api
+            let field_names: Vec<proc_macro2::TokenStream> = ix_api
                 .iter()
                 .map(|expr: &Expr| match expr {
                     Expr::Type(expr_type) => {
@@ -79,7 +79,7 @@ pub fn generate(accs: &AccountsStruct) -> proc_macro2::TokenStream {
                     #strct_inner
                 }
                 let __Args {
-                    #(#field_safecoins),*
+                    #(#field_names),*
                 } = __Args::deserialize(&mut ix_data)
                     .map_err(|_| anchor_lang::error::ErrorCode::InstructionDidNotDeserialize)?;
             }
@@ -88,11 +88,11 @@ pub fn generate(accs: &AccountsStruct) -> proc_macro2::TokenStream {
 
     quote! {
         #[automatically_derived]
-        impl<#combined_generics> anchor_lang::Accounts<#trait_generics> for #safecoin<#struct_generics> #where_clause {
+        impl<#combined_generics> anchor_lang::Accounts<#trait_generics> for #name<#struct_generics> #where_clause {
             #[inline(never)]
             fn try_accounts(
-                program_id: &anchor_lang::solana_program::pubkey::Pubkey,
-                accounts: &mut &[anchor_lang::solana_program::account_info::AccountInfo<'info>],
+                program_id: &anchor_lang::safecoin_program::pubkey::Pubkey,
+                accounts: &mut &[anchor_lang::safecoin_program::account_info::AccountInfo<'info>],
                 ix_data: &[u8],
                 __bumps: &mut std::collections::BTreeMap<String, u8>,
             ) -> anchor_lang::Result<Self> {
@@ -144,24 +144,24 @@ pub fn generate_constraints(accs: &AccountsStruct) -> proc_macro2::TokenStream {
 }
 
 pub fn generate_accounts_instance(accs: &AccountsStruct) -> proc_macro2::TokenStream {
-    let safecoin = &accs.ident;
+    let name = &accs.ident;
     // Each field in the final deserialized accounts struct.
     let return_tys: Vec<proc_macro2::TokenStream> = accs
         .fields
         .iter()
         .map(|f: &AccountField| {
-            let safecoin = match f {
+            let name = match f {
                 AccountField::CompositeField(s) => &s.ident,
                 AccountField::Field(f) => &f.ident,
             };
             quote! {
-                #safecoin
+                #name
             }
         })
         .collect();
 
     quote! {
-        #safecoin {
+        #name {
             #(#return_tys),*
         }
     }

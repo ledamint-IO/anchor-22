@@ -12,7 +12,7 @@ export function parseIdlErrors(idl: Idl): Map<number, string> {
   const errors = new Map();
   if (idl.errors) {
     idl.errors.forEach((e) => {
-      let msg = e.msg ?? e.safecoin;
+      let msg = e.msg ?? e.name;
       errors.set(e.code, msg);
     });
   }
@@ -30,7 +30,7 @@ export function toInstruction(
   const ix: { [key: string]: any } = {};
   let idx = 0;
   idlIx.args.forEach((ixArg) => {
-    ix[ixArg.safecoin] = args[idx];
+    ix[ixArg.name] = args[idx];
     idx += 1;
   });
 
@@ -44,10 +44,10 @@ export function validateAccounts(
 ) {
   ixAccounts.forEach((acc) => {
     if ("accounts" in acc) {
-      validateAccounts(acc.accounts, accounts[acc.safecoin] as Accounts);
+      validateAccounts(acc.accounts, accounts[acc.name] as Accounts);
     } else {
-      if (accounts[acc.safecoin] === undefined) {
-        throw new Error(`Invalid arguments: ${acc.safecoin} not provided.`);
+      if (accounts[acc.name] === undefined) {
+        throw new Error(`Invalid arguments: ${acc.name} not provided.`);
       }
     }
   });

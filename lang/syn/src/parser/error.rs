@@ -38,7 +38,7 @@ pub fn parse(error_enum: &mut syn::ItemEnum, args: Option<ErrorArgs>) -> Error {
         })
         .collect();
     Error {
-        safecoin: error_enum.ident.to_string(),
+        name: error_enum.ident.to_string(),
         raw_enum: error_enum.clone(),
         ident,
         codes,
@@ -91,17 +91,17 @@ impl Parse for ErrorInput {
 
 pub struct ErrorWithAccountNameInput {
     pub error_code: Expr,
-    pub account_safecoin: Expr,
+    pub account_name: Expr,
 }
 
 impl Parse for ErrorWithAccountNameInput {
     fn parse(stream: syn::parse::ParseStream) -> ParseResult<Self> {
         let error_code = stream.call(Expr::parse)?;
         let _ = stream.parse::<Token!(,)>();
-        let account_safecoin = stream.call(Expr::parse)?;
+        let account_name = stream.call(Expr::parse)?;
         Ok(Self {
             error_code,
-            account_safecoin,
+            account_name,
         })
     }
 }

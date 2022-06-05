@@ -25,7 +25,7 @@ export { MethodsBuilderFactory, MethodsNamespace } from "./methods";
 
 export default class NamespaceFactory {
   /**
-   * Generates all safecoinspaces for a given program.
+   * Generates all namespaces for a given program.
    */
   public static build<IDL extends Idl>(
     idl: IDL,
@@ -83,13 +83,13 @@ export default class NamespaceFactory {
         account
       );
 
-      const safecoin = camelCase(idlIx.safecoin);
+      const name = camelCase(idlIx.name);
 
-      instruction[safecoin] = ixItem;
-      transaction[safecoin] = txItem;
-      rpc[safecoin] = rpcItem;
-      simulate[safecoin] = simulateItem;
-      methods[safecoin] = methodItem;
+      instruction[name] = ixItem;
+      transaction[name] = txItem;
+      rpc[name] = rpcItem;
+      simulate[name] = simulateItem;
+      methods[name] = methodItem;
     });
 
     return [

@@ -1,12 +1,12 @@
 [package]
-safecoin = "cashiers-check"
+name = "cashiers-check"
 version = "0.1.0"
 description = "Created with Anchor"
 edition = "2018"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-safecoin = "cashiers_check"
+name = "cashiers_check"
 
 [features]
 no-entrypoint = []

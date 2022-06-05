@@ -1,5 +1,5 @@
-//! Copied from solana/sdk/macro so that Anchor programs don't need to specify
-//! `solana_program` as an additional crate dependency, but instead can access
+//! Copied from safecoin/sdk/macro so that Anchor programs don't need to specify
+//! `safecoin_program` as an additional crate dependency, but instead can access
 //! it via `anchor_lang::declare_id`.
 //!
 //! Convenience macro to declare a static public key and functions to interact with it
@@ -101,7 +101,7 @@ impl Parse for Id {
     fn parse(input: ParseStream) -> Result<Self> {
         parse_id(
             input,
-            quote! { anchor_lang::solana_program::pubkey::Pubkey },
+            quote! { anchor_lang::safecoin_program::pubkey::Pubkey },
         )
         .map(Self)
     }
@@ -111,7 +111,7 @@ impl ToTokens for Id {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         id_to_tokens(
             &self.0,
-            quote! { anchor_lang::solana_program::pubkey::Pubkey },
+            quote! { anchor_lang::safecoin_program::pubkey::Pubkey },
             tokens,
         )
     }
@@ -123,7 +123,7 @@ impl Parse for IdDeprecated {
     fn parse(input: ParseStream) -> Result<Self> {
         parse_id(
             input,
-            quote! { anchor_lang::solana_program::pubkey::Pubkey },
+            quote! { anchor_lang::safecoin_program::pubkey::Pubkey },
         )
         .map(Self)
     }
@@ -133,7 +133,7 @@ impl ToTokens for IdDeprecated {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         deprecated_id_to_tokens(
             &self.0,
-            quote! { anchor_lang::solana_program::pubkey::Pubkey },
+            quote! { anchor_lang::safecoin_program::pubkey::Pubkey },
             tokens,
         )
     }
@@ -144,7 +144,7 @@ impl Parse for ProgramSdkId {
     fn parse(input: ParseStream) -> Result<Self> {
         parse_id(
             input,
-            quote! { anchor_lang::solana_program::pubkey::Pubkey },
+            quote! { anchor_lang::safecoin_program::pubkey::Pubkey },
         )
         .map(Self)
     }
@@ -154,7 +154,7 @@ impl ToTokens for ProgramSdkId {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         id_to_tokens(
             &self.0,
-            quote! { anchor_lang::solana_program::pubkey::Pubkey },
+            quote! { anchor_lang::safecoin_program::pubkey::Pubkey },
             tokens,
         )
     }
@@ -165,7 +165,7 @@ impl Parse for ProgramSdkIdDeprecated {
     fn parse(input: ParseStream) -> Result<Self> {
         parse_id(
             input,
-            quote! { anchor_lang::solana_program::pubkey::Pubkey },
+            quote! { anchor_lang::safecoin_program::pubkey::Pubkey },
         )
         .map(Self)
     }
@@ -175,7 +175,7 @@ impl ToTokens for ProgramSdkIdDeprecated {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         deprecated_id_to_tokens(
             &self.0,
-            quote! { anchor_lang::solana_program::pubkey::Pubkey },
+            quote! { anchor_lang::safecoin_program::pubkey::Pubkey },
             tokens,
         )
     }
@@ -237,7 +237,7 @@ struct Pubkeys {
 impl Parse for Pubkeys {
     fn parse(input: ParseStream) -> Result<Self> {
         let pubkey_type = quote! {
-            anchor_lang::solana_program::pubkey::Pubkey
+            anchor_lang::safecoin_program::pubkey::Pubkey
         };
 
         let method = input.parse()?;
@@ -277,7 +277,7 @@ impl ToTokens for Pubkeys {
         } = self;
 
         let pubkey_type = quote! {
-            anchor_lang::solana_program::pubkey::Pubkey
+            anchor_lang::safecoin_program::pubkey::Pubkey
         };
         if *num == 1 {
             tokens.extend(quote! {

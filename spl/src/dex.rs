@@ -1,6 +1,6 @@
-use anchor_lang::solana_program::account_info::AccountInfo;
-use anchor_lang::solana_program::program_error::ProgramError;
-use anchor_lang::solana_program::pubkey::Pubkey;
+use anchor_lang::safecoin_program::account_info::AccountInfo;
+use anchor_lang::safecoin_program::program_error::ProgramError;
+use anchor_lang::safecoin_program::pubkey::Pubkey;
 use anchor_lang::{context::CpiContext, Accounts, Result, ToAccountInfos};
 use serum_dex::instruction::SelfTradeBehavior;
 use serum_dex::matching::{OrderType, Side};
@@ -9,10 +9,10 @@ use std::num::NonZeroU64;
 pub use serum_dex;
 
 #[cfg(not(feature = "devnet"))]
-anchor_lang::solana_program::declare_id!("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin");
+anchor_lang::safecoin_program::declare_id!("9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin");
 
 #[cfg(feature = "devnet")]
-anchor_lang::solana_program::declare_id!("DESVgJVGajEgKGXhb6XmqDHGz3VjdgP7rEVESBgxmroY");
+anchor_lang::safecoin_program::declare_id!("DESVgJVGajEgKGXhb6XmqDHGz3VjdgP7rEVESBgxmroY");
 
 #[allow(clippy::too_many_arguments)]
 pub fn new_order_v3<'info>(
@@ -52,7 +52,7 @@ pub fn new_order_v3<'info>(
         max_native_pc_qty_including_fees,
     )
     .map_err(|pe| ProgramError::from(pe))?;
-    solana_program::program::invoke_signed(
+    safecoin_program::program::invoke_signed(
         &ix,
         &ToAccountInfos::to_account_infos(&ctx),
         ctx.signer_seeds,
@@ -77,7 +77,7 @@ pub fn cancel_order_v2<'info>(
         order_id,
     )
     .map_err(|pe| ProgramError::from(pe))?;
-    solana_program::program::invoke_signed(
+    safecoin_program::program::invoke_signed(
         &ix,
         &ToAccountInfos::to_account_infos(&ctx),
         ctx.signer_seeds,
@@ -101,7 +101,7 @@ pub fn settle_funds<'info>(ctx: CpiContext<'_, '_, '_, 'info, SettleFunds<'info>
         ctx.accounts.vault_signer.key,
     )
     .map_err(|pe| ProgramError::from(pe))?;
-    solana_program::program::invoke_signed(
+    safecoin_program::program::invoke_signed(
         &ix,
         &ToAccountInfos::to_account_infos(&ctx),
         ctx.signer_seeds,
@@ -120,7 +120,7 @@ pub fn init_open_orders<'info>(
         ctx.remaining_accounts.first().map(|acc| acc.key),
     )
     .map_err(|pe| ProgramError::from(pe))?;
-    solana_program::program::invoke_signed(
+    safecoin_program::program::invoke_signed(
         &ix,
         &ToAccountInfos::to_account_infos(&ctx),
         ctx.signer_seeds,
@@ -139,7 +139,7 @@ pub fn close_open_orders<'info>(
         ctx.accounts.market.key,
     )
     .map_err(|pe| ProgramError::from(pe))?;
-    solana_program::program::invoke_signed(
+    safecoin_program::program::invoke_signed(
         &ix,
         &ToAccountInfos::to_account_infos(&ctx),
         ctx.signer_seeds,
@@ -158,7 +158,7 @@ pub fn sweep_fees<'info>(ctx: CpiContext<'_, '_, '_, 'info, SweepFees<'info>>) -
         ctx.accounts.token_program.key,
     )
     .map_err(|pe| ProgramError::from(pe))?;
-    solana_program::program::invoke_signed(
+    safecoin_program::program::invoke_signed(
         &ix,
         &ToAccountInfos::to_account_infos(&ctx),
         ctx.signer_seeds,
@@ -194,7 +194,7 @@ pub fn initialize_market<'info>(
         pc_dust_threshold,
     )
     .map_err(|pe| ProgramError::from(pe))?;
-    solana_program::program::invoke_signed(
+    safecoin_program::program::invoke_signed(
         &ix,
         &ToAccountInfos::to_account_infos(&ctx),
         ctx.signer_seeds,

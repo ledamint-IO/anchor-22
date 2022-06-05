@@ -1,8 +1,8 @@
 use crate::*;
 use crate::{error::ErrorCode, prelude::Account};
-use solana_program::account_info::AccountInfo;
-use solana_program::instruction::AccountMeta;
-use solana_program::pubkey::Pubkey;
+use safecoin_program::account_info::AccountInfo;
+use safecoin_program::instruction::AccountMeta;
+use safecoin_program::pubkey::Pubkey;
 use std::collections::BTreeMap;
 use std::ops::{Deref, DerefMut};
 

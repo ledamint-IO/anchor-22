@@ -10,7 +10,7 @@ mod handlers;
 mod instruction;
 
 pub fn generate(program: &Program) -> proc_macro2::TokenStream {
-    let mod_safecoin = &program.safecoin;
+    let mod_name = &program.name;
 
     let entry = entry::generate(program);
     let dispatch = dispatch::generate(program);
@@ -22,7 +22,7 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
 
     quote! {
         // TODO: remove once we allow segmented paths in `Accounts` structs.
-        use self::#mod_safecoin::*;
+        use self::#mod_name::*;
 
         #entry
         #dispatch

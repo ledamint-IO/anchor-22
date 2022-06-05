@@ -6,7 +6,7 @@ const { arch, platform } = require("os");
 const { version } = require("./package.json");
 
 const PACKAGE_VERSION = `anchor-cli ${version}`;
-const PACKAGE_ANCHOR_PATH = path.join(__dirsafecoin, "anchor");
+const PACKAGE_ANCHOR_PATH = path.join(__dirname, "anchor");
 
 function getBinaryVersion(location) {
   const result = spawnSync(location, ["--version"]);
@@ -62,7 +62,7 @@ function trySystemAnchor() {
   console.error("Trying globally installed anchor.");
 
   const absolutePath = process.env.PATH.split(":")
-    .filter((dir) => dir !== path.dirsafecoin(process.argv[1]))
+    .filter((dir) => dir !== path.dirname(process.argv[1]))
     .find((dir) => {
       try {
         fs.accessSync(`${dir}/anchor`, fs.constants.X_OK);

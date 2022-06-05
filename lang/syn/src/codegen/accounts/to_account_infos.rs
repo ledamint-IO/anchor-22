@@ -4,7 +4,7 @@ use quote::quote;
 
 // Generates the `ToAccountInfos` trait implementation.
 pub fn generate(accs: &AccountsStruct) -> proc_macro2::TokenStream {
-    let safecoin = &accs.ident;
+    let name = &accs.ident;
     let ParsedGenerics {
         combined_generics,
         trait_generics,
@@ -16,19 +16,19 @@ pub fn generate(accs: &AccountsStruct) -> proc_macro2::TokenStream {
         .fields
         .iter()
         .map(|f: &AccountField| {
-            let safecoin = match f {
+            let name = match f {
                 AccountField::CompositeField(s) => &s.ident,
                 AccountField::Field(f) => &f.ident,
             };
             quote! {
-                account_infos.extend(self.#safecoin.to_account_infos());
+                account_infos.extend(self.#name.to_account_infos());
             }
         })
         .collect();
     quote! {
         #[automatically_derived]
-        impl<#combined_generics> anchor_lang::ToAccountInfos<#trait_generics> for #safecoin <#struct_generics> #where_clause{
-            fn to_account_infos(&self) -> Vec<anchor_lang::solana_program::account_info::AccountInfo<'info>> {
+        impl<#combined_generics> anchor_lang::ToAccountInfos<#trait_generics> for #name <#struct_generics> #where_clause{
+            fn to_account_infos(&self) -> Vec<anchor_lang::safecoin_program::account_info::AccountInfo<'info>> {
                 let mut account_infos = vec![];
 
                 #(#to_acc_infos)*

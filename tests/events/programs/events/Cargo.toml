@@ -1,12 +1,12 @@
 [package]
-safecoin = "events"
+name = "events"
 version = "0.1.0"
 description = "Created with Anchor"
 edition = "2018"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-safecoin = "events"
+name = "events"
 
 [features]
 no-entrypoint = []

@@ -2,14 +2,14 @@
 
 use crate::error::ErrorCode;
 use crate::*;
-use solana_program::account_info::AccountInfo;
-use solana_program::instruction::AccountMeta;
-use solana_program::pubkey::Pubkey;
+use safecoin_program::account_info::AccountInfo;
+use safecoin_program::instruction::AccountMeta;
+use safecoin_program::pubkey::Pubkey;
 use std::collections::BTreeMap;
 use std::fmt;
 use std::ops::{Deref, DerefMut};
 
-/// Wrapper around [`AccountInfo`](crate::solana_program::account_info::AccountInfo)
+/// Wrapper around [`AccountInfo`](crate::safecoin_program::account_info::AccountInfo)
 /// that verifies program ownership and deserializes underlying data into a Rust type.
 ///
 /// # Table of Contents
@@ -287,7 +287,7 @@ impl<'a, T: AccountSerialize + AccountDeserialize + Owner + Clone> Account<'a, T
     /// Instead of this:
     /// ```ignore
     /// pub fn new_user(ctx: Context<CreateUser>, new_user:User) -> Result<()> {
-    ///     (*ctx.accounts.user_to_create).safecoin = new_user.safecoin;
+    ///     (*ctx.accounts.user_to_create).name = new_user.name;
     ///     (*ctx.accounts.user_to_create).age = new_user.age;
     ///     (*ctx.accounts.user_to_create).address = new_user.address;
     /// }
@@ -397,7 +397,7 @@ impl<'a, T: AccountSerialize + AccountDeserialize + Owner + Clone> DerefMut for 
     fn deref_mut(&mut self) -> &mut Self::Target {
         #[cfg(feature = "anchor-debug")]
         if !self.info.is_writable {
-            solana_program::msg!("The given Account is not mutable");
+            safecoin_program::msg!("The given Account is not mutable");
             panic!();
         }
         &mut self.account

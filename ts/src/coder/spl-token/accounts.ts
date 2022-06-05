@@ -21,7 +21,7 @@ export class SplTokenAccountsCoder<A extends string = string>
         return buffer.slice(0, len);
       }
       default: {
-        throw new Error(`Invalid account safecoin: ${accountName}`);
+        throw new Error(`Invalid account name: ${accountName}`);
       }
     }
   }
@@ -39,7 +39,7 @@ export class SplTokenAccountsCoder<A extends string = string>
         return decodeMintAccount(ix);
       }
       default: {
-        throw new Error(`Invalid account safecoin: ${accountName}`);
+        throw new Error(`Invalid account name: ${accountName}`);
       }
     }
   }
@@ -58,7 +58,7 @@ export class SplTokenAccountsCoder<A extends string = string>
         };
       }
       default: {
-        throw new Error(`Invalid account safecoin: ${accountName}`);
+        throw new Error(`Invalid account name: ${accountName}`);
       }
     }
   }

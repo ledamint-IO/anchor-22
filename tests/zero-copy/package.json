@@ -1,5 +1,5 @@
 {
-  "safecoin": "zero-copy",
+  "name": "zero-copy",
   "version": "0.22.0",
   "license": "(MIT OR Apache-2.0)",
   "homepage": "https://github.com/project-serum/anchor#readme",

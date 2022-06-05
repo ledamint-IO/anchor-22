@@ -4,13 +4,13 @@ use heck::CamelCase;
 use quote::quote;
 
 pub fn generate(program: &Program) -> proc_macro2::TokenStream {
-    let safecoin: proc_macro2::TokenStream = program.safecoin.to_string().to_camel_case().parse().unwrap();
+    let name: proc_macro2::TokenStream = program.name.to_string().to_camel_case().parse().unwrap();
     let fallback_maybe = dispatch::gen_fallback(program).unwrap_or(quote! {
         Err(anchor_lang::error::ErrorCode::InstructionMissing.into())
     });
     quote! {
         #[cfg(not(feature = "no-entrypoint"))]
-        anchor_lang::solana_program::entrypoint!(entry);
+        anchor_lang::safecoin_program::entrypoint!(entry);
         /// The Anchor codegen exposes a programming model where a user defines
         /// a set of methods inside of a `#[program]` module in a way similar
         /// to writing RPC request handlers. The macro then generates a bunch of
@@ -18,7 +18,7 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
         /// executed on Solana.
         ///
         /// These methods fall into one of three categories, each of which
-        /// can be considered a different "safecoinspace" of the program.
+        /// can be considered a different "namespace" of the program.
         ///
         /// 1) Global methods - regular methods inside of the `#[program]`.
         /// 2) State methods - associated methods inside a `#[state]` struct.
@@ -26,7 +26,7 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
         ///    implementation of an `#[interface]` trait.
         ///
         /// Care must be taken by the codegen to prevent collisions between
-        /// methods in these different safecoinspaces. For this reason, Anchor uses
+        /// methods in these different namespaces. For this reason, Anchor uses
         /// a variant of sighash to perform method dispatch, rather than
         /// something like a simple enum variant discriminator.
         ///
@@ -51,7 +51,7 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
         ///
         /// The `entry` function here, defines the standard entry to a Solana
         /// program, where execution begins.
-        pub fn entry(program_id: &Pubkey, accounts: &[AccountInfo], data: &[u8]) -> anchor_lang::solana_program::entrypoint::ProgramResult {
+        pub fn entry(program_id: &Pubkey, accounts: &[AccountInfo], data: &[u8]) -> anchor_lang::safecoin_program::entrypoint::ProgramResult {
             try_entry(program_id, accounts, data).map_err(|e| {
                 e.log();
                 e.into()
@@ -78,9 +78,9 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
 
             /// Type representing the program.
             #[derive(Clone)]
-            pub struct #safecoin;
+            pub struct #name;
 
-            impl anchor_lang::Id for #safecoin {
+            impl anchor_lang::Id for #name {
                 fn id() -> Pubkey {
                     ID
                 }

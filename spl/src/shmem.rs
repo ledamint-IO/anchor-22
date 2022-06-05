@@ -1,13 +1,13 @@
 //! CPI API for interacting with the SPL shared memory
-//! [program](https://github.com/solana-labs/safecoin-program-library/tree/master/shared-memory).
+//! [program](https://github.com/safecoin-labs/safecoin-program-library/tree/master/shared-memory).
 
 use anchor_lang::ToAccountInfo;
 use anchor_lang::{context::CpiContext, Accounts};
-use solana_program::account_info::AccountInfo;
-use solana_program::declare_id;
-use solana_program::entrypoint::ProgramResult;
-use solana_program::instruction::{AccountMeta, Instruction};
-use solana_program::program;
+use safecoin_program::account_info::AccountInfo;
+use safecoin_program::declare_id;
+use safecoin_program::entrypoint::ProgramResult;
+use safecoin_program::instruction::{AccountMeta, Instruction};
+use safecoin_program::program;
 
 // TODO: update this once the final shared memory program gets released.
 //       shmem4EWT2sPdVGvTZCzXXRAURL9G5vpPxNwSeKhHUL.

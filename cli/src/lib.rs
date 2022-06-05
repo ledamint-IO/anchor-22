@@ -18,19 +18,19 @@ use reqwest::blocking::multipart::{Form, Part};
 use reqwest::blocking::Client;
 use semver::{Version, VersionReq};
 use serde::{Deserialize, Serialize};
-use solana_client::rpc_client::RpcClient;
-use solana_client::rpc_config::RpcSendTransactionConfig;
-use solana_program::instruction::{AccountMeta, Instruction};
-use solana_sdk::account_utils::StateMut;
-use solana_sdk::bpf_loader;
-use solana_sdk::bpf_loader_deprecated;
-use solana_sdk::bpf_loader_upgradeable::{self, UpgradeableLoaderState};
-use solana_sdk::commitment_config::CommitmentConfig;
-use solana_sdk::pubkey::Pubkey;
-use solana_sdk::signature::Keypair;
-use solana_sdk::signature::Signer;
-use solana_sdk::sysvar;
-use solana_sdk::transaction::Transaction;
+use safecoin_client::rpc_client::RpcClient;
+use safecoin_client::rpc_config::RpcSendTransactionConfig;
+use safecoin_program::instruction::{AccountMeta, Instruction};
+use safecoin_sdk::account_utils::StateMut;
+use safecoin_sdk::bpf_loader;
+use safecoin_sdk::bpf_loader_deprecated;
+use safecoin_sdk::bpf_loader_upgradeable::{self, UpgradeableLoaderState};
+use safecoin_sdk::commitment_config::CommitmentConfig;
+use safecoin_sdk::pubkey::Pubkey;
+use safecoin_sdk::signature::Keypair;
+use safecoin_sdk::signature::Signer;
+use safecoin_sdk::sysvar;
+use safecoin_sdk::transaction::Transaction;
 use std::collections::BTreeMap;
 use std::collections::HashMap;
 use std::ffi::OsString;
@@ -61,7 +61,7 @@ pub struct Opts {
 pub enum Command {
     /// Initializes a workspace.
     Init {
-        safecoin: String,
+        name: String,
         #[clap(short, long)]
         javascript: bool,
     },
@@ -81,11 +81,11 @@ pub enum Command {
         #[clap(short, long)]
         verifiable: bool,
         #[clap(short, long)]
-        program_safecoin: Option<String>,
+        program_name: Option<String>,
         /// Version of the Solana toolchain to use. For --verifiable builds
         /// only.
         #[clap(short, long)]
-        solana_version: Option<String>,
+        safecoin_version: Option<String>,
         /// Docker image to use. For --verifiable builds only.
         #[clap(short, long)]
         docker_image: Option<String>,
@@ -111,7 +111,7 @@ pub enum Command {
     Expand {
         /// Expand only this program
         #[clap(short, long)]
-        program_safecoin: Option<String>,
+        program_name: Option<String>,
         /// Arguments to pass to the underlying `cargo expand` command
         #[clap(
             required = false,
@@ -128,11 +128,11 @@ pub enum Command {
         /// The deployed program to compare against.
         program_id: Pubkey,
         #[clap(short, long)]
-        program_safecoin: Option<String>,
+        program_name: Option<String>,
         /// Version of the Solana toolchain to use. For --verifiable builds
         /// only.
         #[clap(short, long)]
-        solana_version: Option<String>,
+        safecoin_version: Option<String>,
         /// Docker image to use. For --verifiable builds only.
         #[clap(short, long)]
         docker_image: Option<String>,
@@ -183,7 +183,7 @@ pub enum Command {
         cargo_args: Vec<String>,
     },
     /// Creates a new program.
-    New { safecoin: String },
+    New { name: String },
     /// Commands for interacting with interface definitions.
     Idl {
         #[clap(subcommand)]
@@ -192,7 +192,7 @@ pub enum Command {
     /// Deploys each program in the workspace.
     Deploy {
         #[clap(short, long)]
-        program_safecoin: Option<String>,
+        program_name: Option<String>,
     },
     /// Runs the deploy migration script.
     Migrate,
@@ -222,7 +222,7 @@ pub enum Command {
     Shell,
     /// Runs the script defined by the current workspace's Anchor.toml.
     Run {
-        /// The safecoin of the script to run.
+        /// The name of the script to run.
         script: String,
     },
     /// Saves an api token from the registry locally.
@@ -232,7 +232,7 @@ pub enum Command {
     },
     /// Publishes a verified build to the Anchor registry.
     Publish {
-        /// The safecoin of the program to publish.
+        /// The name of the program to publish.
         program: String,
         /// Arguments to pass to the underlying `cargo build-bpf` command.
         #[clap(
@@ -361,14 +361,14 @@ pub enum ClusterCommand {
 
 pub fn entry(opts: Opts) -> Result<()> {
     match opts.command {
-        Command::Init { safecoin, javascript } => init(&opts.cfg_override, safecoin, javascript),
-        Command::New { safecoin } => new(&opts.cfg_override, safecoin),
+        Command::Init { name, javascript } => init(&opts.cfg_override, name, javascript),
+        Command::New { name } => new(&opts.cfg_override, name),
         Command::Build {
             idl,
             idl_ts,
             verifiable,
-            program_safecoin,
-            solana_version,
+            program_name,
+            safecoin_version,
             docker_image,
             bootstrap,
             cargo_args,
@@ -379,8 +379,8 @@ pub fn entry(opts: Opts) -> Result<()> {
             idl_ts,
             verifiable,
             skip_lint,
-            program_safecoin,
-            solana_version,
+            program_name,
+            safecoin_version,
             docker_image,
             bootstrap,
             None,
@@ -389,25 +389,25 @@ pub fn entry(opts: Opts) -> Result<()> {
         ),
         Command::Verify {
             program_id,
-            program_safecoin,
-            solana_version,
+            program_name,
+            safecoin_version,
             docker_image,
             bootstrap,
             cargo_args,
         } => verify(
             &opts.cfg_override,
             program_id,
-            program_safecoin,
-            solana_version,
+            program_name,
+            safecoin_version,
             docker_image,
             bootstrap,
             cargo_args,
         ),
-        Command::Deploy { program_safecoin } => deploy(&opts.cfg_override, program_safecoin),
+        Command::Deploy { program_name } => deploy(&opts.cfg_override, program_name),
         Command::Expand {
-            program_safecoin,
+            program_name,
             cargo_args,
-        } => expand(&opts.cfg_override, program_safecoin, &cargo_args),
+        } => expand(&opts.cfg_override, program_name, &cargo_args),
         Command::Upgrade {
             program_id,
             program_filepath,
@@ -458,7 +458,7 @@ pub fn entry(opts: Opts) -> Result<()> {
     }
 }
 
-fn init(cfg_override: &ConfigOverride, safecoin: String, javascript: bool) -> Result<()> {
+fn init(cfg_override: &ConfigOverride, name: String, javascript: bool) -> Result<()> {
     if Config::discover(cfg_override)?.is_some() {
         return Err(anyhow!("Workspace already initialized"));
     }
@@ -473,19 +473,19 @@ fn init(cfg_override: &ConfigOverride, safecoin: String, javascript: bool) -> Re
         "unique",
     ];
 
-    if key_words.contains(&safecoin[..].into()) {
+    if key_words.contains(&name[..].into()) {
         return Err(anyhow!(
-            "{} is a reserved word in rust, safecoin your project something else!",
-            safecoin
+            "{} is a reserved word in rust, name your project something else!",
+            name
         ));
-    } else if safecoin.chars().next().unwrap().is_numeric() {
+    } else if name.chars().next().unwrap().is_numeric() {
         return Err(anyhow!(
-            "Cannot start project safecoin with numbers, safecoin your project something else!"
+            "Cannot start project name with numbers, name your project something else!"
         ));
     }
 
-    fs::create_dir(safecoin.clone())?;
-    std::env::set_current_dir(&safecoin)?;
+    fs::create_dir(name.clone())?;
+    std::env::set_current_dir(&name)?;
     fs::create_dir("app")?;
 
     let mut cfg = Config::default();
@@ -500,7 +500,7 @@ fn init(cfg_override: &ConfigOverride, safecoin: String, javascript: bool) -> Re
     );
     let mut localnet = BTreeMap::new();
     localnet.insert(
-        safecoin.to_snake_case(),
+        name.to_snake_case(),
         ProgramDeployment {
             address: template::default_program_id(),
             path: None,
@@ -523,7 +523,7 @@ fn init(cfg_override: &ConfigOverride, safecoin: String, javascript: bool) -> Re
     // Build the program.
     fs::create_dir("programs")?;
 
-    new_program(&safecoin)?;
+    new_program(&name)?;
 
     // Build the test suite.
     fs::create_dir("tests")?;
@@ -535,8 +535,8 @@ fn init(cfg_override: &ConfigOverride, safecoin: String, javascript: bool) -> Re
         let mut package_json = File::create("package.json")?;
         package_json.write_all(template::package_json().as_bytes())?;
 
-        let mut mocha = File::create(&format!("tests/{}.js", safecoin))?;
-        mocha.write_all(template::mocha(&safecoin).as_bytes())?;
+        let mut mocha = File::create(&format!("tests/{}.js", name))?;
+        mocha.write_all(template::mocha(&name).as_bytes())?;
 
         let mut deploy = File::create("migrations/deploy.js")?;
         deploy.write_all(template::deploy_script().as_bytes())?;
@@ -551,8 +551,8 @@ fn init(cfg_override: &ConfigOverride, safecoin: String, javascript: bool) -> Re
         let mut deploy = File::create("migrations/deploy.ts")?;
         deploy.write_all(template::ts_deploy_script().as_bytes())?;
 
-        let mut mocha = File::create(&format!("tests/{}.ts", safecoin))?;
-        mocha.write_all(template::ts_mocha(&safecoin).as_bytes())?;
+        let mut mocha = File::create(&format!("tests/{}.ts", name))?;
+        mocha.write_all(template::ts_mocha(&name).as_bytes())?;
     }
 
     // Install node modules.
@@ -571,13 +571,13 @@ fn init(cfg_override: &ConfigOverride, safecoin: String, javascript: bool) -> Re
         println!("Failed to install node dependencies")
     }
 
-    println!("{} initialized", safecoin);
+    println!("{} initialized", name);
 
     Ok(())
 }
 
-// Creates a new program crate in the `programs/<safecoin>` directory.
-fn new(cfg_override: &ConfigOverride, safecoin: String) -> Result<()> {
+// Creates a new program crate in the `programs/<name>` directory.
+fn new(cfg_override: &ConfigOverride, name: String) -> Result<()> {
     with_workspace(cfg_override, |cfg| {
         match cfg.path().parent() {
             None => {
@@ -585,7 +585,7 @@ fn new(cfg_override: &ConfigOverride, safecoin: String) -> Result<()> {
             }
             Some(parent) => {
                 std::env::set_current_dir(&parent)?;
-                new_program(&safecoin)?;
+                new_program(&name)?;
                 println!("Created new program.");
             }
         };
@@ -593,27 +593,27 @@ fn new(cfg_override: &ConfigOverride, safecoin: String) -> Result<()> {
     })
 }
 
-// Creates a new program crate in the current directory with `safecoin`.
-fn new_program(safecoin: &str) -> Result<()> {
-    fs::create_dir(&format!("programs/{}", safecoin))?;
-    fs::create_dir(&format!("programs/{}/src/", safecoin))?;
-    let mut cargo_toml = File::create(&format!("programs/{}/Cargo.toml", safecoin))?;
-    cargo_toml.write_all(template::cargo_toml(safecoin).as_bytes())?;
-    let mut xargo_toml = File::create(&format!("programs/{}/Xargo.toml", safecoin))?;
+// Creates a new program crate in the current directory with `name`.
+fn new_program(name: &str) -> Result<()> {
+    fs::create_dir(&format!("programs/{}", name))?;
+    fs::create_dir(&format!("programs/{}/src/", name))?;
+    let mut cargo_toml = File::create(&format!("programs/{}/Cargo.toml", name))?;
+    cargo_toml.write_all(template::cargo_toml(name).as_bytes())?;
+    let mut xargo_toml = File::create(&format!("programs/{}/Xargo.toml", name))?;
     xargo_toml.write_all(template::xargo_toml().as_bytes())?;
-    let mut lib_rs = File::create(&format!("programs/{}/src/lib.rs", safecoin))?;
-    lib_rs.write_all(template::lib_rs(safecoin).as_bytes())?;
+    let mut lib_rs = File::create(&format!("programs/{}/src/lib.rs", name))?;
+    lib_rs.write_all(template::lib_rs(name).as_bytes())?;
     Ok(())
 }
 
 pub fn expand(
     cfg_override: &ConfigOverride,
-    program_safecoin: Option<String>,
+    program_name: Option<String>,
     cargo_args: &[String],
 ) -> Result<()> {
     // Change to the workspace member directory, if needed.
-    if let Some(program_safecoin) = program_safecoin.as_ref() {
-        cd_member(cfg_override, program_safecoin)?;
+    if let Some(program_name) = program_name.as_ref() {
+        cd_member(cfg_override, program_name)?;
     }
 
     let workspace_cfg = Config::discover(cfg_override)?.expect("Not in workspace.");
@@ -667,18 +667,18 @@ fn expand_program(
         target_dir_arg
     };
 
-    let package_safecoin = &cargo
+    let package_name = &cargo
         .package
         .as_ref()
         .ok_or_else(|| anyhow!("Cargo config is missing a package"))?
-        .safecoin;
-    let program_expansions_path = expansions_path.join(package_safecoin);
+        .name;
+    let program_expansions_path = expansions_path.join(package_name);
     fs::create_dir_all(&program_expansions_path)?;
 
     let exit = std::process::Command::new("cargo")
         .arg("expand")
         .arg(target_dir_arg)
-        .arg(&format!("--package={}", package_safecoin))
+        .arg(&format!("--package={}", package_name))
         .args(cargo_args)
         .stderr(Stdio::inherit())
         .output()
@@ -691,12 +691,12 @@ fn expand_program(
     let version = cargo.version();
     let time = chrono::Utc::now().to_string().replace(' ', "_");
     let file_path =
-        program_expansions_path.join(format!("{}-{}-{}.rs", package_safecoin, version, time));
+        program_expansions_path.join(format!("{}-{}-{}.rs", package_name, version, time));
     fs::write(&file_path, &exit.stdout).map_err(|e| anyhow::format_err!("{}", e.to_string()))?;
 
     println!(
         "Expanded {} into file {}\n",
-        package_safecoin,
+        package_name,
         file_path.to_string_lossy()
     );
     Ok(())
@@ -709,8 +709,8 @@ pub fn build(
     idl_ts: Option<String>,
     verifiable: bool,
     skip_lint: bool,
-    program_safecoin: Option<String>,
-    solana_version: Option<String>,
+    program_name: Option<String>,
+    safecoin_version: Option<String>,
     docker_image: Option<String>,
     bootstrap: BootstrapMode,
     stdout: Option<File>, // Used for the package registry server.
@@ -718,14 +718,14 @@ pub fn build(
     cargo_args: Vec<String>,
 ) -> Result<()> {
     // Change to the workspace member directory, if needed.
-    if let Some(program_safecoin) = program_safecoin.as_ref() {
-        cd_member(cfg_override, program_safecoin)?;
+    if let Some(program_name) = program_name.as_ref() {
+        cd_member(cfg_override, program_name)?;
     }
 
     let cfg = Config::discover(cfg_override)?.expect("Not in workspace.");
     let build_config = BuildConfig {
         verifiable,
-        solana_version: solana_version.or_else(|| cfg.solana_version.clone()),
+        safecoin_version: safecoin_version.or_else(|| cfg.safecoin_version.clone()),
         docker_image: docker_image.unwrap_or_else(|| cfg.docker()),
         bootstrap,
     };
@@ -880,12 +880,12 @@ fn build_cwd_verifiable(
         fs::create_dir_all(workspace_dir.join(&cfg.workspace.types))?;
     }
 
-    let container_safecoin = "anchor-program";
+    let container_name = "anchor-program";
 
     // Build the binary in docker.
     let result = docker_build(
         cfg,
-        container_safecoin,
+        container_name,
         cargo_toml,
         build_config,
         stdout,
@@ -903,12 +903,12 @@ fn build_cwd_verifiable(
             if let Ok(Some(idl)) = extract_idl(cfg, "src/lib.rs", skip_lint) {
                 // Write out the JSON file.
                 println!("Writing the IDL file");
-                let out_file = workspace_dir.join(format!("target/idl/{}.json", idl.safecoin));
+                let out_file = workspace_dir.join(format!("target/idl/{}.json", idl.name));
                 write_idl(&idl, OutFile::File(out_file))?;
 
                 // Write out the TypeScript type.
                 println!("Writing the .ts file");
-                let ts_file = workspace_dir.join(format!("target/types/{}.ts", idl.safecoin));
+                let ts_file = workspace_dir.join(format!("target/types/{}.ts", idl.name));
                 fs::write(&ts_file, template::idl_ts(&idl)?)?;
 
                 // Copy out the TypeScript type.
@@ -917,7 +917,7 @@ fn build_cwd_verifiable(
                         ts_file,
                         workspace_dir
                             .join(&cfg.workspace.types)
-                            .join(idl.safecoin)
+                            .join(idl.name)
                             .with_extension("ts"),
                     )?;
                 }
@@ -931,14 +931,14 @@ fn build_cwd_verifiable(
 
 fn docker_build(
     cfg: &WithPath<Config>,
-    container_safecoin: &str,
+    container_name: &str,
     cargo_toml: PathBuf,
     build_config: &BuildConfig,
     stdout: Option<File>,
     stderr: Option<File>,
     cargo_args: Vec<String>,
 ) -> Result<()> {
-    let binary_safecoin = Manifest::from_path(&cargo_toml)?.lib_safecoin()?;
+    let binary_name = Manifest::from_path(&cargo_toml)?.lib_name()?;
 
     // Docker vars.
     let workdir = Path::new("/workdir");
@@ -957,8 +957,8 @@ fn docker_build(
             "run",
             "-it",
             "-d",
-            "--safecoin",
-            container_safecoin,
+            "--name",
+            container_name,
             "--env",
             &format!(
                 "CARGO_TARGET_DIR={}",
@@ -979,14 +979,14 @@ fn docker_build(
         return Err(anyhow!("Failed to build program"));
     }
 
-    let result = docker_prep(container_safecoin, build_config).and_then(|_| {
+    let result = docker_prep(container_name, build_config).and_then(|_| {
         let cfg_parent = cfg.path().parent().unwrap();
         docker_build_bpf(
-            container_safecoin,
+            container_name,
             cargo_toml.as_path(),
             cfg_parent,
             target_dir.as_path(),
-            binary_safecoin,
+            binary_name,
             stdout,
             stderr,
             cargo_args,
@@ -994,62 +994,62 @@ fn docker_build(
     });
 
     // Cleanup regardless of errors
-    docker_cleanup(container_safecoin, target_dir.as_path())?;
+    docker_cleanup(container_name, target_dir.as_path())?;
 
     // Done.
     result
 }
 
-fn docker_prep(container_safecoin: &str, build_config: &BuildConfig) -> Result<()> {
-    // Set the solana version in the container, if given. Otherwise use the
+fn docker_prep(container_name: &str, build_config: &BuildConfig) -> Result<()> {
+    // Set the safecoin version in the container, if given. Otherwise use the
     // default.
     match build_config.bootstrap {
         BootstrapMode::Debian => {
             // Install build requirements
-            docker_exec(container_safecoin, &["apt", "update"])?;
+            docker_exec(container_name, &["apt", "update"])?;
             docker_exec(
-                container_safecoin,
+                container_name,
                 &["apt", "install", "-y", "curl", "build-essential"],
             )?;
 
             // Install Rust
             docker_exec(
-                container_safecoin,
+                container_name,
                 &["curl", "https://sh.rustup.rs", "-sfo", "rustup.sh"],
             )?;
-            docker_exec(container_safecoin, &["sh", "rustup.sh", "-y"])?;
-            docker_exec(container_safecoin, &["rm", "-f", "rustup.sh"])?;
+            docker_exec(container_name, &["sh", "rustup.sh", "-y"])?;
+            docker_exec(container_name, &["rm", "-f", "rustup.sh"])?;
         }
         BootstrapMode::None => {}
     }
 
-    if let Some(solana_version) = &build_config.solana_version {
-        println!("Using solana version: {}", solana_version);
+    if let Some(safecoin_version) = &build_config.safecoin_version {
+        println!("Using safecoin version: {}", safecoin_version);
 
         // Install Solana CLI
         docker_exec(
-            container_safecoin,
+            container_name,
             &[
                 "curl",
                 "-sSfL",
-                &format!("https://release.solana.com/v{0}/install", solana_version,),
+                &format!("https://release.safecoin.com/v{0}/install", safecoin_version,),
                 "-o",
-                "solana_installer.sh",
+                "safecoin_installer.sh",
             ],
         )?;
-        docker_exec(container_safecoin, &["sh", "solana_installer.sh"])?;
-        docker_exec(container_safecoin, &["rm", "-f", "solana_installer.sh"])?;
+        docker_exec(container_name, &["sh", "safecoin_installer.sh"])?;
+        docker_exec(container_name, &["rm", "-f", "safecoin_installer.sh"])?;
     }
     Ok(())
 }
 
 #[allow(clippy::too_many_arguments)]
 fn docker_build_bpf(
-    container_safecoin: &str,
+    container_name: &str,
     cargo_toml: &Path,
     cfg_parent: &Path,
     target_dir: &Path,
-    binary_safecoin: String,
+    binary_name: String,
     stdout: Option<File>,
     stderr: Option<File>,
     cargo_args: Vec<String>,
@@ -1059,7 +1059,7 @@ fn docker_build_bpf(
             .ok_or_else(|| anyhow!("Unable to diff paths"))?;
     println!(
         "Building {} manifest: {:?}",
-        binary_safecoin,
+        binary_name,
         manifest_path.display()
     );
 
@@ -1068,8 +1068,8 @@ fn docker_build_bpf(
         .args(&[
             "exec",
             "--env",
-            "PATH=/root/.local/share/solana/install/active_release/bin:/root/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-            container_safecoin,
+            "PATH=/root/.local/share/safecoin/install/active_release/bin:/root/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+            container_name,
             "cargo",
             "build-bpf",
             "--manifest-path",
@@ -1094,17 +1094,17 @@ fn docker_build_bpf(
     println!("Copying out the build artifacts");
     let out_file = cfg_parent
         .canonicalize()?
-        .join(format!("target/verifiable/{}.so", binary_safecoin))
+        .join(format!("target/verifiable/{}.so", binary_name))
         .display()
         .to_string();
 
     // This requires the target directory of any built program to be located at
     // the root of the workspace.
     let mut bin_path = target_dir.join("deploy");
-    bin_path.push(format!("{}.so", binary_safecoin));
+    bin_path.push(format!("{}.so", binary_name));
     let bin_artifact = format!(
         "{}:{}",
-        container_safecoin,
+        container_name,
         bin_path.as_path().to_str().unwrap()
     );
     let exit = std::process::Command::new("docker")
@@ -1122,15 +1122,15 @@ fn docker_build_bpf(
     }
 }
 
-fn docker_cleanup(container_safecoin: &str, target_dir: &Path) -> Result<()> {
+fn docker_cleanup(container_name: &str, target_dir: &Path) -> Result<()> {
     // Wipe the generated docker-target dir.
     println!("Cleaning up the docker target directory");
-    docker_exec(container_safecoin, &["rm", "-rf", target_dir.to_str().unwrap()])?;
+    docker_exec(container_name, &["rm", "-rf", target_dir.to_str().unwrap()])?;
 
     // Remove the docker image.
     println!("Removing the docker container");
     let exit = std::process::Command::new("docker")
-        .args(&["rm", "-f", container_safecoin])
+        .args(&["rm", "-f", container_name])
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .output()
@@ -1142,9 +1142,9 @@ fn docker_cleanup(container_safecoin: &str, target_dir: &Path) -> Result<()> {
     Ok(())
 }
 
-fn docker_exec(container_safecoin: &str, args: &[&str]) -> Result<()> {
+fn docker_exec(container_name: &str, args: &[&str]) -> Result<()> {
     let exit = std::process::Command::new("docker")
-        .args([&["exec", container_safecoin], args].concat())
+        .args([&["exec", container_name], args].concat())
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .output()
@@ -1178,13 +1178,13 @@ fn _build_cwd(
     if let Some(idl) = extract_idl(cfg, "src/lib.rs", skip_lint)? {
         // JSON out path.
         let out = match idl_out {
-            None => PathBuf::from(".").join(&idl.safecoin).with_extension("json"),
-            Some(o) => PathBuf::from(&o.join(&idl.safecoin).with_extension("json")),
+            None => PathBuf::from(".").join(&idl.name).with_extension("json"),
+            Some(o) => PathBuf::from(&o.join(&idl.name).with_extension("json")),
         };
         // TS out path.
         let ts_out = match idl_ts_out {
-            None => PathBuf::from(".").join(&idl.safecoin).with_extension("ts"),
-            Some(o) => PathBuf::from(&o.join(&idl.safecoin).with_extension("ts")),
+            None => PathBuf::from(".").join(&idl.name).with_extension("ts"),
+            Some(o) => PathBuf::from(&o.join(&idl.name).with_extension("ts")),
         };
 
         // Write out the JSON file.
@@ -1198,7 +1198,7 @@ fn _build_cwd(
                 &ts_out,
                 cfg_parent
                     .join(&cfg.workspace.types)
-                    .join(&idl.safecoin)
+                    .join(&idl.name)
                     .with_extension("ts"),
             )?;
         }
@@ -1210,15 +1210,15 @@ fn _build_cwd(
 fn verify(
     cfg_override: &ConfigOverride,
     program_id: Pubkey,
-    program_safecoin: Option<String>,
-    solana_version: Option<String>,
+    program_name: Option<String>,
+    safecoin_version: Option<String>,
     docker_image: Option<String>,
     bootstrap: BootstrapMode,
     cargo_args: Vec<String>,
 ) -> Result<()> {
     // Change to the workspace member directory, if needed.
-    if let Some(program_safecoin) = program_safecoin.as_ref() {
-        cd_member(cfg_override, program_safecoin)?;
+    if let Some(program_name) = program_name.as_ref() {
+        cd_member(cfg_override, program_name)?;
     }
 
     // Proceed with the command.
@@ -1233,8 +1233,8 @@ fn verify(
         None,                                                  // idl ts
         true,                                                  // verifiable
         true,                                                  // skip lint
-        None,                                                  // program safecoin
-        solana_version.or_else(|| cfg.solana_version.clone()), // solana version
+        None,                                                  // program name
+        safecoin_version.or_else(|| cfg.safecoin_version.clone()), // safecoin version
         docker_image,                                          // docker image
         bootstrap,                                             // bootstrap docker image
         None,                                                  // stdout
@@ -1244,13 +1244,13 @@ fn verify(
     std::env::set_current_dir(&cur_dir)?;
 
     // Verify binary.
-    let binary_safecoin = cargo.lib_safecoin()?;
+    let binary_name = cargo.lib_name()?;
     let bin_path = cfg
         .path()
         .parent()
         .ok_or_else(|| anyhow!("Unable to find workspace root"))?
         .join("target/verifiable/")
-        .join(format!("{}.so", binary_safecoin));
+        .join(format!("{}.so", binary_name));
 
     let url = cluster_url(&cfg);
     let bin_ver = verify_bin(program_id, &bin_path, &url)?;
@@ -1275,8 +1275,8 @@ fn verify(
     Ok(())
 }
 
-fn cd_member(cfg_override: &ConfigOverride, program_safecoin: &str) -> Result<()> {
-    // Change directories to the given `program_safecoin`, if given.
+fn cd_member(cfg_override: &ConfigOverride, program_name: &str) -> Result<()> {
+    // Change directories to the given `program_name`, if given.
     let cfg = Config::discover(cfg_override)?.expect("Not in workspace.");
 
     for program in cfg.read_all_programs()? {
@@ -1287,13 +1287,13 @@ fn cd_member(cfg_override: &ConfigOverride, program_safecoin: &str) -> Result<()
                 program.path.display()
             ));
         }
-        let p_lib_safecoin = Manifest::from_path(&cargo_toml)?.lib_safecoin()?;
-        if program_safecoin == p_lib_safecoin {
+        let p_lib_name = Manifest::from_path(&cargo_toml)?.lib_name()?;
+        if program_name == p_lib_name {
             std::env::set_current_dir(&program.path)?;
             return Ok(());
         }
     }
-    return Err(anyhow!("{} is not part of the workspace", program_safecoin,));
+    return Err(anyhow!("{} is not part of the workspace", program_name,));
 }
 
 pub fn verify_bin(program_id: Pubkey, bin_path: &Path, cluster: &str) -> Result<BinVerification> {
@@ -1497,7 +1497,7 @@ fn idl_write_buffer(
 
 fn idl_set_buffer(cfg_override: &ConfigOverride, program_id: Pubkey, buffer: Pubkey) -> Result<()> {
     with_workspace(cfg_override, |cfg| {
-        let keypair = solana_sdk::signature::read_keypair_file(&cfg.provider.wallet.to_string())
+        let keypair = safecoin_sdk::signature::read_keypair_file(&cfg.provider.wallet.to_string())
             .map_err(|_| anyhow!("Unable to read keypair file"))?;
         let url = cluster_url(cfg);
         let client = RpcClient::new(url);
@@ -1588,7 +1588,7 @@ fn idl_set_authority(
             None => IdlAccount::address(&program_id),
             Some(addr) => addr,
         };
-        let keypair = solana_sdk::signature::read_keypair_file(&cfg.provider.wallet.to_string())
+        let keypair = safecoin_sdk::signature::read_keypair_file(&cfg.provider.wallet.to_string())
             .map_err(|_| anyhow!("Unable to read keypair file"))?;
         let url = cluster_url(cfg);
         let client = RpcClient::new(url);
@@ -1659,7 +1659,7 @@ fn idl_write(cfg: &Config, program_id: &Pubkey, idl: &Idl, idl_address: Pubkey) 
     idl.metadata = None;
 
     // Misc.
-    let keypair = solana_sdk::signature::read_keypair_file(&cfg.provider.wallet.to_string())
+    let keypair = safecoin_sdk::signature::read_keypair_file(&cfg.provider.wallet.to_string())
         .map_err(|_| anyhow!("Unable to read keypair file"))?;
     let url = cluster_url(cfg);
     let client = RpcClient::new(url);
@@ -1887,9 +1887,9 @@ fn test(
     })
 }
 
-// Returns the solana-test-validator flags. This will embed the workspace
+// Returns the safecoin-test-validator flags. This will embed the workspace
 // programs in the genesis block so we don't have to deploy every time. It also
-// allows control of other solana-test-validator features.
+// allows control of other safecoin-test-validator features.
 fn validator_flags(cfg: &WithPath<Config>) -> Result<Vec<String>> {
     let programs = cfg.programs.get(&Cluster::Localnet);
 
@@ -1900,7 +1900,7 @@ fn validator_flags(cfg: &WithPath<Config>) -> Result<Vec<String>> {
         // Use the [programs.cluster] override and fallback to the keypair
         // files if no override is given.
         let address = programs
-            .and_then(|m| m.get(&program.lib_safecoin))
+            .and_then(|m| m.get(&program.lib_name))
             .map(|deployment| Ok(deployment.address.to_string()))
             .unwrap_or_else(|| program.pubkey().map(|p| p.to_string()))?;
 
@@ -1914,7 +1914,7 @@ fn validator_flags(cfg: &WithPath<Config>) -> Result<Vec<String>> {
 
             // Persist it.
             let idl_out = PathBuf::from("target/idl")
-                .join(&idl.safecoin)
+                .join(&idl.name)
                 .with_extension("json");
             write_idl(idl, OutFile::File(idl_out))?;
         }
@@ -1947,7 +1947,7 @@ fn validator_flags(cfg: &WithPath<Config>) -> Result<Vec<String>> {
                         // Push the account flag for each array entry
                         flags.push("--account".to_string());
                         flags.push(entry["address"].as_str().unwrap().to_string());
-                        flags.push(entry["filesafecoin"].as_str().unwrap().to_string());
+                        flags.push(entry["filename"].as_str().unwrap().to_string());
                     }
                 } else if key == "clone" {
                     for entry in value.as_array().unwrap() {
@@ -1979,7 +1979,7 @@ fn stream_logs(config: &WithPath<Config>, rpc_url: &str) -> Result<Vec<std::proc
     fs::create_dir_all(program_logs_dir)?;
     let mut handles = vec![];
     for program in config.read_all_programs()? {
-        let mut file = File::open(&format!("target/idl/{}.json", program.lib_safecoin))?;
+        let mut file = File::open(&format!("target/idl/{}.json", program.lib_name))?;
         let mut contents = vec![];
         file.read_to_end(&mut contents)?;
         let idl: Idl = serde_json::from_slice(&contents)?;
@@ -1990,10 +1990,10 @@ fn stream_logs(config: &WithPath<Config>, rpc_url: &str) -> Result<Vec<std::proc
 
         let log_file = File::create(format!(
             "{}/{}.{}.log",
-            program_logs_dir, metadata.address, program.lib_safecoin,
+            program_logs_dir, metadata.address, program.lib_name,
         ))?;
         let stdio = std::process::Stdio::from(log_file);
-        let child = std::process::Command::new("solana")
+        let child = std::process::Command::new("safecoin")
             .arg("logs")
             .arg(metadata.address)
             .arg("--url")
@@ -2007,7 +2007,7 @@ fn stream_logs(config: &WithPath<Config>, rpc_url: &str) -> Result<Vec<std::proc
             for entry in genesis {
                 let log_file = File::create(format!("{}/{}.log", program_logs_dir, entry.address))?;
                 let stdio = std::process::Stdio::from(log_file);
-                let child = std::process::Command::new("solana")
+                let child = std::process::Command::new("safecoin")
                     .arg("logs")
                     .arg(entry.address.clone())
                     .arg("--url")
@@ -2033,12 +2033,12 @@ fn start_test_validator(
     test_log_stdout: bool,
 ) -> Result<Child> {
     //
-    let (test_ledger_directory, test_ledger_log_filesafecoin) = test_validator_file_paths(cfg);
+    let (test_ledger_directory, test_ledger_log_filename) = test_validator_file_paths(cfg);
 
     // Start a validator for testing.
     let (test_validator_stdout, test_validator_stderr) = match test_log_stdout {
         true => {
-            let test_validator_stdout_file = File::create(&test_ledger_log_filesafecoin)?;
+            let test_validator_stdout_file = File::create(&test_ledger_log_filename)?;
             let test_validator_sterr_file = test_validator_stdout_file.try_clone()?;
             (
                 Stdio::from(test_validator_stdout_file),
@@ -2050,7 +2050,7 @@ fn start_test_validator(
 
     let rpc_url = test_validator_rpc_url(cfg);
 
-    let mut validator_handle = std::process::Command::new("solana-test-validator")
+    let mut validator_handle = std::process::Command::new("safecoin-test-validator")
         .arg("--ledger")
         .arg(test_ledger_directory)
         .arg("--mint")
@@ -2080,7 +2080,7 @@ fn start_test_validator(
     if count == ms_wait {
         eprintln!(
             "Unable to get recent blockhash. Test validator does not look started. Check {} for errors. Consider increasing [test.startup_wait] in Anchor.toml.",
-            test_ledger_log_filesafecoin
+            test_ledger_log_filename
         );
         validator_handle.kill()?;
         std::process::exit(1);
@@ -2088,7 +2088,7 @@ fn start_test_validator(
     Ok(validator_handle)
 }
 
-// Return the URL that solana-test-validator should be running on given the
+// Return the URL that safecoin-test-validator should be running on given the
 // configuration
 fn test_validator_rpc_url(cfg: &Config) -> String {
     match &cfg.test.as_ref() {
@@ -2100,7 +2100,7 @@ fn test_validator_rpc_url(cfg: &Config) -> String {
     }
 }
 
-// Setup and return paths to the solana-test-validator ledger directory and log
+// Setup and return paths to the safecoin-test-validator ledger directory and log
 // files given the configuration
 fn test_validator_file_paths(cfg: &Config) -> (String, String) {
     let ledger_directory = match &cfg.test.as_ref() {
@@ -2133,7 +2133,7 @@ fn cluster_url(cfg: &Config) -> String {
     let is_localnet = cfg.provider.cluster == Cluster::Localnet;
     match is_localnet {
         // Cluster is Localnet, assume the intent is to use the configuration
-        // for solana-test-validator
+        // for safecoin-test-validator
         true => test_validator_rpc_url(cfg),
         false => cfg.provider.cluster.url().to_string(),
     }
@@ -2150,8 +2150,8 @@ fn deploy(cfg_override: &ConfigOverride, program_str: Option<String>) -> Result<
 
         for mut program in cfg.read_all_programs()? {
             if let Some(single_prog_str) = &program_str {
-                let program_safecoin = program.path.file_safecoin().unwrap().to_str().unwrap();
-                if single_prog_str.as_str() != program_safecoin {
+                let program_name = program.path.file_name().unwrap().to_str().unwrap();
+                if single_prog_str.as_str() != program_name {
                     continue;
                 }
             }
@@ -2159,14 +2159,14 @@ fn deploy(cfg_override: &ConfigOverride, program_str: Option<String>) -> Result<
 
             println!(
                 "Deploying program {:?}...",
-                program.path.file_safecoin().unwrap().to_str().unwrap()
+                program.path.file_name().unwrap().to_str().unwrap()
             );
             println!("Program path: {}...", binary_path);
 
             let file = program.keypair_file()?;
 
             // Send deploy transactions.
-            let exit = std::process::Command::new("solana")
+            let exit = std::process::Command::new("safecoin")
                 .arg("program")
                 .arg("deploy")
                 .arg("--url")
@@ -2194,7 +2194,7 @@ fn deploy(cfg_override: &ConfigOverride, program_str: Option<String>) -> Result<
 
                 // Persist it.
                 let idl_out = PathBuf::from("target/idl")
-                    .join(&idl.safecoin)
+                    .join(&idl.name)
                     .with_extension("json");
                 write_idl(idl, OutFile::File(idl_out))?;
             }
@@ -2216,7 +2216,7 @@ fn upgrade(
 
     with_workspace(cfg_override, |cfg| {
         let url = cluster_url(cfg);
-        let exit = std::process::Command::new("solana")
+        let exit = std::process::Command::new("safecoin")
             .arg("program")
             .arg("deploy")
             .arg("--url")
@@ -2246,7 +2246,7 @@ fn create_idl_account(
 ) -> Result<Pubkey> {
     // Misc.
     let idl_address = IdlAccount::address(program_id);
-    let keypair = solana_sdk::signature::read_keypair_file(keypair_path)
+    let keypair = safecoin_sdk::signature::read_keypair_file(keypair_path)
         .map_err(|_| anyhow!("Unable to read keypair file"))?;
     let url = cluster_url(cfg);
     let client = RpcClient::new(url);
@@ -2262,9 +2262,9 @@ fn create_idl_account(
             AccountMeta::new_readonly(keypair.pubkey(), true),
             AccountMeta::new(idl_address, false),
             AccountMeta::new_readonly(program_signer, false),
-            AccountMeta::new_readonly(solana_program::system_program::ID, false),
+            AccountMeta::new_readonly(safecoin_program::system_program::ID, false),
             AccountMeta::new_readonly(*program_id, false),
-            AccountMeta::new_readonly(solana_program::sysvar::rent::ID, false),
+            AccountMeta::new_readonly(safecoin_program::sysvar::rent::ID, false),
         ];
         let ix = Instruction {
             program_id: *program_id,
@@ -2300,7 +2300,7 @@ fn create_idl_buffer(
     program_id: &Pubkey,
     idl: &Idl,
 ) -> Result<Pubkey> {
-    let keypair = solana_sdk::signature::read_keypair_file(keypair_path)
+    let keypair = safecoin_sdk::signature::read_keypair_file(keypair_path)
         .map_err(|_| anyhow!("Unable to read keypair file"))?;
     let url = cluster_url(cfg);
     let client = RpcClient::new(url);
@@ -2311,7 +2311,7 @@ fn create_idl_buffer(
     let create_account_ix = {
         let space = 8 + 32 + 4 + serialize_idl(idl)?.len() as usize;
         let lamports = client.get_minimum_balance_for_rent_exemption(space)?;
-        solana_sdk::system_instruction::create_account(
+        safecoin_sdk::system_instruction::create_account(
             &keypair.pubkey(),
             &buffer.pubkey(),
             lamports,
@@ -2458,7 +2458,7 @@ fn airdrop(cfg_override: &ConfigOverride) -> Result<()> {
         .unwrap_or_else(|| &Cluster::Devnet)
         .url();
     loop {
-        let exit = std::process::Command::new("solana")
+        let exit = std::process::Command::new("safecoin")
             .arg("airdrop")
             .arg("10")
             .arg("--url")
@@ -2477,10 +2477,10 @@ fn airdrop(cfg_override: &ConfigOverride) -> Result<()> {
 
 fn cluster(_cmd: ClusterCommand) -> Result<()> {
     println!("Cluster Endpoints:\n");
-    println!("* Mainnet - https://solana-api.projectserum.com");
-    println!("* Mainnet - https://api.mainnet-beta.solana.com");
-    println!("* Devnet  - https://api.devnet.solana.com");
-    println!("* Testnet - https://api.testnet.solana.com");
+    println!("* Mainnet - https://safecoin-api.projectserum.com");
+    println!("* Mainnet - https://api.mainnet-beta.safecoin.com");
+    println!("* Devnet  - https://api.devnet.safecoin.com");
+    println!("* Testnet - https://api.testnet.safecoin.com");
     Ok(())
 }
 
@@ -2494,7 +2494,7 @@ fn shell(cfg_override: &ConfigOverride) -> Result<()> {
                 .filter(|program| program.idl.is_some())
                 .map(|program| {
                     (
-                        program.idl.as_ref().unwrap().safecoin.clone(),
+                        program.idl.as_ref().unwrap().name.clone(),
                         program.idl.clone().unwrap(),
                     )
                 })
@@ -2503,12 +2503,12 @@ fn shell(cfg_override: &ConfigOverride) -> Result<()> {
             if let Some(programs) = cfg.programs.get(&cfg.provider.cluster) {
                 let _ = programs
                     .iter()
-                    .map(|(safecoin, pd)| {
+                    .map(|(name, pd)| {
                         if let Some(idl_fp) = &pd.idl {
                             let file_str =
                                 fs::read_to_string(idl_fp).expect("Unable to read IDL file");
                             let idl = serde_json::from_str(&file_str).expect("Idl not readable");
-                            idls.insert(safecoin.clone(), idl);
+                            idls.insert(name.clone(), idl);
                         }
                     })
                     .collect::<Vec<_>>();
@@ -2519,11 +2519,11 @@ fn shell(cfg_override: &ConfigOverride) -> Result<()> {
                 None => Vec::new(),
                 Some(programs) => programs
                     .iter()
-                    .filter_map(|(safecoin, program_deployment)| {
+                    .filter_map(|(name, program_deployment)| {
                         Some(ProgramWorkspace {
-                            safecoin: safecoin.to_string(),
+                            name: name.to_string(),
                             program_id: program_deployment.address,
-                            idl: match idls.get(safecoin) {
+                            idl: match idls.get(name) {
                                 None => return None,
                                 Some(idl) => idl.clone(),
                             },
@@ -2588,14 +2588,14 @@ fn login(_cfg_override: &ConfigOverride, token: String) -> Result<()> {
 
 fn publish(
     cfg_override: &ConfigOverride,
-    program_safecoin: String,
+    program_name: String,
     cargo_args: Vec<String>,
 ) -> Result<()> {
     // Discover the various workspace configs.
     let cfg = Config::discover(cfg_override)?.expect("Not in workspace.");
 
     let program = cfg
-        .get_program(&program_safecoin)?
+        .get_program(&program_name)?
         .ok_or_else(|| anyhow!("Workspace member not found"))?;
 
     let program_cargo_lock = pathdiff::diff_paths(
@@ -2618,7 +2618,7 @@ fn publish(
         return Ok(());
     }
 
-    let anchor_package = AnchorPackage::from(program_safecoin.clone(), &cfg)?;
+    let anchor_package = AnchorPackage::from(program_name.clone(), &cfg)?;
     let anchor_package_bytes = serde_json::to_vec(&anchor_package)?;
 
     // Set directory to top of the workspace.
@@ -2628,8 +2628,8 @@ fn publish(
     // Create the workspace tarball.
     let dot_anchor = workspace_dir.join(".anchor");
     fs::create_dir_all(&dot_anchor)?;
-    let tarball_filesafecoin = dot_anchor.join(format!("{}.tar.gz", program_safecoin));
-    let tar_gz = File::create(&tarball_filesafecoin)?;
+    let tarball_filename = dot_anchor.join(format!("{}.tar.gz", program_name));
+    let tar_gz = File::create(&tarball_filename)?;
     let enc = GzEncoder::new(tar_gz, Compression::default());
     let mut tar = tar::Builder::new(enc);
 
@@ -2698,7 +2698,7 @@ fn publish(
 
     // Unpack the archive into the new workspace directory.
     std::env::set_current_dir(&ws_dir)?;
-    unpack_archive(&tarball_filesafecoin)?;
+    unpack_archive(&tarball_filename)?;
 
     // Build the program before sending it to the server.
     build(
@@ -2707,7 +2707,7 @@ fn publish(
         None,
         true,
         false,
-        Some(program_safecoin),
+        Some(program_name),
         None,
         None,
         BootstrapMode::None,
@@ -2724,7 +2724,7 @@ fn publish(
     let form = Form::new()
         .part("manifest", Part::bytes(anchor_package_bytes))
         .part("workspace", {
-            let file = File::open(&tarball_filesafecoin)?;
+            let file = File::open(&tarball_filename)?;
             Part::reader(file)
         });
     let client = Client::new();
@@ -2765,8 +2765,8 @@ fn registry_api_token(_cfg_override: &ConfigOverride) -> Result<String> {
     struct Credentials {
         registry: Registry,
     }
-    let filesafecoin = shellexpand::tilde("~/.config/anchor/credentials");
-    let mut file = File::open(filesafecoin.to_string())?;
+    let filename = shellexpand::tilde("~/.config/anchor/credentials");
+    let mut file = File::open(filename.to_string())?;
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
 
@@ -2785,7 +2785,7 @@ fn keys_list(cfg_override: &ConfigOverride) -> Result<()> {
     let cfg = Config::discover(cfg_override)?.expect("Not in workspace.");
     for program in cfg.read_all_programs()? {
         let pubkey = program.pubkey()?;
-        println!("{}: {}", program.lib_safecoin, pubkey);
+        println!("{}: {}", program.lib_name, pubkey);
     }
     Ok(())
 }
@@ -2870,7 +2870,7 @@ fn with_workspace<R>(cfg_override: &ConfigOverride, f: impl FnOnce(&WithPath<Con
 
 fn is_hidden(entry: &walkdir::DirEntry) -> bool {
     entry
-        .file_safecoin()
+        .file_name()
         .to_str()
         .map(|s| s == "." || s.starts_with('.') || s == "target")
         .unwrap_or(false)

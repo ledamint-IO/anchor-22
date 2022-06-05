@@ -11,7 +11,7 @@ import NamespaceFactory, {
   StateClient,
   SimulateNamespace,
   MethodsNamespace,
-} from "./safecoinspace/index.js";
+} from "./namespace/index.js";
 import { utf8 } from "../utils/bytes/index.js";
 import { EventManager } from "./event.js";
 import { Address, translateAddress } from "./common.js";
@@ -19,7 +19,7 @@ import { Address, translateAddress } from "./common.js";
 export * from "./common.js";
 export * from "./context.js";
 export * from "./event.js";
-export * from "./safecoinspace/index.js";
+export * from "./namespace/index.js";
 
 /**
  * ## Program
@@ -33,17 +33,17 @@ export * from "./safecoinspace/index.js";
  * changes, and listen to events.
  *
  * In addition to field accessors and methods, the object provides a set of
- * dynamically generated properties, also known as safecoinspaces, that
- * map one-to-one to program methods and accounts. These safecoinspaces generally
+ * dynamically generated properties, also known as namespaces, that
+ * map one-to-one to program methods and accounts. These namespaces generally
  *  can be used as follows:
  *
  * ## Usage
  *
  * ```javascript
- * program.<safecoinspace>.<program-specific-method>
+ * program.<namespace>.<program-specific-method>
  * ```
  *
- * API specifics are safecoinspace dependent. The examples used in the documentation
+ * API specifics are namespace dependent. The examples used in the documentation
  * below will refer to the two counter examples found
  * [here](https://github.com/project-serum/anchor#examples).
  */
@@ -81,7 +81,7 @@ export class Program<IDL extends Idl = Idl> {
   readonly rpc: RpcNamespace<IDL>;
 
   /**
-   * The safecoinspace provides handles to an [[AccountClient]] object for each
+   * The namespace provides handles to an [[AccountClient]] object for each
    * account in the program.
    *
    * ## Usage
@@ -103,7 +103,7 @@ export class Program<IDL extends Idl = Idl> {
   readonly account: AccountNamespace<IDL>;
 
   /**
-   * The safecoinspace provides functions to build [[TransactionInstruction]]
+   * The namespace provides functions to build [[TransactionInstruction]]
    * objects for each method of a program.
    *
    * ## Usage
@@ -134,7 +134,7 @@ export class Program<IDL extends Idl = Idl> {
   readonly instruction: InstructionNamespace<IDL>;
 
   /**
-   * The safecoinspace provides functions to build [[Transaction]] objects for each
+   * The namespace provides functions to build [[Transaction]] objects for each
    * method of a program.
    *
    * ## Usage
@@ -165,13 +165,13 @@ export class Program<IDL extends Idl = Idl> {
   readonly transaction: TransactionNamespace<IDL>;
 
   /**
-   * The safecoinspace provides functions to simulate transactions for each method
+   * The namespace provides functions to simulate transactions for each method
    * of a program, returning a list of deserialized events *and* raw program
    * logs.
    *
    * One can use this to read data calculated from a program on chain, by
    * emitting an event in the program and reading the emitted event client side
-   * via the `simulate` safecoinspace.
+   * via the `simulate` namespace.
    *
    * ## simulate
    *
@@ -208,8 +208,8 @@ export class Program<IDL extends Idl = Idl> {
   readonly state?: StateClient<IDL>;
 
   /**
-   * The safecoinspace provides a builder API for all APIs on the program.
-   * This is an alternative to using safecoinspace the other safecoinspaces..
+   * The namespace provides a builder API for all APIs on the program.
+   * This is an alternative to using namespace the other namespaces..
    */
   readonly methods: MethodsNamespace<IDL>;
 
@@ -275,7 +275,7 @@ export class Program<IDL extends Idl = Idl> {
     this._coder = coder ?? new BorshCoder(idl);
     this._events = new EventManager(this._programId, provider, this._coder);
 
-    // Dynamic safecoinspaces.
+    // Dynamic namespaces.
     const [
       rpc,
       instruction,
@@ -347,7 +347,7 @@ export class Program<IDL extends Idl = Idl> {
   /**
    * Invokes the given callback every time the given event is emitted.
    *
-   * @param eventName The PascalCase safecoin of the event, provided by the IDL.
+   * @param eventName The PascalCase name of the event, provided by the IDL.
    * @param callback  The function to invoke whenever the event is emitted from
    *                  program logs.
    */

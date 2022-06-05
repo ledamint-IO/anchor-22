@@ -20,14 +20,14 @@ pub fn parse(strct: &syn::ItemStruct) -> ParseResult<AccountsStruct> {
         .transpose()?;
     let fields = match &strct.fields {
         syn::Fields::Named(fields) => fields
-            .safecoind
+            .named
             .iter()
             .map(|f| parse_account_field(f, instruction_api.is_some()))
             .collect::<ParseResult<Vec<AccountField>>>()?,
         _ => {
             return Err(ParseError::new_spanned(
                 &strct.fields,
-                "fields must be safecoind",
+                "fields must be named",
             ))
         }
     };
@@ -93,16 +93,16 @@ fn constraints_cross_checks(fields: &[AccountField]) -> ParseResult<()> {
 
         for field in init_fields {
             // Get payer for init-ed account
-            let associated_payer_safecoin = match field.constraints.init.clone().unwrap().payer.unwrap()
+            let associated_payer_name = match field.constraints.init.clone().unwrap().payer.unwrap()
             {
                 // composite payer, check not supported
                 Expr::Field(_) => continue,
-                field_safecoin => field_safecoin.to_token_stream().to_string(),
+                field_name => field_name.to_token_stream().to_string(),
             };
 
             // Check payer is mutable
             let associated_payer_field = fields.iter().find_map(|f| match f {
-                AccountField::Field(field) if *f.ident() == associated_payer_safecoin => Some(field),
+                AccountField::Field(field) if *f.ident() == associated_payer_name => Some(field),
                 _ => None,
             });
             match associated_payer_field {

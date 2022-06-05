@@ -6,11 +6,11 @@ import { IdlError } from "../../error.js";
 
 export class IdlCoder {
   public static fieldLayout(
-    field: { safecoin?: string } & Pick<IdlField, "type">,
+    field: { name?: string } & Pick<IdlField, "type">,
     types?: IdlTypeDef[]
   ): Layout {
     const fieldName =
-      field.safecoin !== undefined ? camelCase(field.safecoin) : undefined;
+      field.name !== undefined ? camelCase(field.name) : undefined;
     switch (field.type) {
       case "bool": {
         return borsh.bool(fieldName);
@@ -65,7 +65,7 @@ export class IdlCoder {
           return borsh.vec(
             IdlCoder.fieldLayout(
               {
-                safecoin: undefined,
+                name: undefined,
                 type: field.type.vec,
               },
               types
@@ -76,7 +76,7 @@ export class IdlCoder {
           return borsh.option(
             IdlCoder.fieldLayout(
               {
-                safecoin: undefined,
+                name: undefined,
                 type: field.type.option,
               },
               types
@@ -89,7 +89,7 @@ export class IdlCoder {
           if (types === undefined) {
             throw new IdlError("User defined types not provided");
           }
-          const filtered = types.filter((t) => t.safecoin === defined);
+          const filtered = types.filter((t) => t.name === defined);
           if (filtered.length !== 1) {
             throw new IdlError(`Type not found: ${JSON.stringify(field)}`);
           }
@@ -99,7 +99,7 @@ export class IdlCoder {
           let arrayLen = field.type.array[1];
           let innerLayout = IdlCoder.fieldLayout(
             {
-              safecoin: undefined,
+              name: undefined,
               type: arrayTy,
             },
             types
@@ -115,40 +115,40 @@ export class IdlCoder {
   public static typeDefLayout(
     typeDef: IdlTypeDef,
     types: IdlTypeDef[] = [],
-    safecoin?: string
+    name?: string
   ): Layout {
     if (typeDef.type.kind === "struct") {
       const fieldLayouts = typeDef.type.fields.map((field) => {
         const x = IdlCoder.fieldLayout(field, types);
         return x;
       });
-      return borsh.struct(fieldLayouts, safecoin);
+      return borsh.struct(fieldLayouts, name);
     } else if (typeDef.type.kind === "enum") {
       let variants = typeDef.type.variants.map((variant: IdlEnumVariant) => {
-        const safecoin = camelCase(variant.safecoin);
+        const name = camelCase(variant.name);
         if (variant.fields === undefined) {
-          return borsh.struct([], safecoin);
+          return borsh.struct([], name);
         }
         const fieldLayouts = variant.fields.map((f: IdlField | IdlType) => {
-          if (!f.hasOwnProperty("safecoin")) {
+          if (!f.hasOwnProperty("name")) {
             throw new Error("Tuple enum variants not yet implemented.");
           }
           // this typescript conversion is ok
           // because if f were of type IdlType
-          // (that does not have a safecoin property)
+          // (that does not have a name property)
           // the check before would've errored
           return IdlCoder.fieldLayout(f as IdlField, types);
         });
-        return borsh.struct(fieldLayouts, safecoin);
+        return borsh.struct(fieldLayouts, name);
       });
 
-      if (safecoin !== undefined) {
-        // Buffer-layout lib requires the safecoin to be null (on construction)
+      if (name !== undefined) {
+        // Buffer-layout lib requires the name to be null (on construction)
         // when used as a field.
-        return borsh.rustEnum(variants).replicate(safecoin);
+        return borsh.rustEnum(variants).replicate(name);
       }
 
-      return borsh.rustEnum(variants, safecoin);
+      return borsh.rustEnum(variants, name);
     } else {
       throw new Error(`Unknown type kint: ${typeDef}`);
     }

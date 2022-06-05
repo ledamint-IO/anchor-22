@@ -51,28 +51,28 @@ struct PdaParser<'a> {
     ctx: &'a CrateContext,
     // Accounts context.
     accounts: &'a AccountsStruct,
-    // Maps var safecoin to var type. These are the instruction arguments in a
+    // Maps var name to var type. These are the instruction arguments in a
     // given accounts context.
     ix_args: HashMap<String, String>,
     // Constants available in the crate.
-    const_safecoins: Vec<String>,
-    // All field safecoins of the accounts in the accounts context.
-    account_field_safecoins: Vec<String>,
+    const_names: Vec<String>,
+    // All field names of the accounts in the accounts context.
+    account_field_names: Vec<String>,
 }
 
 impl<'a> PdaParser<'a> {
     fn new(ctx: &'a CrateContext, accounts: &'a AccountsStruct) -> Self {
         // All the available sources of seeds.
         let ix_args = accounts.instruction_args().unwrap_or_default();
-        let const_safecoins: Vec<String> = ctx.consts().map(|c| c.ident.to_string()).collect();
-        let account_field_safecoins = accounts.field_safecoins();
+        let const_names: Vec<String> = ctx.consts().map(|c| c.ident.to_string()).collect();
+        let account_field_names = accounts.field_names();
 
         Self {
             ctx,
             accounts,
             ix_args,
-            const_safecoins,
-            account_field_safecoins,
+            const_names,
+            account_field_names,
         }
     }
 
@@ -127,7 +127,7 @@ impl<'a> PdaParser<'a> {
     }
 
     fn parse_instruction(&self, seed_path: &SeedPath) -> Option<IdlSeed> {
-        let idl_ty = IdlType::from_str(self.ix_args.get(&seed_path.safecoin()).unwrap()).ok()?;
+        let idl_ty = IdlType::from_str(self.ix_args.get(&seed_path.name()).unwrap()).ok()?;
         Some(IdlSeed::Arg(IdlSeedArg {
             ty: idl_ty,
             path: seed_path.path(),
@@ -140,7 +140,7 @@ impl<'a> PdaParser<'a> {
         let const_item = self
             .ctx
             .consts()
-            .find(|c| c.ident == seed_path.safecoin())
+            .find(|c| c.ident == seed_path.name())
             .unwrap();
         let idl_ty = IdlType::from_str(&parser::tts_to_string(&const_item.ty)).ok()?;
         let mut idl_ty_value = parser::tts_to_string(&const_item.expr);
@@ -168,7 +168,7 @@ impl<'a> PdaParser<'a> {
             .accounts
             .fields
             .iter()
-            .find(|field| *field.ident() == seed_path.safecoin())
+            .find(|field| *field.ident() == seed_path.name())
             .unwrap();
 
         // Follow the path to find the seed type.
@@ -178,7 +178,7 @@ impl<'a> PdaParser<'a> {
                 0 => IdlType::PublicKey,
                 1 => {
                     // Name of the account struct.
-                    let account = account_field.ty_safecoin()?;
+                    let account = account_field.ty_name()?;
                     if account == "TokenAccount" {
                         assert!(path.len() == 1);
                         match path[0].as_str() {
@@ -203,18 +203,18 @@ impl<'a> PdaParser<'a> {
 
         Some(IdlSeed::Account(IdlSeedAccount {
             ty,
-            account: account_field.ty_safecoin(),
+            account: account_field.ty_name(),
             path: seed_path.path(),
         }))
     }
 
     fn parse_str_literal(&self, seed_path: &SeedPath) -> Option<IdlSeed> {
-        let mut var_safecoin = seed_path.safecoin();
+        let mut var_name = seed_path.name();
         // Remove the byte `b` prefix if the string is of the form `b"seed".
-        if var_safecoin.starts_with("b\"") {
-            var_safecoin.remove(0);
+        if var_name.starts_with("b\"") {
+            var_name.remove(0);
         }
-        let value_string: String = var_safecoin.chars().filter(|c| *c != '"').collect();
+        let value_string: String = var_name.chars().filter(|c| *c != '"').collect();
         Some(IdlSeed::Const(IdlSeedConst {
             value: serde_json::Value::String(value_string),
             ty: IdlType::String,
@@ -222,31 +222,31 @@ impl<'a> PdaParser<'a> {
     }
 
     fn is_instruction(&self, seed_path: &SeedPath) -> bool {
-        self.ix_args.contains_key(&seed_path.safecoin())
+        self.ix_args.contains_key(&seed_path.name())
     }
 
     fn is_const(&self, seed_path: &SeedPath) -> bool {
-        self.const_safecoins.contains(&seed_path.safecoin())
+        self.const_names.contains(&seed_path.name())
     }
 
     fn is_account(&self, seed_path: &SeedPath) -> bool {
-        self.account_field_safecoins.contains(&seed_path.safecoin())
+        self.account_field_names.contains(&seed_path.name())
     }
 
     fn is_str_literal(&self, seed_path: &SeedPath) -> bool {
-        seed_path.components().is_empty() && seed_path.safecoin().contains('"')
+        seed_path.components().is_empty() && seed_path.name().contains('"')
     }
 }
 
 // SeedPath represents the deconstructed syntax of a single pda seed,
-// consisting of a variable safecoin and a vec of all the sub fields accessed
-// on that variable safecoin. For example, if a seed is `my_field.my_data.as_ref()`,
-// then the field safecoin is `my_field` and the vec of sub fields is `[my_data]`.
+// consisting of a variable name and a vec of all the sub fields accessed
+// on that variable name. For example, if a seed is `my_field.my_data.as_ref()`,
+// then the field name is `my_field` and the vec of sub fields is `[my_data]`.
 #[derive(Debug)]
 struct SeedPath(String, Vec<String>);
 
 impl SeedPath {
-    fn safecoin(&self) -> String {
+    fn name(&self) -> String {
         self.0.clone()
     }
 
@@ -254,7 +254,7 @@ impl SeedPath {
     fn path(&self) -> String {
         match self.1.len() {
             0 => self.0.clone(),
-            _ => format!("{}.{}", self.safecoin(), self.components().join(".")),
+            _ => format!("{}.{}", self.name(), self.components().join(".")),
         }
     }
 
@@ -276,10 +276,10 @@ fn parse_seed_path(seed: &Expr) -> Option<SeedPath> {
         return None;
     }
 
-    // The safecoin of the variable (or field).
-    let safecoin = components.remove(0).to_string();
+    // The name of the variable (or field).
+    let name = components.remove(0).to_string();
 
-    // The path to the seed (only if the `safecoin` type is a struct).
+    // The path to the seed (only if the `name` type is a struct).
     let mut path = Vec::new();
     while !components.is_empty() {
         let c = components.remove(0);
@@ -292,18 +292,18 @@ fn parse_seed_path(seed: &Expr) -> Option<SeedPath> {
         path = Vec::new();
     }
 
-    Some(SeedPath(safecoin, path))
+    Some(SeedPath(name, path))
 }
 
 fn parse_field_path(ctx: &CrateContext, strct: &syn::ItemStruct, path: &mut &[String]) -> IdlType {
-    let field_safecoin = &path[0];
+    let field_name = &path[0];
     *path = &path[1..];
 
-    // Get the type safecoin for the field.
+    // Get the type name for the field.
     let next_field = strct
         .fields
         .iter()
-        .find(|f| &f.ident.clone().unwrap().to_string() == field_safecoin)
+        .find(|f| &f.ident.clone().unwrap().to_string() == field_name)
         .unwrap();
     let next_field_ty_str = parser::tts_to_string(&next_field.ty);
 

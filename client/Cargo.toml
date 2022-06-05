@@ -1,5 +1,5 @@
 [package]
-safecoin = "anchor-client"
+name = "anchor-client"
 version = "0.22.0"
 authors = ["Serum Foundation <foundation@projectserum.com>"]
 edition = "2018"

@@ -1,5 +1,5 @@
 {
-  "safecoin": "anchor-examples",
+  "name": "anchor-examples",
   "private": true,
   "scripts": {
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",

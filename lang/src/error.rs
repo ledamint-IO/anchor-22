@@ -1,6 +1,6 @@
 use anchor_attribute_error::error_code;
 use borsh::maybestd::io::Error as BorshIoError;
-use solana_program::program_error::ProgramError;
+use safecoin_program::program_error::ProgramError;
 use std::fmt::{Debug, Display};
 
 /// The starting point for user defined error codes.
@@ -223,10 +223,10 @@ impl Error {
         }
     }
 
-    pub fn with_account_safecoin(mut self, account_safecoin: impl ToString) -> Self {
+    pub fn with_account_name(mut self, account_name: impl ToString) -> Self {
         match &mut self {
-            Error::AnchorError(ae) => ae.account_safecoin = Some(account_safecoin.to_string()),
-            Error::ProgramError(pe) => pe.account_safecoin = Some(account_safecoin.to_string()),
+            Error::AnchorError(ae) => ae.account_name = Some(account_name.to_string()),
+            Error::ProgramError(pe) => pe.account_name = Some(account_name.to_string()),
         };
         self
     }
@@ -244,7 +244,7 @@ impl Error {
 pub struct ProgramErrorWithOrigin {
     pub program_error: ProgramError,
     pub source: Option<Source>,
-    pub account_safecoin: Option<String>,
+    pub account_name: Option<String>,
 }
 
 impl Display for ProgramErrorWithOrigin {
@@ -256,24 +256,24 @@ impl Display for ProgramErrorWithOrigin {
 impl ProgramErrorWithOrigin {
     pub fn log(&self) {
         if let Some(source) = &self.source {
-            anchor_lang::solana_program::msg!(
+            anchor_lang::safecoin_program::msg!(
                 "ProgramError thrown in {}:{}. Error Code: {:?}. Error Number: {}. Error Message: {}.",
-                source.filesafecoin,
+                source.filename,
                 source.line,
                 self.program_error,
                 u64::from(self.program_error.clone()),
                 self.program_error
             );
-        } else if let Some(account_safecoin) = &self.account_safecoin {
-            anchor_lang::solana_program::log::sol_log(&format!(
+        } else if let Some(account_name) = &self.account_name {
+            anchor_lang::safecoin_program::log::sol_log(&format!(
                 "ProgramError caused by account: {}. Error Code: {:?}. Error Number: {}. Error Message: {}.",
-                account_safecoin,
+                account_name,
                 self.program_error,
                 u64::from(self.program_error.clone()),
                 self.program_error
             ));
         } else {
-            anchor_lang::solana_program::log::sol_log(&format!(
+            anchor_lang::safecoin_program::log::sol_log(&format!(
                 "ProgramError occurred. Error Code: {:?}. Error Number: {}. Error Message: {}.",
                 self.program_error,
                 u64::from(self.program_error.clone()),
@@ -288,59 +288,59 @@ impl From<ProgramError> for ProgramErrorWithOrigin {
         Self {
             program_error,
             source: None,
-            account_safecoin: None,
+            account_name: None,
         }
     }
 }
 
 #[derive(Debug)]
 pub struct AnchorError {
-    pub error_safecoin: String,
+    pub error_name: String,
     pub error_code_number: u32,
     pub error_msg: String,
     pub source: Option<Source>,
-    pub account_safecoin: Option<String>,
+    pub account_name: Option<String>,
 }
 
 impl AnchorError {
     pub fn log(&self) {
         if let Some(source) = &self.source {
-            anchor_lang::solana_program::msg!(
+            anchor_lang::safecoin_program::msg!(
                 "AnchorError thrown in {}:{}. Error Code: {}. Error Number: {}. Error Message: {}.",
-                source.filesafecoin,
+                source.filename,
                 source.line,
-                self.error_safecoin,
+                self.error_name,
                 self.error_code_number,
                 self.error_msg
             );
-        } else if let Some(account_safecoin) = &self.account_safecoin {
-            anchor_lang::solana_program::log::sol_log(&format!(
+        } else if let Some(account_name) = &self.account_name {
+            anchor_lang::safecoin_program::log::sol_log(&format!(
                 "AnchorError caused by account: {}. Error Code: {}. Error Number: {}. Error Message: {}.",
-                account_safecoin,
-                self.error_safecoin,
+                account_name,
+                self.error_name,
                 self.error_code_number,
                 self.error_msg
             ));
         } else {
-            anchor_lang::solana_program::log::sol_log(&format!(
+            anchor_lang::safecoin_program::log::sol_log(&format!(
                 "AnchorError occurred. Error Code: {}. Error Number: {}. Error Message: {}.",
-                self.error_safecoin, self.error_code_number, self.error_msg
+                self.error_name, self.error_code_number, self.error_msg
             ));
         }
     }
 }
 
-impl std::convert::From<Error> for anchor_lang::solana_program::program_error::ProgramError {
-    fn from(e: Error) -> anchor_lang::solana_program::program_error::ProgramError {
+impl std::convert::From<Error> for anchor_lang::safecoin_program::program_error::ProgramError {
+    fn from(e: Error) -> anchor_lang::safecoin_program::program_error::ProgramError {
         match e {
             Error::AnchorError(AnchorError {
-                error_safecoin: _,
+                error_name: _,
                 error_code_number,
                 error_msg: _,
                 source: _,
-                account_safecoin: _,
+                account_name: _,
             }) => {
-                anchor_lang::solana_program::program_error::ProgramError::Custom(error_code_number)
+                anchor_lang::safecoin_program::program_error::ProgramError::Custom(error_code_number)
             }
             Error::ProgramError(program_error) => program_error.program_error,
         }
@@ -349,6 +349,6 @@ impl std::convert::From<Error> for anchor_lang::solana_program::program_error::P
 
 #[derive(Debug)]
 pub struct Source {
-    pub filesafecoin: &'static str,
+    pub filename: &'static str,
     pub line: u32,
 }

@@ -11,7 +11,7 @@ pub fn parse(program_mod: syn::ItemMod) -> ParseResult<Program> {
     Ok(Program {
         state,
         ixs,
-        safecoin: program_mod.ident.clone(),
+        name: program_mod.ident.clone(),
         program_mod,
         fallback_fn,
     })

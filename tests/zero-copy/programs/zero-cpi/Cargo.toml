@@ -1,12 +1,12 @@
 [package]
-safecoin = "zero-cpi"
+name = "zero-cpi"
 version = "0.1.0"
 description = "Created with Anchor"
 edition = "2018"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-safecoin = "zero_cpi"
+name = "zero_cpi"
 
 [features]
 no-entrypoint = []

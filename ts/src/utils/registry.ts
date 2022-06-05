@@ -101,7 +101,7 @@ export type Build = {
   descriptor: string[];
   docker: string;
   id: number;
-  safecoin: string;
+  name: string;
   sha256: string;
   upgrade_authority: string;
   verified: string;

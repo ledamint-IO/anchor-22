@@ -13,10 +13,10 @@ describe("Events", () => {
     ];
     const idl = {
       version: "0.0.0",
-      safecoin: "basic_0",
+      name: "basic_0",
       instructions: [
         {
-          safecoin: "initialize",
+          name: "initialize",
           accounts: [],
           args: [],
         },

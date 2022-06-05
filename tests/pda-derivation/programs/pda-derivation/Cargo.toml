@@ -1,12 +1,12 @@
 [package]
-safecoin = "pda-derivation"
+name = "pda-derivation"
 version = "0.1.0"
 description = "Created with Anchor"
 edition = "2018"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-safecoin = "pda_derivation"
+name = "pda_derivation"
 
 [features]
 no-entrypoint = []

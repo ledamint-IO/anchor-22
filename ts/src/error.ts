@@ -1,7 +1,7 @@
 export class IdlError extends Error {
   constructor(message: string) {
     super(message);
-    this.safecoin = "IdlError";
+    this.name = "IdlError";
   }
 }
 

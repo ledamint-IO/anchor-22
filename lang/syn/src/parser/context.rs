@@ -91,7 +91,7 @@ impl<'krate> ModuleContext<'krate> {
     }
 }
 struct ParsedModule {
-    safecoin: String,
+    name: String,
     file: PathBuf,
     path: String,
     items: Vec<syn::Item>,
@@ -113,7 +113,7 @@ impl ParsedModule {
         struct UnparsedModule {
             file: PathBuf,
             path: String,
-            safecoin: String,
+            name: String,
             item: syn::ItemMod,
         }
 
@@ -122,26 +122,26 @@ impl ParsedModule {
             .map(|item| UnparsedModule {
                 file: root_mod.file.clone(),
                 path: root_mod.path.clone(),
-                safecoin: item.ident.to_string(),
+                name: item.ident.to_string(),
                 item: item.clone(),
             })
             .collect::<Vec<_>>();
 
         while let Some(to_parse) = unparsed.pop() {
-            let path = format!("{}::{}", to_parse.path, to_parse.safecoin);
-            let safecoin = to_parse.safecoin;
+            let path = format!("{}::{}", to_parse.path, to_parse.name);
+            let name = to_parse.name;
             let module = Self::from_item_mod(&to_parse.file, &path, to_parse.item)?;
 
             unparsed.extend(module.submodules().map(|item| UnparsedModule {
                 item: item.clone(),
                 file: module.file.clone(),
                 path: module.path.clone(),
-                safecoin: item.ident.to_string(),
+                name: item.ident.to_string(),
             }));
-            modules.insert(safecoin.clone(), module);
+            modules.insert(name.clone(), module);
         }
 
-        modules.insert(root_mod.safecoin.clone(), root_mod);
+        modules.insert(root_mod.name.clone(), root_mod);
 
         Ok(modules)
     }
@@ -165,8 +165,8 @@ impl ParsedModule {
                 // The module is referencing some other file, so we need to load that
                 // to parse the items it has.
                 let parent_dir = parent_file.parent().unwrap();
-                let parent_filesafecoin = parent_file.file_stem().unwrap().to_str().unwrap();
-                let parent_mod_dir = parent_dir.join(parent_filesafecoin);
+                let parent_filename = parent_file.file_stem().unwrap().to_str().unwrap();
+                let parent_mod_dir = parent_dir.join(parent_filename);
 
                 let possible_file_paths = vec![
                     parent_dir.join(format!("{}.rs", item.ident)),
@@ -193,9 +193,9 @@ impl ParsedModule {
         })
     }
 
-    fn new(path: String, file: PathBuf, safecoin: String, items: Vec<syn::Item>) -> Self {
+    fn new(path: String, file: PathBuf, name: String, items: Vec<syn::Item>) -> Self {
         Self {
-            safecoin,
+            name,
             file,
             path,
             items,

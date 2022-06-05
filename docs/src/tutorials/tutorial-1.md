@@ -80,7 +80,7 @@ We can interact with the program as follows.
 <<< @/../examples/tutorial/basic-1/tests/basic-1.js#code-simplified
 
 The last element passed into the method is common amongst all dynamically generated
-methods on the `rpc` safecoinspace, containing several options for a transaction. Here,
+methods on the `rpc` namespace, containing several options for a transaction. Here,
 we specify the `accounts` field, an object of all the addresses the transaction
 needs to touch, and the `signers` array of all `Signer` objects needed to sign the
 transaction. Because `myAccount` is being created, the Solana runtime requires it

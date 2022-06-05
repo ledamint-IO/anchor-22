@@ -1,12 +1,12 @@
 [package]
-safecoin = "typescript"
+name = "typescript"
 version = "0.1.0"
 description = "Created with Anchor"
 edition = "2018"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-safecoin = "typescript"
+name = "typescript"
 
 [features]
 no-entrypoint = []

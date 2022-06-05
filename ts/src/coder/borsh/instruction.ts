@@ -29,7 +29,7 @@ import { InstructionCoder } from "../index.js";
 export const SIGHASH_STATE_NAMESPACE = "state";
 /**
  * Namespace for global instruction function signatures (i.e. functions
- * that aren't safecoinspaced by the state or any of its trait implementations).
+ * that aren't namespaced by the state or any of its trait implementations).
  */
 export const SIGHASH_GLOBAL_NAMESPACE = "global";
 
@@ -37,30 +37,30 @@ export const SIGHASH_GLOBAL_NAMESPACE = "global";
  * Encodes and decodes program instructions.
  */
 export class BorshInstructionCoder implements InstructionCoder {
-  // Instruction args layout. Maps safecoinspaced method
+  // Instruction args layout. Maps namespaced method
   private ixLayout: Map<string, Layout>;
 
   // Base58 encoded sighash to instruction layout.
-  private sighashLayouts: Map<string, { layout: Layout; safecoin: string }>;
+  private sighashLayouts: Map<string, { layout: Layout; name: string }>;
 
   public constructor(private idl: Idl) {
     this.ixLayout = BorshInstructionCoder.parseIxLayout(idl);
 
     const sighashLayouts = new Map();
     idl.instructions.forEach((ix) => {
-      const sh = sighash(SIGHASH_GLOBAL_NAMESPACE, ix.safecoin);
+      const sh = sighash(SIGHASH_GLOBAL_NAMESPACE, ix.name);
       sighashLayouts.set(bs58.encode(sh), {
-        layout: this.ixLayout.get(ix.safecoin),
-        safecoin: ix.safecoin,
+        layout: this.ixLayout.get(ix.name),
+        name: ix.name,
       });
     });
 
     if (idl.state) {
       idl.state.methods.map((ix) => {
-        const sh = sighash(SIGHASH_STATE_NAMESPACE, ix.safecoin);
+        const sh = sighash(SIGHASH_STATE_NAMESPACE, ix.name);
         sighashLayouts.set(bs58.encode(sh), {
-          layout: this.ixLayout.get(ix.safecoin) as Layout,
-          safecoin: ix.safecoin,
+          layout: this.ixLayout.get(ix.name) as Layout,
+          name: ix.name,
         });
       });
     }
@@ -82,7 +82,7 @@ export class BorshInstructionCoder implements InstructionCoder {
     return this._encode(SIGHASH_STATE_NAMESPACE, ixName, ix);
   }
 
-  private _encode(safecoinSpace: string, ixName: string, ix: any): Buffer {
+  private _encode(nameSpace: string, ixName: string, ix: any): Buffer {
     const buffer = Buffer.alloc(1000); // TODO: use a tighter buffer.
     const methodName = camelCase(ixName);
     const layout = this.ixLayout.get(methodName);
@@ -91,7 +91,7 @@ export class BorshInstructionCoder implements InstructionCoder {
     }
     const len = layout.encode(ix, buffer);
     const data = buffer.slice(0, len);
-    return Buffer.concat([sighash(safecoinSpace, ixName), data]);
+    return Buffer.concat([sighash(nameSpace, ixName), data]);
   }
 
   private static parseIxLayout(idl: Idl): Map<string, Layout> {
@@ -105,8 +105,8 @@ export class BorshInstructionCoder implements InstructionCoder {
             Array.from([...(idl.accounts ?? []), ...(idl.types ?? [])])
           );
         });
-        const safecoin = camelCase(m.safecoin);
-        return [safecoin, borsh.struct(fieldLayouts, safecoin)];
+        const name = camelCase(m.name);
+        return [name, borsh.struct(fieldLayouts, name)];
       })
       .concat(
         idl.instructions.map((ix) => {
@@ -116,8 +116,8 @@ export class BorshInstructionCoder implements InstructionCoder {
               Array.from([...(idl.accounts ?? []), ...(idl.types ?? [])])
             )
           );
-          const safecoin = camelCase(ix.safecoin);
-          return [safecoin, borsh.struct(fieldLayouts, safecoin)];
+          const name = camelCase(ix.name);
+          return [name, borsh.struct(fieldLayouts, name)];
         })
       );
     return new Map(ixLayouts);
@@ -141,7 +141,7 @@ export class BorshInstructionCoder implements InstructionCoder {
     }
     return {
       data: decoder.layout.decode(data),
-      safecoin: decoder.safecoin,
+      name: decoder.name,
     };
   }
 
@@ -157,14 +157,14 @@ export class BorshInstructionCoder implements InstructionCoder {
 }
 
 export type Instruction = {
-  safecoin: string;
+  name: string;
   data: Object;
 };
 
 export type InstructionDisplay = {
-  args: { safecoin: string; type: string; data: string }[];
+  args: { name: string; type: string; data: string }[];
   accounts: {
-    safecoin?: string;
+    name?: string;
     pubkey: PublicKey;
     isSigner: boolean;
     isWritable: boolean;
@@ -177,7 +177,7 @@ class InstructionFormatter {
     accountMetas: AccountMeta[],
     idl: Idl
   ): InstructionDisplay | null {
-    const idlIx = idl.instructions.filter((i) => ix.safecoin === i.safecoin)[0];
+    const idlIx = idl.instructions.filter((i) => ix.name === i.name)[0];
     if (idlIx === undefined) {
       console.error("Invalid instruction given");
       return null;
@@ -185,11 +185,11 @@ class InstructionFormatter {
 
     const args = idlIx.args.map((idlField) => {
       return {
-        safecoin: idlField.safecoin,
+        name: idlField.name,
         type: InstructionFormatter.formatIdlType(idlField.type),
         data: InstructionFormatter.formatIdlData(
           idlField,
-          ix.data[idlField.safecoin],
+          ix.data[idlField.name],
           idl.types
         ),
       };
@@ -202,14 +202,14 @@ class InstructionFormatter {
     const accounts = accountMetas.map((meta, idx) => {
       if (idx < flatIdlAccounts.length) {
         return {
-          safecoin: flatIdlAccounts[idx].safecoin,
+          name: flatIdlAccounts[idx].name,
           ...meta,
         };
       }
-      // "Remaining accounts" are unsafecoind in Anchor.
+      // "Remaining accounts" are unnamed in Anchor.
       else {
         return {
-          safecoin: undefined,
+          name: undefined,
           ...meta,
         };
       }
@@ -256,7 +256,7 @@ class InstructionFormatter {
         (<Array<IdlField>>data)
           .map((d: IdlField) =>
             this.formatIdlData(
-              { safecoin: "", type: (<IdlTypeVec>idlField.type).vec },
+              { name: "", type: (<IdlTypeVec>idlField.type).vec },
               d
             )
           )
@@ -268,7 +268,7 @@ class InstructionFormatter {
       return data === null
         ? "null"
         : this.formatIdlData(
-            { safecoin: "", type: (<IdlTypeOption>idlField.type).option },
+            { name: "", type: (<IdlTypeOption>idlField.type).option },
             data
           );
     }
@@ -277,7 +277,7 @@ class InstructionFormatter {
         throw new Error("User defined types not provided");
       }
       const filtered = types.filter(
-        (t) => t.safecoin === (<IdlTypeDefined>idlField.type).defined
+        (t) => t.name === (<IdlTypeDefined>idlField.type).defined
       );
       if (filtered.length !== 1) {
         throw new Error(
@@ -303,7 +303,7 @@ class InstructionFormatter {
       const struct: IdlTypeDefTyStruct = typeDef.type;
       const fields = Object.keys(data)
         .map((k) => {
-          const f = struct.fields.filter((f) => f.safecoin === k)[0];
+          const f = struct.fields.filter((f) => f.name === k)[0];
           if (f === undefined) {
             throw new Error("Unable to find type");
           }
@@ -318,15 +318,15 @@ class InstructionFormatter {
         return "{}";
       }
       // Struct enum.
-      if (typeDef.type.variants[0].safecoin) {
+      if (typeDef.type.variants[0].name) {
         const variants = typeDef.type.variants;
         const variant = Object.keys(data)[0];
         const enumType = data[variant];
-        const safecoindFields = Object.keys(enumType)
+        const namedFields = Object.keys(enumType)
           .map((f) => {
             const fieldData = enumType[f];
             const idlField = variants[variant]?.filter(
-              (v: IdlField) => v.safecoin === f
+              (v: IdlField) => v.name === f
             )[0];
             if (idlField === undefined) {
               throw new Error("Unable to find variant");
@@ -340,10 +340,10 @@ class InstructionFormatter {
           .join(", ");
 
         const variantName = camelCase(variant, { pascalCase: true });
-        if (safecoindFields.length === 0) {
+        if (namedFields.length === 0) {
           return variantName;
         }
-        return `${variantName} { ${safecoindFields} }`;
+        return `${variantName} { ${namedFields} }`;
       }
       // Tuple enum.
       else {
@@ -359,7 +359,7 @@ class InstructionFormatter {
   ): IdlAccount[] {
     return accounts
       .map((account) => {
-        const accName = sentenceCase(account.safecoin);
+        const accName = sentenceCase(account.name);
         if (account.hasOwnProperty("accounts")) {
           const newPrefix = prefix ? `${prefix} > ${accName}` : accName;
           return InstructionFormatter.flattenIdlAccounts(
@@ -369,7 +369,7 @@ class InstructionFormatter {
         } else {
           return {
             ...(<IdlAccount>account),
-            safecoin: prefix ? `${prefix} > ${accName}` : accName,
+            name: prefix ? `${prefix} > ${accName}` : accName,
           };
         }
       })
@@ -384,8 +384,8 @@ function sentenceCase(field: string): string {
 
 // Not technically sighash, since we don't include the arguments, as Rust
 // doesn't allow function overloading.
-function sighash(safecoinSpace: string, ixName: string): Buffer {
-  let safecoin = snakeCase(ixName);
-  let preimage = `${safecoinSpace}:${safecoin}`;
+function sighash(nameSpace: string, ixName: string): Buffer {
+  let name = snakeCase(ixName);
+  let preimage = `${nameSpace}:${name}`;
   return Buffer.from(sha256.digest(preimage)).slice(0, 8);
 }

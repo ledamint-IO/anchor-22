@@ -5,9 +5,9 @@ use crate::{
     AccountDeserialize, AccountSerialize, Accounts, AccountsExit, Result, ToAccountInfo,
     ToAccountInfos, ToAccountMetas,
 };
-use solana_program::account_info::AccountInfo;
-use solana_program::instruction::AccountMeta;
-use solana_program::pubkey::Pubkey;
+use safecoin_program::account_info::AccountInfo;
+use safecoin_program::instruction::AccountMeta;
+use safecoin_program::pubkey::Pubkey;
 use std::collections::BTreeMap;
 use std::ops::{Deref, DerefMut};
 
@@ -42,7 +42,7 @@ impl<'a, T: AccountSerialize + AccountDeserialize + Clone> ProgramState<'a, T> {
             return Err(ErrorCode::AccountOwnedByWrongProgram.into());
         }
         if info.key != &Self::address(program_id) {
-            solana_program::msg!("Invalid state address");
+            safecoin_program::msg!("Invalid state address");
             return Err(ErrorCode::StateInvalidAddress.into());
         }
         let mut data: &[u8] = &info.try_borrow_data()?;

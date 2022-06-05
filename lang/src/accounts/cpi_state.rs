@@ -5,9 +5,9 @@ use crate::{
     AccountDeserialize, AccountSerialize, Accounts, AccountsExit, Result, ToAccountInfos,
     ToAccountMetas,
 };
-use solana_program::account_info::AccountInfo;
-use solana_program::instruction::AccountMeta;
-use solana_program::pubkey::Pubkey;
+use safecoin_program::account_info::AccountInfo;
+use safecoin_program::instruction::AccountMeta;
+use safecoin_program::pubkey::Pubkey;
 use std::collections::BTreeMap;
 use std::ops::{Deref, DerefMut};
 
@@ -80,7 +80,7 @@ where
         *accounts = &accounts[1..];
 
         // No owner or address check is done here. One must use the
-        // #[account(state = <account-safecoin>)] constraint.
+        // #[account(state = <account-name>)] constraint.
 
         CpiState::try_from(account)
     }

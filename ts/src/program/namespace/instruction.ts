@@ -33,8 +33,8 @@ export default class InstructionNamespaceFactory {
     encodeFn: InstructionEncodeFn<I>,
     programId: PublicKey
   ): InstructionFn<IDL, I> {
-    if (idlIx.safecoin === "_inner") {
-      throw new IdlError("the _inner safecoin is reserved");
+    if (idlIx.name === "_inner") {
+      throw new IdlError("the _inner name is reserved");
     }
 
     const ix = (
@@ -57,7 +57,7 @@ export default class InstructionNamespaceFactory {
       return new TransactionInstruction({
         keys,
         programId,
-        data: encodeFn(idlIx.safecoin, toInstruction(idlIx, ...ixArgs)),
+        data: encodeFn(idlIx.name, toInstruction(idlIx, ...ixArgs)),
       });
     };
 
@@ -66,7 +66,7 @@ export default class InstructionNamespaceFactory {
       return InstructionNamespaceFactory.accountsArray(
         accs,
         idlIx.accounts,
-        idlIx.safecoin
+        idlIx.name
       );
     };
 
@@ -88,7 +88,7 @@ export default class InstructionNamespaceFactory {
         const nestedAccounts: IdlAccountItem[] | undefined =
           "accounts" in acc ? acc.accounts : undefined;
         if (nestedAccounts !== undefined) {
-          const rpcAccs = ctx[acc.safecoin] as Accounts;
+          const rpcAccs = ctx[acc.name] as Accounts;
           return InstructionNamespaceFactory.accountsArray(
             rpcAccs,
             (acc as IdlAccounts).accounts,
@@ -98,11 +98,11 @@ export default class InstructionNamespaceFactory {
           const account: IdlAccount = acc as IdlAccount;
           let pubkey;
           try {
-            pubkey = translateAddress(ctx[acc.safecoin] as Address);
+            pubkey = translateAddress(ctx[acc.name] as Address);
           } catch (err) {
             throw new Error(
               `Wrong input type for account "${
-                acc.safecoin
+                acc.name
               }" in the instruction accounts object${
                 ixName !== undefined ? ' for instruction "' + ixName + '"' : ""
               }. Expected PublicKey or string.`
@@ -120,7 +120,7 @@ export default class InstructionNamespaceFactory {
 }
 
 /**
- * The safecoinspace provides functions to build [[TransactionInstruction]]
+ * The namespace provides functions to build [[TransactionInstruction]]
  * objects for each method of a program.
  *
  * ## Usage
@@ -183,7 +183,7 @@ type IxProps<A extends Accounts> = {
 };
 
 export type InstructionEncodeFn<I extends IdlInstruction = IdlInstruction> = (
-  ixName: I["safecoin"],
+  ixName: I["name"],
   ix: any
 ) => Buffer;
 

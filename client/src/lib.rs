@@ -1,27 +1,27 @@
 //! `anchor_client` provides an RPC client to send transactions and fetch
 //! deserialized accounts from Solana programs written in `anchor_lang`.
 
-use anchor_lang::solana_program::instruction::{AccountMeta, Instruction};
-use anchor_lang::solana_program::program_error::ProgramError;
-use anchor_lang::solana_program::pubkey::Pubkey;
-use anchor_lang::solana_program::system_program;
+use anchor_lang::safecoin_program::instruction::{AccountMeta, Instruction};
+use anchor_lang::safecoin_program::program_error::ProgramError;
+use anchor_lang::safecoin_program::pubkey::Pubkey;
+use anchor_lang::safecoin_program::system_program;
 use anchor_lang::{AccountDeserialize, Discriminator, InstructionData, ToAccountMetas};
 use regex::Regex;
-use solana_account_decoder::UiAccountEncoding;
-use solana_client::client_error::ClientError as SolanaClientError;
-use solana_client::pubsub_client::{PubsubClient, PubsubClientError, PubsubClientSubscription};
-use solana_client::rpc_client::RpcClient;
-use solana_client::rpc_config::{
+use safecoin_account_decoder::UiAccountEncoding;
+use safecoin_client::client_error::ClientError as SolanaClientError;
+use safecoin_client::pubsub_client::{PubsubClient, PubsubClientError, PubsubClientSubscription};
+use safecoin_client::rpc_client::RpcClient;
+use safecoin_client::rpc_config::{
     RpcAccountInfoConfig, RpcProgramAccountsConfig, RpcTransactionLogsConfig,
     RpcTransactionLogsFilter,
 };
-use solana_client::rpc_filter::{Memcmp, MemcmpEncodedBytes, RpcFilterType};
-use solana_client::rpc_response::{Response as RpcResponse, RpcLogsResponse};
-use solana_sdk::account::Account;
-use solana_sdk::bs58;
-use solana_sdk::commitment_config::CommitmentConfig;
-use solana_sdk::signature::{Signature, Signer};
-use solana_sdk::transaction::Transaction;
+use safecoin_client::rpc_filter::{Memcmp, MemcmpEncodedBytes, RpcFilterType};
+use safecoin_client::rpc_response::{Response as RpcResponse, RpcLogsResponse};
+use safecoin_sdk::account::Account;
+use safecoin_sdk::bs58;
+use safecoin_sdk::commitment_config::CommitmentConfig;
+use safecoin_sdk::signature::{Signature, Signer};
+use safecoin_sdk::transaction::Transaction;
 use std::convert::Into;
 use std::iter::Map;
 use std::rc::Rc;
@@ -30,8 +30,8 @@ use thiserror::Error;
 
 pub use anchor_lang;
 pub use cluster::Cluster;
-pub use solana_client;
-pub use solana_sdk;
+pub use safecoin_client;
+pub use safecoin_sdk;
 
 mod cluster;
 
@@ -263,7 +263,7 @@ pub struct ProgramAccountsIterator<T> {
     inner: Map<IntoIter<(Pubkey, Account)>, AccountConverterFunction<T>>,
 }
 
-/// Function type that accepts solana accounts and returns deserialized anchor accounts
+/// Function type that accepts safecoin accounts and returns deserialized anchor accounts
 type AccountConverterFunction<T> = fn((Pubkey, Account)) -> Result<(Pubkey, T), ClientError>;
 
 impl<T> Iterator for ProgramAccountsIterator<T> {
@@ -400,7 +400,7 @@ pub struct RequestBuilder<'a> {
     instruction_data: Option<Vec<u8>>,
     signers: Vec<&'a dyn Signer>,
     // True if the user is sending a state instruction.
-    safecoinspace: RequestNamespace,
+    namespace: RequestNamespace,
 }
 
 #[derive(PartialEq)]
@@ -419,7 +419,7 @@ impl<'a> RequestBuilder<'a> {
         cluster: &str,
         payer: Rc<dyn Signer>,
         options: Option<CommitmentConfig>,
-        safecoinspace: RequestNamespace,
+        namespace: RequestNamespace,
     ) -> Self {
         Self {
             program_id,
@@ -430,7 +430,7 @@ impl<'a> RequestBuilder<'a> {
             instructions: Vec::new(),
             instruction_data: None,
             signers: Vec::new(),
-            safecoinspace,
+            namespace,
         }
     }
 
@@ -481,8 +481,8 @@ impl<'a> RequestBuilder<'a> {
     #[allow(clippy::wrong_self_convention)]
     #[must_use]
     pub fn new(mut self, args: impl InstructionData) -> Self {
-        assert!(self.safecoinspace == RequestNamespace::State { new: false });
-        self.safecoinspace = RequestNamespace::State { new: true };
+        assert!(self.namespace == RequestNamespace::State { new: false });
+        self.namespace = RequestNamespace::State { new: true };
         self.instruction_data = Some(args.data());
         self
     }
@@ -494,7 +494,7 @@ impl<'a> RequestBuilder<'a> {
     }
 
     pub fn instructions(&self) -> Result<Vec<Instruction>, ClientError> {
-        let mut accounts = match self.safecoinspace {
+        let mut accounts = match self.namespace {
             RequestNamespace::State { new } => match new {
                 false => vec![AccountMeta::new(
                     anchor_lang::__private::state::address(&self.program_id),

@@ -1,5 +1,5 @@
-import TransactionFactory from "../src/program/safecoinspace/transaction";
-import InstructionFactory from "../src/program/safecoinspace/instruction";
+import TransactionFactory from "../src/program/namespace/transaction";
+import InstructionFactory from "../src/program/namespace/instruction";
 import { BorshCoder } from "../src";
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 
@@ -16,10 +16,10 @@ describe("Transaction", () => {
   });
   const idl = {
     version: "0.0.0",
-    safecoin: "basic_0",
+    name: "basic_0",
     instructions: [
       {
-        safecoin: "initialize",
+        name: "initialize",
         accounts: [],
         args: [],
       },

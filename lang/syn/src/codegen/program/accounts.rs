@@ -9,22 +9,22 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
     if let Some(state) = &program.state {
         // Ctor.
         if let Some((_ctor, ctor_accounts)) = &state.ctor_and_anchor {
-            let macro_safecoin = format!(
+            let macro_name = format!(
                 "__client_accounts_{}",
                 ctor_accounts.to_string().to_snake_case()
             );
-            accounts.insert(macro_safecoin);
+            accounts.insert(macro_name);
         }
         // Methods.
         if let Some((_impl_block, methods)) = &state.impl_block_and_methods {
             for ix in methods {
                 let anchor_ident = &ix.anchor_ident;
                 // TODO: move to fn and share with accounts.rs.
-                let macro_safecoin = format!(
+                let macro_name = format!(
                     "__client_accounts_{}",
                     anchor_ident.to_string().to_snake_case()
                 );
-                accounts.insert(macro_safecoin);
+                accounts.insert(macro_name);
             }
         }
     }
@@ -33,20 +33,20 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
     for ix in &program.ixs {
         let anchor_ident = &ix.anchor_ident;
         // TODO: move to fn and share with accounts.rs.
-        let macro_safecoin = format!(
+        let macro_name = format!(
             "__client_accounts_{}",
             anchor_ident.to_string().to_snake_case()
         );
-        accounts.insert(macro_safecoin);
+        accounts.insert(macro_name);
     }
 
     // Build the tokens from all accounts
     let account_structs: Vec<proc_macro2::TokenStream> = accounts
         .iter()
-        .map(|macro_safecoin: &String| {
-            let macro_safecoin: proc_macro2::TokenStream = macro_safecoin.parse().unwrap();
+        .map(|macro_name: &String| {
+            let macro_name: proc_macro2::TokenStream = macro_name.parse().unwrap();
             quote! {
-                pub use crate::#macro_safecoin::*;
+                pub use crate::#macro_name::*;
             }
         })
         .collect();

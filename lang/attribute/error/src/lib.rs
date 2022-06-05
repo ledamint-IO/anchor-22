@@ -40,8 +40,8 @@ use syn::{parse_macro_input, Expr};
 ///
 /// Note that we generate a new `Error` type so that we can return either the
 /// user defined error enum *or* a
-/// [`ProgramError`](../solana_program/enum.ProgramError.html), which is used
-/// pervasively, throughout solana program crates. The generated `Error` type
+/// [`ProgramError`](../safecoin_program/enum.ProgramError.html), which is used
+/// pervasively, throughout safecoin program crates. The generated `Error` type
 /// should almost never be used directly, as the user defined error is
 /// preferred. In the example above, `error!(MyError::Hello)`.
 ///
@@ -89,18 +89,18 @@ pub fn error(ts: proc_macro::TokenStream) -> TokenStream {
 }
 
 #[proc_macro]
-pub fn error_with_account_safecoin(ts: proc_macro::TokenStream) -> TokenStream {
+pub fn error_with_account_name(ts: proc_macro::TokenStream) -> TokenStream {
     let input = parse_macro_input!(ts as ErrorWithAccountNameInput);
     let error_code = input.error_code;
-    let account_safecoin = input.account_safecoin;
-    create_error(error_code, false, Some(account_safecoin))
+    let account_name = input.account_name;
+    create_error(error_code, false, Some(account_name))
 }
 
-fn create_error(error_code: Expr, source: bool, account_safecoin: Option<Expr>) -> TokenStream {
+fn create_error(error_code: Expr, source: bool, account_name: Option<Expr>) -> TokenStream {
     let source = if source {
         quote! {
             Some(anchor_lang::error::Source {
-                filesafecoin: file!(),
+                filename: file!(),
                 line: line!()
             })
         }
@@ -109,18 +109,18 @@ fn create_error(error_code: Expr, source: bool, account_safecoin: Option<Expr>) 
             None
         }
     };
-    let account_safecoin = match account_safecoin {
-        Some(_) => quote! { Some(#account_safecoin.to_string()) },
+    let account_name = match account_name {
+        Some(_) => quote! { Some(#account_name.to_string()) },
         None => quote! { None },
     };
     TokenStream::from(quote! {
         anchor_lang::error::Error::from(
             anchor_lang::error::AnchorError {
-                error_safecoin: #error_code.safecoin(),
+                error_name: #error_code.name(),
                 error_code_number: #error_code.into(),
                 error_msg: #error_code.to_string(),
                 source: #source,
-                account_safecoin: #account_safecoin
+                account_name: #account_name
             }
         )
     })

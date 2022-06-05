@@ -5,9 +5,9 @@ use crate::{
     AccountDeserialize, AccountSerialize, Accounts, AccountsClose, AccountsExit, Result,
     ToAccountInfo, ToAccountInfos, ToAccountMetas,
 };
-use solana_program::account_info::AccountInfo;
-use solana_program::instruction::AccountMeta;
-use solana_program::pubkey::Pubkey;
+use safecoin_program::account_info::AccountInfo;
+use safecoin_program::instruction::AccountMeta;
+use safecoin_program::pubkey::Pubkey;
 use std::collections::BTreeMap;
 use std::ops::{Deref, DerefMut};
 
@@ -159,7 +159,7 @@ impl<'a, T: AccountSerialize + AccountDeserialize + Clone> DerefMut for ProgramA
     fn deref_mut(&mut self) -> &mut Self::Target {
         #[cfg(feature = "anchor-debug")]
         if !self.inner.info.is_writable {
-            solana_program::msg!("The given ProgramAccount is not mutable");
+            safecoin_program::msg!("The given ProgramAccount is not mutable");
             panic!();
         }
 

@@ -2,10 +2,10 @@
 
 use crate::error::ErrorCode;
 use crate::*;
-use solana_program::account_info::AccountInfo;
-use solana_program::bpf_loader_upgradeable::{self, UpgradeableLoaderState};
-use solana_program::instruction::AccountMeta;
-use solana_program::pubkey::Pubkey;
+use safecoin_program::account_info::AccountInfo;
+use safecoin_program::bpf_loader_upgradeable::{self, UpgradeableLoaderState};
+use safecoin_program::instruction::AccountMeta;
+use safecoin_program::pubkey::Pubkey;
 use std::collections::BTreeMap;
 use std::fmt;
 use std::marker::PhantomData;
@@ -14,8 +14,8 @@ use std::ops::Deref;
 /// Type validating that the account is the given Program
 ///
 /// The type has a `programdata_address` property that will be set
-/// if the program is owned by the [`BPFUpgradeableLoader`](https://docs.rs/safecoin-program/latest/solana_program/bpf_loader_upgradeable/index.html)
-/// and will contain the `programdata_address` property of the `Program` variant of the [`UpgradeableLoaderState`](https://docs.rs/safecoin-program/latest/solana_program/bpf_loader_upgradeable/enum.UpgradeableLoaderState.html) enum.
+/// if the program is owned by the [`BPFUpgradeableLoader`](https://docs.rs/safecoin-program/latest/safecoin_program/bpf_loader_upgradeable/index.html)
+/// and will contain the `programdata_address` property of the `Program` variant of the [`UpgradeableLoaderState`](https://docs.rs/safecoin-program/latest/safecoin_program/bpf_loader_upgradeable/enum.UpgradeableLoaderState.html) enum.
 ///
 /// Checks:
 ///

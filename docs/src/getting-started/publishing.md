@@ -16,7 +16,7 @@ The process for publishing is mostly identical to `crates.io`.
 
 * Signup for an account [here](https://anchor.projectserum.com/signup).
 * Confirm your email by clicking the link sent to your address.
-* Navigate to your Usersafecoin -> Account Settings on the top navbar.
+* Navigate to your Username -> Account Settings on the top navbar.
 * Click "New Token" in the **API Access** section.
 * Run `anchor login <token>` at the command line.
 
@@ -60,8 +60,8 @@ Here there are four sections.
    the `address` of the program to verify.
 
 ::: tip
-When defining program in `[programs.mainnet]`, make sure the safecoin provided
-matches the **lib** safecoin for your program, which is defined
+When defining program in `[programs.mainnet]`, make sure the name provided
+matches the **lib** name for your program, which is defined
 by your program's Cargo.toml.
 :::
 
@@ -81,8 +81,8 @@ To publish to the Anchor Program Registry, change directories to the `Anchor.tom
 defined root and run
 
 ```bash
-anchor publish <program-safecoin>
+anchor publish <program-name>
 ```
 
-where `<program-safecoin>` is as defined in `[programs.mainnet]`, i.e., `multisig`
+where `<program-name>` is as defined in `[programs.mainnet]`, i.e., `multisig`
 in the example above.

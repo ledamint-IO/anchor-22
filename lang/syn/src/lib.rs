@@ -30,7 +30,7 @@ pub mod parser;
 pub struct Program {
     pub state: Option<State>,
     pub ixs: Vec<Ix>,
-    pub safecoin: Ident,
+    pub name: Ident,
     pub program_mod: ItemMod,
     pub fallback_fn: Option<FallbackFn>,
 }
@@ -56,7 +56,7 @@ impl ToTokens for Program {
 
 #[derive(Debug)]
 pub struct State {
-    pub safecoin: String,
+    pub name: String,
     pub strct: ItemStruct,
     pub ctor_and_anchor: Option<(ImplItemMethod, Ident)>,
     pub impl_block_and_methods: Option<(ItemImpl, Vec<StateIx>)>,
@@ -76,7 +76,7 @@ pub struct StateIx {
 
 #[derive(Debug)]
 pub struct StateInterface {
-    pub trait_safecoin: String,
+    pub trait_name: String,
     pub methods: Vec<StateIx>,
 }
 
@@ -91,7 +91,7 @@ pub struct Ix {
 
 #[derive(Debug)]
 pub struct IxArg {
-    pub safecoin: Ident,
+    pub name: Ident,
     pub raw_arg: PatType,
 }
 
@@ -147,7 +147,7 @@ impl AccountsStruct {
         }
     }
 
-    // Return value maps instruction safecoin to type.
+    // Return value maps instruction name to type.
     // E.g. if we have `#[instruction(data: u64)]` then returns
     // { "data": "u64"}.
     pub fn instruction_args(&self) -> Option<HashMap<String, String>> {
@@ -164,7 +164,7 @@ impl AccountsStruct {
         })
     }
 
-    pub fn field_safecoins(&self) -> Vec<String> {
+    pub fn field_names(&self) -> Vec<String> {
         self.fields
             .iter()
             .map(|field| field.ident().to_string())
@@ -187,7 +187,7 @@ impl AccountField {
         }
     }
 
-    pub fn ty_safecoin(&self) -> Option<String> {
+    pub fn ty_name(&self) -> Option<String> {
         match self {
             AccountField::Field(field) => match &field.ty {
                 Ty::Account(account) => Some(parser::tts_to_string(&account.account_type_path)),
@@ -211,10 +211,10 @@ pub struct Field {
 
 impl Field {
     pub fn typed_ident(&self) -> proc_macro2::TokenStream {
-        let safecoin = &self.ident;
+        let name = &self.ident;
         let ty_decl = self.ty_decl();
         quote! {
-            #safecoin: #ty_decl
+            #name: #ty_decl
         }
     }
 
@@ -526,7 +526,7 @@ pub struct ProgramTy {
 
 #[derive(Debug)]
 pub struct Error {
-    pub safecoin: String,
+    pub name: String,
     pub raw_enum: ItemEnum,
     pub ident: Ident,
     pub codes: Vec<ErrorCode>,

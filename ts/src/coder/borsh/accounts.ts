@@ -34,7 +34,7 @@ export class BorshAccountsCoder<A extends string = string>
       return;
     }
     const layouts: [A, Layout][] = idl.accounts.map((acc) => {
-      return [acc.safecoin as A, IdlCoder.typeDefLayout(acc, idl.types)];
+      return [acc.name as A, IdlCoder.typeDefLayout(acc, idl.types)];
     });
 
     this.accountLayouts = new Map(layouts);
@@ -91,11 +91,11 @@ export class BorshAccountsCoder<A extends string = string>
   /**
    * Calculates and returns a unique 8 byte discriminator prepended to all anchor accounts.
    *
-   * @param safecoin The safecoin of the account to calculate the discriminator.
+   * @param name The name of the account to calculate the discriminator.
    */
-  public static accountDiscriminator(safecoin: string): Buffer {
+  public static accountDiscriminator(name: string): Buffer {
     return Buffer.from(
-      sha256.digest(`account:${camelcase(safecoin, { pascalCase: true })}`)
+      sha256.digest(`account:${camelcase(name, { pascalCase: true })}`)
     ).slice(0, ACCOUNT_DISCRIMINATOR_SIZE);
   }
 }

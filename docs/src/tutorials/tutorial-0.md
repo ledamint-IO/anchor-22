@@ -97,10 +97,10 @@ a `target/idl/basic_0.json` file is created. Inspecting its contents you should 
 ```json
 {
   "version": "0.1.0",
-  "safecoin": "basic_0",
+  "name": "basic_0",
   "instructions": [
     {
-      "safecoin": "initialize",
+      "name": "initialize",
       "accounts": [],
       "args": []
     }
@@ -134,7 +134,7 @@ see [client.js](https://github.com/project-serum/anchor/tree/master/examples/tut
 <<< @/../examples/tutorial/basic-0/client.js#main
 
 Notice how we dynamically created the `initialize` method under
-the `rpc` safecoinspace.
+the `rpc` namespace.
 
 Now, make sure to plugin your program's address into `<YOUR-PROGRAM-ID>` (a mild
 annoyance that we'll address next). In order to run the client, you'll also need the path
@@ -165,7 +165,7 @@ Inspecting [tests/basic-0.js](https://github.com/project-serum/anchor/tree/maste
 
 <<< @/../examples/tutorial/basic-0/tests/basic-0.js#code
 
-The `workspace` safecoinspace provides access to all programs in the local project and is
+The `workspace` namespace provides access to all programs in the local project and is
 automatically updated to reflect the latest deployment, making it easy to change
 your program, update your JavaScript, and run your tests in a fast feedback loop.
 

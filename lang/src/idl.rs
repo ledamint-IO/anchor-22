@@ -20,7 +20,7 @@
 #[allow(deprecated)]
 use crate::accounts::program_account::ProgramAccount;
 use crate::prelude::*;
-use solana_program::pubkey::Pubkey;
+use safecoin_program::pubkey::Pubkey;
 
 // The first 8 bytes of an instruction to create or modify the IDL account. This
 // instruction is defined outside the main program's instruction enum, so that

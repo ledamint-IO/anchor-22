@@ -9,18 +9,18 @@ declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 pub mod chat {
     use super::*;
 
-    pub fn create_user(ctx: Context<CreateUser>, safecoin: String) -> Result<()> {
-        ctx.accounts.user.safecoin = safecoin;
+    pub fn create_user(ctx: Context<CreateUser>, name: String) -> Result<()> {
+        ctx.accounts.user.name = name;
         ctx.accounts.user.authority = *ctx.accounts.authority.key;
         ctx.accounts.user.bump = *ctx.bumps.get("user").unwrap();
         Ok(())
     }
-    pub fn create_chat_room(ctx: Context<CreateChatRoom>, safecoin: String) -> Result<()> {
-        let given_safecoin = safecoin.as_bytes();
-        let mut safecoin = [0u8; 280];
-        safecoin[..given_safecoin.len()].copy_from_slice(given_safecoin);
+    pub fn create_chat_room(ctx: Context<CreateChatRoom>, name: String) -> Result<()> {
+        let given_name = name.as_bytes();
+        let mut name = [0u8; 280];
+        name[..given_name.len()].copy_from_slice(given_name);
         let mut chat = ctx.accounts.chat_room.load_init()?;
-        chat.safecoin = safecoin;
+        chat.name = name;
         Ok(())
     }
     pub fn send_message(ctx: Context<SendMessage>, msg: String) -> Result<()> {
@@ -39,7 +39,7 @@ pub mod chat {
 }
 
 #[derive(Accounts)]
-#[instruction(safecoin: String)]
+#[instruction(name: String)]
 pub struct CreateUser<'info> {
     #[account(
         init,
@@ -75,7 +75,7 @@ pub struct SendMessage<'info> {
 
 #[account]
 pub struct User {
-    safecoin: String,
+    name: String,
     authority: Pubkey,
     bump: u8,
 }
@@ -84,7 +84,7 @@ pub struct User {
 pub struct ChatRoom {
     head: u64,
     tail: u64,
-    safecoin: [u8; 280],            // Human readable safecoin (char bytes).
+    name: [u8; 280],            // Human readable name (char bytes).
     messages: [Message; 33607], // Leaves the account at 10,485,680 bytes.
 }
 

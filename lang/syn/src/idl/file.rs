@@ -15,12 +15,12 @@ const ERROR_CODE_OFFSET: u32 = 6000;
 
 // Parse an entire interface file.
 pub fn parse(
-    filesafecoin: impl AsRef<Path>,
+    filename: impl AsRef<Path>,
     version: String,
     seeds_feature: bool,
     safety_checks: bool,
 ) -> Result<Option<Idl>> {
-    let ctx = CrateContext::parse(filesafecoin)?;
+    let ctx = CrateContext::parse(filename)?;
     if safety_checks {
         ctx.safety_checks()?;
     }
@@ -44,7 +44,7 @@ pub fn parse(
                         methods
                             .iter()
                             .map(|method: &StateIx| {
-                                let safecoin = method.ident.to_string().to_mixed_case();
+                                let name = method.ident.to_string().to_mixed_case();
                                 let args = method
                                     .args
                                     .iter()
@@ -53,7 +53,7 @@ pub fn parse(
                                         arg.raw_arg.ty.to_tokens(&mut tts);
                                         let ty = tts.to_string().parse().unwrap();
                                         IdlField {
-                                            safecoin: arg.safecoin.to_string().to_mixed_case(),
+                                            name: arg.name.to_string().to_mixed_case(),
                                             ty,
                                         }
                                     })
@@ -63,7 +63,7 @@ pub fn parse(
                                 let accounts =
                                     idl_accounts(&ctx, accounts_strct, &accs, seeds_feature);
                                 IdlInstruction {
-                                    safecoin,
+                                    name,
                                     accounts,
                                     args,
                                 }
@@ -72,7 +72,7 @@ pub fn parse(
                     })
                     .unwrap_or_default();
                 let ctor = {
-                    let safecoin = "new".to_string();
+                    let name = "new".to_string();
                     let args = ctor
                         .sig
                         .inputs
@@ -92,7 +92,7 @@ pub fn parse(
                                 arg_typed.ty.to_tokens(&mut tts);
                                 let ty = tts.to_string().parse().unwrap();
                                 IdlField {
-                                    safecoin: parser::tts_to_string(&arg_typed.pat).to_mixed_case(),
+                                    name: parser::tts_to_string(&arg_typed.pat).to_mixed_case(),
                                     ty,
                                 }
                             }
@@ -102,7 +102,7 @@ pub fn parse(
                     let accounts_strct = accs.get(&anchor_ident.to_string()).unwrap();
                     let accounts = idl_accounts(&ctx, accounts_strct, &accs, seeds_feature);
                     IdlInstruction {
-                        safecoin,
+                        name,
                         accounts,
                         args,
                     }
@@ -112,15 +112,15 @@ pub fn parse(
 
                 let strct = {
                     let fields = match state.strct.fields {
-                        syn::Fields::Named(f_safecoind) => f_safecoind
-                            .safecoind
+                        syn::Fields::Named(f_named) => f_named
+                            .named
                             .iter()
                             .map(|f: &syn::Field| {
                                 let mut tts = proc_macro2::TokenStream::new();
                                 f.ty.to_tokens(&mut tts);
                                 let ty = tts.to_string().parse().unwrap();
                                 IdlField {
-                                    safecoin: f.ident.as_ref().unwrap().to_string().to_mixed_case(),
+                                    name: f.ident.as_ref().unwrap().to_string().to_mixed_case(),
                                     ty,
                                 }
                             })
@@ -128,7 +128,7 @@ pub fn parse(
                         _ => panic!("State must be a struct"),
                     };
                     IdlTypeDefinition {
-                        safecoin: state.safecoin,
+                        name: state.name,
                         ty: IdlTypeDefinitionTy::Struct { fields },
                     }
                 };
@@ -143,7 +143,7 @@ pub fn parse(
             .iter()
             .map(|code| IdlErrorCode {
                 code: ERROR_CODE_OFFSET + code.id,
-                safecoin: code.ident.to_string(),
+                name: code.ident.to_string(),
                 msg: code.msg.clone(),
             })
             .collect::<Vec<IdlErrorCode>>()
@@ -161,7 +161,7 @@ pub fn parse(
                     arg.raw_arg.ty.to_tokens(&mut tts);
                     let ty = tts.to_string().parse().unwrap();
                     IdlField {
-                        safecoin: arg.safecoin.to_string().to_mixed_case(),
+                        name: arg.name.to_string().to_mixed_case(),
                         ty,
                     }
                 })
@@ -170,7 +170,7 @@ pub fn parse(
             let accounts_strct = accs.get(&ix.anchor_ident.to_string()).unwrap();
             let accounts = idl_accounts(&ctx, accounts_strct, &accs, seeds_feature);
             IdlInstruction {
-                safecoin: ix.ident.to_string().to_mixed_case(),
+                name: ix.ident.to_string().to_mixed_case(),
                 accounts,
                 args,
             }
@@ -182,10 +182,10 @@ pub fn parse(
         .map(|e: &&syn::ItemStruct| {
             let fields = match &e.fields {
                 syn::Fields::Named(n) => n,
-                _ => panic!("Event fields must be safecoind"),
+                _ => panic!("Event fields must be named"),
             };
             let fields = fields
-                .safecoind
+                .named
                 .iter()
                 .map(|f: &syn::Field| {
                     let index = match f.attrs.get(0) {
@@ -193,7 +193,7 @@ pub fn parse(
                         Some(i) => parser::tts_to_string(&i.path) == "index",
                     };
                     IdlEventField {
-                        safecoin: f.ident.clone().unwrap().to_string().to_mixed_case(),
+                        name: f.ident.clone().unwrap().to_string().to_mixed_case(),
                         ty: parser::tts_to_string(&f.ty).parse().unwrap(),
                         index,
                     }
@@ -201,7 +201,7 @@ pub fn parse(
                 .collect::<Vec<IdlEventField>>();
 
             IdlEvent {
-                safecoin: e.ident.to_string(),
+                name: e.ident.to_string(),
                 fields,
             }
         })
@@ -213,20 +213,20 @@ pub fn parse(
     let ty_defs = parse_ty_defs(&ctx)?;
 
     let account_structs = parse_accounts(&ctx);
-    let account_safecoins: HashSet<String> = account_structs
+    let account_names: HashSet<String> = account_structs
         .iter()
         .map(|a| a.ident.to_string())
         .collect::<HashSet<_>>();
 
-    let error_safecoin = error.map(|e| e.safecoin).unwrap_or_else(|| "".to_string());
+    let error_name = error.map(|e| e.name).unwrap_or_else(|| "".to_string());
 
     // All types that aren't in the accounts section, are in the types section.
     for ty_def in ty_defs {
         // Don't add the error type to the types or accounts sections.
-        if ty_def.safecoin != error_safecoin {
-            if account_safecoins.contains(&ty_def.safecoin) {
+        if ty_def.name != error_name {
+            if account_names.contains(&ty_def.name) {
                 accounts.push(ty_def);
-            } else if !events.iter().any(|e| e.safecoin == ty_def.safecoin) {
+            } else if !events.iter().any(|e| e.name == ty_def.name) {
                 types.push(ty_def);
             }
         }
@@ -235,7 +235,7 @@ pub fn parse(
     let constants = parse_consts(&ctx)
         .iter()
         .map(|c: &&syn::ItemConst| IdlConst {
-            safecoin: c.ident.to_string(),
+            name: c.ident.to_string(),
             ty: c.ty.to_token_stream().to_string().parse().unwrap(),
             value: c.expr.to_token_stream().to_string().parse().unwrap(),
         })
@@ -243,7 +243,7 @@ pub fn parse(
 
     Ok(Some(Idl {
         version,
-        safecoin: p.safecoin.to_string(),
+        name: p.name.to_string(),
         state,
         instructions,
         types,
@@ -383,14 +383,14 @@ fn parse_ty_defs(ctx: &CrateContext) -> Result<Vec<IdlTypeDefinition>> {
             // Only take serializable types
             let serializable = item_strct.attrs.iter().any(|attr| {
                 let attr_string = attr.tokens.to_string();
-                let attr_safecoin = attr.path.segments.last().unwrap().ident.to_string();
+                let attr_name = attr.path.segments.last().unwrap().ident.to_string();
                 let attr_serializable = ["account", "associated", "event", "zero_copy"];
 
-                let derived_serializable = attr_safecoin == "derive"
+                let derived_serializable = attr_name == "derive"
                     && attr_string.contains("AnchorSerialize")
                     && attr_string.contains("AnchorDeserialize");
 
-                attr_serializable.iter().any(|a| *a == attr_safecoin) || derived_serializable
+                attr_serializable.iter().any(|a| *a == attr_name) || derived_serializable
             });
 
             if !serializable {
@@ -403,10 +403,10 @@ fn parse_ty_defs(ctx: &CrateContext) -> Result<Vec<IdlTypeDefinition>> {
                 _ => return None,
             }
 
-            let safecoin = item_strct.ident.to_string();
+            let name = item_strct.ident.to_string();
             let fields = match &item_strct.fields {
                 syn::Fields::Named(fields) => fields
-                    .safecoind
+                    .named
                     .iter()
                     .map(|f: &syn::Field| {
                         let mut tts = proc_macro2::TokenStream::new();
@@ -417,52 +417,52 @@ fn parse_ty_defs(ctx: &CrateContext) -> Result<Vec<IdlTypeDefinition>> {
                             tts_string = resolve_variable_array_length(ctx, tts_string);
                         }
                         Ok(IdlField {
-                            safecoin: f.ident.as_ref().unwrap().to_string().to_mixed_case(),
+                            name: f.ident.as_ref().unwrap().to_string().to_mixed_case(),
                             ty: tts_string.parse()?,
                         })
                     })
                     .collect::<Result<Vec<IdlField>>>(),
-                syn::Fields::Unsafecoind(_) => return None,
+                syn::Fields::Unnamed(_) => return None,
                 _ => panic!("Empty structs are allowed."),
             };
 
             Some(fields.map(|fields| IdlTypeDefinition {
-                safecoin,
+                name,
                 ty: IdlTypeDefinitionTy::Struct { fields },
             }))
         })
         .chain(ctx.enums().map(|enm| {
-            let safecoin = enm.ident.to_string();
+            let name = enm.ident.to_string();
             let variants = enm
                 .variants
                 .iter()
                 .map(|variant: &syn::Variant| {
-                    let safecoin = variant.ident.to_string();
+                    let name = variant.ident.to_string();
                     let fields = match &variant.fields {
                         syn::Fields::Unit => None,
-                        syn::Fields::Unsafecoind(fields) => {
+                        syn::Fields::Unnamed(fields) => {
                             let fields: Vec<IdlType> =
-                                fields.unsafecoind.iter().map(to_idl_type).collect();
+                                fields.unnamed.iter().map(to_idl_type).collect();
                             Some(EnumFields::Tuple(fields))
                         }
                         syn::Fields::Named(fields) => {
                             let fields: Vec<IdlField> = fields
-                                .safecoind
+                                .named
                                 .iter()
                                 .map(|f: &syn::Field| {
-                                    let safecoin = f.ident.as_ref().unwrap().to_string();
+                                    let name = f.ident.as_ref().unwrap().to_string();
                                     let ty = to_idl_type(f);
-                                    IdlField { safecoin, ty }
+                                    IdlField { name, ty }
                                 })
                                 .collect();
                             Some(EnumFields::Named(fields))
                         }
                     };
-                    IdlEnumVariant { safecoin, fields }
+                    IdlEnumVariant { name, fields }
                 })
                 .collect::<Vec<IdlEnumVariant>>();
             Ok(IdlTypeDefinition {
-                safecoin,
+                name,
                 ty: IdlTypeDefinitionTy::Enum { variants },
             })
         }))
@@ -476,7 +476,7 @@ fn resolve_variable_array_length(ctx: &CrateContext, tts_string: String) -> Stri
             && tts_string.contains(&constant.ident.to_string())
         {
             // Check for the existence of consts existing elsewhere in the
-            // crate which have the same safecoin, are usize, and have a
+            // crate which have the same name, are usize, and have a
             // different value. We can't know which was intended for the
             // array size from ctx.
             if ctx.consts().any(|c| {
@@ -485,7 +485,7 @@ fn resolve_variable_array_length(ctx: &CrateContext, tts_string: String) -> Stri
                     && c.ty == constant.ty
                     && c.expr != constant.expr
             }) {
-                panic!("Crate wide unique safecoin required for array size const.");
+                panic!("Crate wide unique name required for array size const.");
             }
             return tts_string.replace(
                 &constant.ident.to_string(),
@@ -518,12 +518,12 @@ fn idl_accounts(
                     .expect("Could not resolve Accounts symbol");
                 let accounts = idl_accounts(ctx, accs_strct, global_accs, seeds_feature);
                 IdlAccountItem::IdlAccounts(IdlAccounts {
-                    safecoin: comp_f.ident.to_string().to_mixed_case(),
+                    name: comp_f.ident.to_string().to_mixed_case(),
                     accounts,
                 })
             }
             AccountField::Field(acc) => IdlAccountItem::IdlAccount(IdlAccount {
-                safecoin: acc.ident.to_string().to_mixed_case(),
+                name: acc.ident.to_string().to_mixed_case(),
                 is_mut: acc.constraints.is_mutable(),
                 is_signer: match acc.ty {
                     Ty::Signer => true,

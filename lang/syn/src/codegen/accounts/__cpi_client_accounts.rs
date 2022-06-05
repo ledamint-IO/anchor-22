@@ -6,8 +6,8 @@ use quote::quote;
 // a generated struct mapping 1-1 to the `Accounts` struct, except with
 // `AccountInfo`s as the types. This is generated for CPI clients.
 pub fn generate(accs: &AccountsStruct) -> proc_macro2::TokenStream {
-    let safecoin = &accs.ident;
-    let account_mod_safecoin: proc_macro2::TokenStream = format!(
+    let name = &accs.ident;
+    let account_mod_name: proc_macro2::TokenStream = format!(
         "__cpi_client_accounts_{}",
         accs.ident.to_string().to_snake_case()
     )
@@ -19,7 +19,7 @@ pub fn generate(accs: &AccountsStruct) -> proc_macro2::TokenStream {
         .iter()
         .map(|f: &AccountField| match f {
             AccountField::CompositeField(s) => {
-                let safecoin = &s.ident;
+                let name = &s.ident;
                 let symbol: proc_macro2::TokenStream = format!(
                     "__cpi_client_accounts_{0}::{1}",
                     s.symbol.to_snake_case(),
@@ -28,13 +28,13 @@ pub fn generate(accs: &AccountsStruct) -> proc_macro2::TokenStream {
                 .parse()
                 .unwrap();
                 quote! {
-                    pub #safecoin: #symbol<'info>
+                    pub #name: #symbol<'info>
                 }
             }
             AccountField::Field(f) => {
-                let safecoin = &f.ident;
+                let name = &f.ident;
                 quote! {
-                    pub #safecoin: anchor_lang::solana_program::account_info::AccountInfo<'info>
+                    pub #name: anchor_lang::safecoin_program::account_info::AccountInfo<'info>
                 }
             }
         })
@@ -45,9 +45,9 @@ pub fn generate(accs: &AccountsStruct) -> proc_macro2::TokenStream {
         .iter()
         .map(|f: &AccountField| match f {
             AccountField::CompositeField(s) => {
-                let safecoin = &s.ident;
+                let name = &s.ident;
                 quote! {
-                    account_metas.extend(self.#safecoin.to_account_metas(None));
+                    account_metas.extend(self.#name.to_account_metas(None));
                 }
             }
             AccountField::Field(f) => {
@@ -60,12 +60,12 @@ pub fn generate(accs: &AccountsStruct) -> proc_macro2::TokenStream {
                     true => quote! {true},
                 };
                 let meta = match f.constraints.is_mutable() {
-                    false => quote! { anchor_lang::solana_program::instruction::AccountMeta::new_readonly },
-                    true => quote! { anchor_lang::solana_program::instruction::AccountMeta::new },
+                    false => quote! { anchor_lang::safecoin_program::instruction::AccountMeta::new_readonly },
+                    true => quote! { anchor_lang::safecoin_program::instruction::AccountMeta::new },
                 };
-                let safecoin = &f.ident;
+                let name = &f.ident;
                 quote! {
-                    account_metas.push(#meta(anchor_lang::Key::key(&self.#safecoin), #is_signer));
+                    account_metas.push(#meta(anchor_lang::Key::key(&self.#name), #is_signer));
                 }
             }
         })
@@ -76,15 +76,15 @@ pub fn generate(accs: &AccountsStruct) -> proc_macro2::TokenStream {
         .iter()
         .map(|f: &AccountField| match f {
             AccountField::CompositeField(s) => {
-                let safecoin = &s.ident;
+                let name = &s.ident;
                 quote! {
-                    account_infos.extend(anchor_lang::ToAccountInfos::to_account_infos(&self.#safecoin));
+                    account_infos.extend(anchor_lang::ToAccountInfos::to_account_infos(&self.#name));
                 }
             }
             AccountField::Field(f) => {
-                let safecoin = &f.ident;
+                let name = &f.ident;
                 quote! {
-                    account_infos.push(anchor_lang::ToAccountInfo::to_account_info(&self.#safecoin));
+                    account_infos.push(anchor_lang::ToAccountInfo::to_account_info(&self.#name));
                 }
             }
         })
@@ -132,18 +132,18 @@ pub fn generate(accs: &AccountsStruct) -> proc_macro2::TokenStream {
         ///
         /// To access the struct in this module, one should use the sibling
         /// `cpi::accounts` module (also generated), which re-exports this.
-        pub(crate) mod #account_mod_safecoin {
+        pub(crate) mod #account_mod_name {
             use super::*;
 
             #(#re_exports)*
 
-            pub struct #safecoin#generics {
+            pub struct #name#generics {
                 #(#account_struct_fields),*
             }
 
             #[automatically_derived]
-            impl#generics anchor_lang::ToAccountMetas for #safecoin#generics {
-                fn to_account_metas(&self, is_signer: Option<bool>) -> Vec<anchor_lang::solana_program::instruction::AccountMeta> {
+            impl#generics anchor_lang::ToAccountMetas for #name#generics {
+                fn to_account_metas(&self, is_signer: Option<bool>) -> Vec<anchor_lang::safecoin_program::instruction::AccountMeta> {
                     let mut account_metas = vec![];
                     #(#account_struct_metas)*
                     account_metas
@@ -151,8 +151,8 @@ pub fn generate(accs: &AccountsStruct) -> proc_macro2::TokenStream {
             }
 
             #[automatically_derived]
-            impl<'info> anchor_lang::ToAccountInfos<'info> for #safecoin#generics {
-                fn to_account_infos(&self) -> Vec<anchor_lang::solana_program::account_info::AccountInfo<'info>> {
+            impl<'info> anchor_lang::ToAccountInfos<'info> for #name#generics {
+                fn to_account_infos(&self) -> Vec<anchor_lang::safecoin_program::account_info::AccountInfo<'info>> {
                     let mut account_infos = vec![];
                     #(#account_struct_infos)*
                     account_infos

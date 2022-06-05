@@ -56,13 +56,13 @@ export type Context<A extends Accounts = Accounts> = {
  * A set of accounts mapping one-to-one to the program's accounts struct, i.e.,
  * the type deriving `#[derive(Accounts)]`.
  *
- * The safecoin of each field should match the safecoin for that account in the IDL.
+ * The name of each field should match the name for that account in the IDL.
  *
  * If multiple accounts are nested in the rust program, then they should be
  * nested here.
  */
 export type Accounts<A extends IdlAccountItem = IdlAccountItem> = {
-  [N in A["safecoin"]]: Account<A & { safecoin: N }>;
+  [N in A["name"]]: Account<A & { name: N }>;
 };
 
 type Account<A extends IdlAccountItem> = A extends IdlAccounts
@@ -80,8 +80,8 @@ export function splitArgsAndCtx(
     if (args.length !== inputLen + 1) {
       throw new Error(
         `provided too many arguments ${args} to instruction ${
-          idlIx?.safecoin
-        } expecting: ${idlIx.args?.map((a) => a.safecoin) ?? []}`
+          idlIx?.name
+        } expecting: ${idlIx.args?.map((a) => a.name) ?? []}`
       );
     }
     options = args.pop();

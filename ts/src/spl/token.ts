@@ -20,33 +20,33 @@ export function coder(): SplTokenCoder {
  */
 export type SplToken = {
   version: "0.1.0";
-  safecoin: "spl_token";
+  name: "spl_token";
   instructions: [
     {
-      safecoin: "initializeMint";
+      name: "initializeMint";
       accounts: [
         {
-          safecoin: "mint";
+          name: "mint";
           isMut: true;
           isSigner: false;
         },
         {
-          safecoin: "rent";
+          name: "rent";
           isMut: false;
           isSigner: false;
         }
       ];
       args: [
         {
-          safecoin: "decimals";
+          name: "decimals";
           type: "u8";
         },
         {
-          safecoin: "mintAuthority";
+          name: "mintAuthority";
           type: "publicKey";
         },
         {
-          safecoin: "freezeAuthority";
+          name: "freezeAuthority";
           type: {
             coption: "publicKey";
           };
@@ -54,25 +54,25 @@ export type SplToken = {
       ];
     },
     {
-      safecoin: "initializeAccount";
+      name: "initializeAccount";
       accounts: [
         {
-          safecoin: "account";
+          name: "account";
           isMut: true;
           isSigner: false;
         },
         {
-          safecoin: "mint";
+          name: "mint";
           isMut: false;
           isSigner: false;
         },
         {
-          safecoin: "authority";
+          name: "authority";
           isMut: false;
           isSigner: false;
         },
         {
-          safecoin: "rent";
+          name: "rent";
           isMut: false;
           isSigner: false;
         }
@@ -80,88 +80,88 @@ export type SplToken = {
       args: [];
     },
     {
-      safecoin: "initializeMultisig";
+      name: "initializeMultisig";
       accounts: [
         {
-          safecoin: "account";
+          name: "account";
           isMut: true;
           isSigner: false;
         },
         {
-          safecoin: "rent";
+          name: "rent";
           isMut: false;
           isSigner: false;
         }
       ];
       args: [
         {
-          safecoin: "m";
+          name: "m";
           type: "u8";
         }
       ];
     },
     {
-      safecoin: "transfer";
+      name: "transfer";
       accounts: [
         {
-          safecoin: "source";
+          name: "source";
           isMut: true;
           isSigner: false;
         },
         {
-          safecoin: "destination";
+          name: "destination";
           isMut: true;
           isSigner: false;
         },
         {
-          safecoin: "authority";
+          name: "authority";
           isMut: false;
           isSigner: true;
         }
       ];
       args: [
         {
-          safecoin: "amount";
+          name: "amount";
           type: "u64";
         }
       ];
     },
     {
-      safecoin: "approve";
+      name: "approve";
       accounts: [
         {
-          safecoin: "source";
+          name: "source";
           isMut: true;
           isSigner: false;
         },
         {
-          safecoin: "delegate";
+          name: "delegate";
           isMut: false;
           isSigner: false;
         },
         {
-          safecoin: "authority";
+          name: "authority";
           isMut: false;
           isSigner: true;
         }
       ];
       args: [
         {
-          safecoin: "amount";
+          name: "amount";
           type: "u64";
         }
       ];
     },
     {
-      safecoin: "revoke";
+      name: "revoke";
       accounts: [
         {
-          safecoin: "source";
+          name: "source";
           isMut: true;
           isSigner: false;
         },
         {
-          safecoin: "authority";
+          name: "authority";
           isMut: false;
           isSigner: true;
         }
@@ -169,26 +169,26 @@ export type SplToken = {
       args: [];
     },
     {
-      safecoin: "setAuthority";
+      name: "setAuthority";
       accounts: [
         {
-          safecoin: "mint";
+          name: "mint";
           isMut: true;
           isSigner: false;
         },
         {
-          safecoin: "authority";
+          name: "authority";
           isMut: false;
           isSigner: true;
         }
       ];
       args: [
         {
-          safecoin: "authorityType";
+          name: "authorityType";
           type: "u8";
         },
         {
-          safecoin: "newAuthority";
+          name: "newAuthority";
           type: {
             coption: "publicKey";
           };
@@ -196,72 +196,72 @@ export type SplToken = {
       ];
     },
     {
-      safecoin: "mintTo";
+      name: "mintTo";
       accounts: [
         {
-          safecoin: "mint";
+          name: "mint";
           isMut: true;
           isSigner: false;
         },
         {
-          safecoin: "to";
+          name: "to";
           isMut: true;
           isSigner: false;
         },
         {
-          safecoin: "authority";
+          name: "authority";
           isMut: false;
           isSigner: true;
         }
       ];
       args: [
         {
-          safecoin: "amount";
+          name: "amount";
           type: "u64";
         }
       ];
     },
     {
-      safecoin: "burn";
+      name: "burn";
       accounts: [
         {
-          safecoin: "source";
+          name: "source";
           isMut: true;
           isSigner: false;
         },
         {
-          safecoin: "mint";
+          name: "mint";
           isMut: true;
           isSigner: false;
         },
         {
-          safecoin: "authority";
+          name: "authority";
           isMut: false;
           isSigner: true;
         }
       ];
       args: [
         {
-          safecoin: "amount";
+          name: "amount";
           type: "u64";
         }
       ];
     },
     {
-      safecoin: "closeAccount";
+      name: "closeAccount";
       accounts: [
         {
-          safecoin: "account";
+          name: "account";
           isMut: true;
           isSigner: false;
         },
         {
-          safecoin: "destination";
+          name: "destination";
           isMut: true;
           isSigner: false;
         },
         {
-          safecoin: "authority";
+          name: "authority";
           isMut: false;
           isSigner: false;
         }
@@ -269,20 +269,20 @@ export type SplToken = {
       args: [];
     },
     {
-      safecoin: "freezeAccount";
+      name: "freezeAccount";
       accounts: [
         {
-          safecoin: "account";
+          name: "account";
           isMut: true;
           isSigner: false;
         },
         {
-          safecoin: "mint";
+          name: "mint";
           isMut: false;
           isSigner: false;
         },
         {
-          safecoin: "authority";
+          name: "authority";
           isMut: false;
           isSigner: true;
         }
@@ -290,20 +290,20 @@ export type SplToken = {
       args: [];
     },
     {
-      safecoin: "thawAccount";
+      name: "thawAccount";
       accounts: [
         {
-          safecoin: "account";
+          name: "account";
           isMut: true;
           isSigner: false;
         },
         {
-          safecoin: "mint";
+          name: "mint";
           isMut: false;
           isSigner: false;
         },
         {
-          safecoin: "authority";
+          name: "authority";
           isMut: false;
           isSigner: true;
         }
@@ -311,166 +311,166 @@ export type SplToken = {
       args: [];
     },
     {
-      safecoin: "transferChecked";
+      name: "transferChecked";
       accounts: [
         {
-          safecoin: "source";
+          name: "source";
           isMut: true;
           isSigner: false;
         },
         {
-          safecoin: "mint";
+          name: "mint";
           isMut: false;
           isSigner: false;
         },
         {
-          safecoin: "destination";
+          name: "destination";
           isMut: true;
           isSigner: false;
         },
         {
-          safecoin: "authority";
+          name: "authority";
           isMut: false;
           isSigner: true;
         }
       ];
       args: [
         {
-          safecoin: "amount";
+          name: "amount";
           type: "u64";
         },
         {
-          safecoin: "decimals";
+          name: "decimals";
           type: "u8";
         }
       ];
     },
     {
-      safecoin: "approveChecked";
+      name: "approveChecked";
       accounts: [
         {
-          safecoin: "source";
+          name: "source";
           isMut: true;
           isSigner: false;
         },
         {
-          safecoin: "mint";
+          name: "mint";
           isMut: false;
           isSigner: false;
         },
         {
-          safecoin: "delegate";
+          name: "delegate";
           isMut: false;
           isSigner: false;
         },
         {
-          safecoin: "authority";
+          name: "authority";
           isMut: false;
           isSigner: true;
         }
       ];
       args: [
         {
-          safecoin: "amount";
+          name: "amount";
           type: "u64";
         },
         {
-          safecoin: "decimals";
+          name: "decimals";
           type: "u8";
         }
       ];
     },
     {
-      safecoin: "mintToChecked";
+      name: "mintToChecked";
       accounts: [
         {
-          safecoin: "mint";
+          name: "mint";
           isMut: true;
           isSigner: false;
         },
         {
-          safecoin: "to";
+          name: "to";
           isMut: true;
           isSigner: false;
         },
         {
-          safecoin: "authority";
+          name: "authority";
           isMut: false;
           isSigner: true;
         }
       ];
       args: [
         {
-          safecoin: "amount";
+          name: "amount";
           type: "u64";
         },
         {
-          safecoin: "decimals";
+          name: "decimals";
           type: "u8";
         }
       ];
     },
     {
-      safecoin: "burnChecked";
+      name: "burnChecked";
       accounts: [
         {
-          safecoin: "source";
+          name: "source";
           isMut: true;
           isSigner: false;
         },
         {
-          safecoin: "mint";
+          name: "mint";
           isMut: true;
           isSigner: false;
         },
         {
-          safecoin: "authority";
+          name: "authority";
           isMut: false;
           isSigner: true;
         }
       ];
       args: [
         {
-          safecoin: "amount";
+          name: "amount";
           type: "u64";
         },
         {
-          safecoin: "decimals";
+          name: "decimals";
           type: "u8";
         }
       ];
     },
     {
-      safecoin: "initializeAccount2";
+      name: "initializeAccount2";
       accounts: [
         {
-          safecoin: "account";
+          name: "account";
           isMut: true;
           isSigner: false;
         },
         {
-          safecoin: "mint";
+          name: "mint";
           isMut: false;
           isSigner: false;
         },
         {
-          safecoin: "rent";
+          name: "rent";
           isMut: false;
           isSigner: false;
         }
       ];
       args: [
         {
-          safecoin: "authority";
+          name: "authority";
           type: "publicKey";
         }
       ];
     },
     {
-      safecoin: "syncNative";
+      name: "syncNative";
       accounts: [
         {
-          safecoin: "account";
+          name: "account";
           isMut: true;
           isSigner: false;
         }
@@ -478,62 +478,62 @@ export type SplToken = {
       args: [];
     },
     {
-      safecoin: "initializeAccount3";
+      name: "initializeAccount3";
       accounts: [
         {
-          safecoin: "account";
+          name: "account";
           isMut: true;
           isSigner: false;
         },
         {
-          safecoin: "mint";
+          name: "mint";
           isMut: false;
           isSigner: false;
         }
       ];
       args: [
         {
-          safecoin: "authority";
+          name: "authority";
           type: "publicKey";
         }
       ];
     },
     {
-      safecoin: "initializeMultisig2";
+      name: "initializeMultisig2";
       accounts: [
         {
-          safecoin: "account";
+          name: "account";
           isMut: true;
           isSigner: false;
         }
       ];
       args: [
         {
-          safecoin: "m";
+          name: "m";
           type: "u8";
         }
       ];
     },
     {
-      safecoin: "initializeMint2";
+      name: "initializeMint2";
       accounts: [
         {
-          safecoin: "mint";
+          name: "mint";
           isMut: true;
           isSigner: false;
         }
       ];
       args: [
         {
-          safecoin: "decimals";
+          name: "decimals";
           type: "u8";
         },
         {
-          safecoin: "mintAuthority";
+          name: "mintAuthority";
           type: "publicKey";
         },
         {
-          safecoin: "freezeAuthority";
+          name: "freezeAuthority";
           type: {
             coption: "publicKey";
           };
@@ -543,30 +543,30 @@ export type SplToken = {
   ];
   accounts: [
     {
-      safecoin: "mint";
+      name: "mint";
       type: {
         kind: "struct";
         fields: [
           {
-            safecoin: "mintAuthority";
+            name: "mintAuthority";
             type: {
               coption: "publicKey";
             };
           },
           {
-            safecoin: "supply";
+            name: "supply";
             type: "u64";
           },
           {
-            safecoin: "decimals";
+            name: "decimals";
             type: "u8";
           },
           {
-            safecoin: "isInitialized";
+            name: "isInitialized";
             type: "bool";
           },
           {
-            safecoin: "freezeAuthority";
+            name: "freezeAuthority";
             type: {
               coption: "publicKey";
             };
@@ -575,44 +575,44 @@ export type SplToken = {
       };
     },
     {
-      safecoin: "token";
+      name: "token";
       type: {
         kind: "struct";
         fields: [
           {
-            safecoin: "mint";
+            name: "mint";
             type: "publicKey";
           },
           {
-            safecoin: "authority";
+            name: "authority";
             type: "publicKey";
           },
           {
-            safecoin: "amount";
+            name: "amount";
             type: "u64";
           },
           {
-            safecoin: "delegate";
+            name: "delegate";
             type: {
               coption: "publicKey";
             };
           },
           {
-            safecoin: "state";
+            name: "state";
             type: "u8";
           },
           {
-            safecoin: "isNative";
+            name: "isNative";
             type: {
               coption: "u64";
             };
           },
           {
-            safecoin: "delegatedAmount";
+            name: "delegatedAmount";
             type: "u64";
           },
           {
-            safecoin: "closeAuthority";
+            name: "closeAuthority";
             type: {
               coption: "publicKey";
             };
@@ -625,33 +625,33 @@ export type SplToken = {
 
 export const IDL: SplToken = {
   version: "0.1.0",
-  safecoin: "spl_token",
+  name: "spl_token",
   instructions: [
     {
-      safecoin: "initializeMint",
+      name: "initializeMint",
       accounts: [
         {
-          safecoin: "mint",
+          name: "mint",
           isMut: true,
           isSigner: false,
         },
         {
-          safecoin: "rent",
+          name: "rent",
           isMut: false,
           isSigner: false,
         },
       ],
       args: [
         {
-          safecoin: "decimals",
+          name: "decimals",
           type: "u8",
         },
         {
-          safecoin: "mintAuthority",
+          name: "mintAuthority",
           type: "publicKey",
         },
         {
-          safecoin: "freezeAuthority",
+          name: "freezeAuthority",
           type: {
             coption: "publicKey",
           },
@@ -659,25 +659,25 @@ export const IDL: SplToken = {
       ],
     },
     {
-      safecoin: "initializeAccount",
+      name: "initializeAccount",
       accounts: [
         {
-          safecoin: "account",
+          name: "account",
           isMut: true,
           isSigner: false,
         },
         {
-          safecoin: "mint",
+          name: "mint",
           isMut: false,
           isSigner: false,
         },
         {
-          safecoin: "authority",
+          name: "authority",
           isMut: false,
           isSigner: false,
         },
         {
-          safecoin: "rent",
+          name: "rent",
           isMut: false,
           isSigner: false,
         },
@@ -685,88 +685,88 @@ export const IDL: SplToken = {
       args: [],
     },
     {
-      safecoin: "initializeMultisig",
+      name: "initializeMultisig",
       accounts: [
         {
-          safecoin: "account",
+          name: "account",
           isMut: true,
           isSigner: false,
         },
         {
-          safecoin: "rent",
+          name: "rent",
           isMut: false,
           isSigner: false,
         },
       ],
       args: [
         {
-          safecoin: "m",
+          name: "m",
           type: "u8",
         },
       ],
     },
     {
-      safecoin: "transfer",
+      name: "transfer",
       accounts: [
         {
-          safecoin: "source",
+          name: "source",
           isMut: true,
           isSigner: false,
         },
         {
-          safecoin: "destination",
+          name: "destination",
           isMut: true,
           isSigner: false,
         },
         {
-          safecoin: "authority",
+          name: "authority",
           isMut: false,
           isSigner: true,
         },
       ],
       args: [
         {
-          safecoin: "amount",
+          name: "amount",
           type: "u64",
         },
       ],
     },
     {
-      safecoin: "approve",
+      name: "approve",
       accounts: [
         {
-          safecoin: "source",
+          name: "source",
           isMut: true,
           isSigner: false,
         },
         {
-          safecoin: "delegate",
+          name: "delegate",
           isMut: false,
           isSigner: false,
         },
         {
-          safecoin: "authority",
+          name: "authority",
           isMut: false,
           isSigner: true,
         },
       ],
       args: [
         {
-          safecoin: "amount",
+          name: "amount",
           type: "u64",
         },
       ],
     },
     {
-      safecoin: "revoke",
+      name: "revoke",
       accounts: [
         {
-          safecoin: "source",
+          name: "source",
           isMut: true,
           isSigner: false,
         },
         {
-          safecoin: "authority",
+          name: "authority",
           isMut: false,
           isSigner: true,
         },
@@ -774,26 +774,26 @@ export const IDL: SplToken = {
       args: [],
     },
     {
-      safecoin: "setAuthority",
+      name: "setAuthority",
       accounts: [
         {
-          safecoin: "mint",
+          name: "mint",
           isMut: true,
           isSigner: false,
         },
         {
-          safecoin: "authority",
+          name: "authority",
           isMut: false,
           isSigner: true,
         },
       ],
       args: [
         {
-          safecoin: "authorityType",
+          name: "authorityType",
           type: "u8",
         },
         {
-          safecoin: "newAuthority",
+          name: "newAuthority",
           type: {
             coption: "publicKey",
           },
@@ -801,72 +801,72 @@ export const IDL: SplToken = {
       ],
     },
     {
-      safecoin: "mintTo",
+      name: "mintTo",
       accounts: [
         {
-          safecoin: "mint",
+          name: "mint",
           isMut: true,
           isSigner: false,
         },
         {
-          safecoin: "to",
+          name: "to",
           isMut: true,
           isSigner: false,
         },
         {
-          safecoin: "authority",
+          name: "authority",
           isMut: false,
           isSigner: true,
         },
       ],
       args: [
         {
-          safecoin: "amount",
+          name: "amount",
           type: "u64",
         },
       ],
     },
     {
-      safecoin: "burn",
+      name: "burn",
       accounts: [
         {
-          safecoin: "source",
+          name: "source",
           isMut: true,
           isSigner: false,
         },
         {
-          safecoin: "mint",
+          name: "mint",
           isMut: true,
           isSigner: false,
         },
         {
-          safecoin: "authority",
+          name: "authority",
           isMut: false,
           isSigner: true,
         },
       ],
       args: [
         {
-          safecoin: "amount",
+          name: "amount",
           type: "u64",
         },
       ],
     },
     {
-      safecoin: "closeAccount",
+      name: "closeAccount",
       accounts: [
         {
-          safecoin: "account",
+          name: "account",
           isMut: true,
           isSigner: false,
         },
         {
-          safecoin: "destination",
+          name: "destination",
           isMut: true,
           isSigner: false,
         },
         {
-          safecoin: "authority",
+          name: "authority",
           isMut: false,
           isSigner: false,
         },
@@ -874,20 +874,20 @@ export const IDL: SplToken = {
       args: [],
     },
     {
-      safecoin: "freezeAccount",
+      name: "freezeAccount",
       accounts: [
         {
-          safecoin: "account",
+          name: "account",
           isMut: true,
           isSigner: false,
         },
         {
-          safecoin: "mint",
+          name: "mint",
           isMut: false,
           isSigner: false,
         },
         {
-          safecoin: "authority",
+          name: "authority",
           isMut: false,
           isSigner: true,
         },
@@ -895,20 +895,20 @@ export const IDL: SplToken = {
       args: [],
     },
     {
-      safecoin: "thawAccount",
+      name: "thawAccount",
       accounts: [
         {
-          safecoin: "account",
+          name: "account",
           isMut: true,
           isSigner: false,
         },
         {
-          safecoin: "mint",
+          name: "mint",
           isMut: false,
           isSigner: false,
         },
         {
-          safecoin: "authority",
+          name: "authority",
           isMut: false,
           isSigner: true,
         },
@@ -916,166 +916,166 @@ export const IDL: SplToken = {
       args: [],
     },
     {
-      safecoin: "transferChecked",
+      name: "transferChecked",
       accounts: [
         {
-          safecoin: "source",
+          name: "source",
           isMut: true,
           isSigner: false,
         },
         {
-          safecoin: "mint",
+          name: "mint",
           isMut: false,
           isSigner: false,
         },
         {
-          safecoin: "destination",
+          name: "destination",
           isMut: true,
           isSigner: false,
         },
         {
-          safecoin: "authority",
+          name: "authority",
           isMut: false,
           isSigner: true,
         },
       ],
       args: [
         {
-          safecoin: "amount",
+          name: "amount",
           type: "u64",
         },
         {
-          safecoin: "decimals",
+          name: "decimals",
           type: "u8",
         },
       ],
     },
     {
-      safecoin: "approveChecked",
+      name: "approveChecked",
       accounts: [
         {
-          safecoin: "source",
+          name: "source",
           isMut: true,
           isSigner: false,
         },
         {
-          safecoin: "mint",
+          name: "mint",
           isMut: false,
           isSigner: false,
         },
         {
-          safecoin: "delegate",
+          name: "delegate",
           isMut: false,
           isSigner: false,
         },
         {
-          safecoin: "authority",
+          name: "authority",
           isMut: false,
           isSigner: true,
         },
       ],
       args: [
         {
-          safecoin: "amount",
+          name: "amount",
           type: "u64",
         },
         {
-          safecoin: "decimals",
+          name: "decimals",
           type: "u8",
         },
       ],
     },
     {
-      safecoin: "mintToChecked",
+      name: "mintToChecked",
       accounts: [
         {
-          safecoin: "mint",
+          name: "mint",
           isMut: true,
           isSigner: false,
         },
         {
-          safecoin: "to",
+          name: "to",
           isMut: true,
           isSigner: false,
         },
         {
-          safecoin: "authority",
+          name: "authority",
           isMut: false,
           isSigner: true,
         },
       ],
       args: [
         {
-          safecoin: "amount",
+          name: "amount",
           type: "u64",
         },
         {
-          safecoin: "decimals",
+          name: "decimals",
           type: "u8",
         },
       ],
     },
     {
-      safecoin: "burnChecked",
+      name: "burnChecked",
       accounts: [
         {
-          safecoin: "source",
+          name: "source",
           isMut: true,
           isSigner: false,
         },
         {
-          safecoin: "mint",
+          name: "mint",
           isMut: true,
           isSigner: false,
         },
         {
-          safecoin: "authority",
+          name: "authority",
           isMut: false,
           isSigner: true,
         },
       ],
       args: [
         {
-          safecoin: "amount",
+          name: "amount",
           type: "u64",
         },
         {
-          safecoin: "decimals",
+          name: "decimals",
           type: "u8",
         },
       ],
     },
     {
-      safecoin: "initializeAccount2",
+      name: "initializeAccount2",
       accounts: [
         {
-          safecoin: "account",
+          name: "account",
           isMut: true,
           isSigner: false,
         },
         {
-          safecoin: "mint",
+          name: "mint",
           isMut: false,
           isSigner: false,
         },
         {
-          safecoin: "rent",
+          name: "rent",
           isMut: false,
           isSigner: false,
         },
       ],
       args: [
         {
-          safecoin: "authority",
+          name: "authority",
           type: "publicKey",
         },
       ],
     },
     {
-      safecoin: "syncNative",
+      name: "syncNative",
       accounts: [
         {
-          safecoin: "account",
+          name: "account",
           isMut: true,
           isSigner: false,
         },
@@ -1083,62 +1083,62 @@ export const IDL: SplToken = {
       args: [],
     },
     {
-      safecoin: "initializeAccount3",
+      name: "initializeAccount3",
       accounts: [
         {
-          safecoin: "account",
+          name: "account",
           isMut: true,
           isSigner: false,
         },
         {
-          safecoin: "mint",
+          name: "mint",
           isMut: false,
           isSigner: false,
         },
       ],
       args: [
         {
-          safecoin: "authority",
+          name: "authority",
           type: "publicKey",
         },
       ],
     },
     {
-      safecoin: "initializeMultisig2",
+      name: "initializeMultisig2",
       accounts: [
         {
-          safecoin: "account",
+          name: "account",
           isMut: true,
           isSigner: false,
         },
       ],
       args: [
         {
-          safecoin: "m",
+          name: "m",
           type: "u8",
         },
       ],
     },
     {
-      safecoin: "initializeMint2",
+      name: "initializeMint2",
       accounts: [
         {
-          safecoin: "mint",
+          name: "mint",
           isMut: true,
           isSigner: false,
         },
       ],
       args: [
         {
-          safecoin: "decimals",
+          name: "decimals",
           type: "u8",
         },
         {
-          safecoin: "mintAuthority",
+          name: "mintAuthority",
           type: "publicKey",
         },
         {
-          safecoin: "freezeAuthority",
+          name: "freezeAuthority",
           type: {
             coption: "publicKey",
           },
@@ -1148,30 +1148,30 @@ export const IDL: SplToken = {
   ],
   accounts: [
     {
-      safecoin: "mint",
+      name: "mint",
       type: {
         kind: "struct",
         fields: [
           {
-            safecoin: "mintAuthority",
+            name: "mintAuthority",
             type: {
               coption: "publicKey",
             },
           },
           {
-            safecoin: "supply",
+            name: "supply",
             type: "u64",
           },
           {
-            safecoin: "decimals",
+            name: "decimals",
             type: "u8",
           },
           {
-            safecoin: "isInitialized",
+            name: "isInitialized",
             type: "bool",
           },
           {
-            safecoin: "freezeAuthority",
+            name: "freezeAuthority",
             type: {
               coption: "publicKey",
             },
@@ -1180,44 +1180,44 @@ export const IDL: SplToken = {
       },
     },
     {
-      safecoin: "token",
+      name: "token",
       type: {
         kind: "struct",
         fields: [
           {
-            safecoin: "mint",
+            name: "mint",
             type: "publicKey",
           },
           {
-            safecoin: "authority",
+            name: "authority",
             type: "publicKey",
           },
           {
-            safecoin: "amount",
+            name: "amount",
             type: "u64",
           },
           {
-            safecoin: "delegate",
+            name: "delegate",
             type: {
               coption: "publicKey",
             },
           },
           {
-            safecoin: "state",
+            name: "state",
             type: "u8",
           },
           {
-            safecoin: "isNative",
+            name: "isNative",
             type: {
               coption: "u64",
             },
           },
           {
-            safecoin: "delegatedAmount",
+            name: "delegatedAmount",
             type: "u64",
           },
           {
-            safecoin: "closeAuthority",
+            name: "closeAuthority",
             type: {
               coption: "publicKey",
             },

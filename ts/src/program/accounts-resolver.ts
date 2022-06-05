@@ -3,9 +3,9 @@ import { PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 import { Idl, IdlSeed, IdlAccount } from "../idl.js";
 import * as utf8 from "../utils/bytes/utf8.js";
 import { TOKEN_PROGRAM_ID, ASSOCIATED_PROGRAM_ID } from "../utils/token.js";
-import { AllInstructions } from "./safecoinspace/types.js";
+import { AllInstructions } from "./namespace/types.js";
 import Provider from "../provider.js";
-import { AccountNamespace } from "./safecoinspace/account.js";
+import { AccountNamespace } from "./namespace/account.js";
 import { coder } from "../spl/token";
 
 // Populates a given accounts context with PDAs and common missing accounts.
@@ -14,7 +14,7 @@ export class AccountsResolver<IDL extends Idl, I extends AllInstructions<IDL>> {
 
   constructor(
     private _args: Array<any>,
-    private _accounts: { [safecoin: string]: PublicKey },
+    private _accounts: { [name: string]: PublicKey },
     private _provider: Provider,
     private _programId: PublicKey,
     private _idlIx: AllInstructions<IDL>,
@@ -37,7 +37,7 @@ export class AccountsResolver<IDL extends Idl, I extends AllInstructions<IDL>> {
       // Cast is ok because only a non-nested IdlAccount can have a seeds
       // cosntraint.
       const accountDesc = this._idlIx.accounts[k] as IdlAccount;
-      const accountDescName = camelCase(accountDesc.safecoin);
+      const accountDescName = camelCase(accountDesc.name);
 
       // PDA derived from IDL seeds.
       if (accountDesc.pda && accountDesc.pda.seeds.length > 0) {
@@ -56,7 +56,7 @@ export class AccountsResolver<IDL extends Idl, I extends AllInstructions<IDL>> {
         continue;
       }
 
-      // Common accounts are auto populated with magic safecoins by convention.
+      // Common accounts are auto populated with magic names by convention.
       switch (accountDescName) {
         case "systemProgram":
           if (this._accounts[accountDescName] === undefined) {
@@ -89,7 +89,7 @@ export class AccountsResolver<IDL extends Idl, I extends AllInstructions<IDL>> {
     const programId = await this.parseProgramId(accountDesc);
     const [pubkey] = await PublicKey.findProgramAddress(seeds, programId);
 
-    this._accounts[camelCase(accountDesc.safecoin)] = pubkey;
+    this._accounts[camelCase(accountDesc.name)] = pubkey;
   }
 
   private async parseProgramId(accountDesc: IdlAccount): Promise<PublicKey> {
@@ -138,7 +138,7 @@ export class AccountsResolver<IDL extends Idl, I extends AllInstructions<IDL>> {
     const seedArgName = camelCase(seedDesc.path.split(".")[0]);
 
     const idlArgPosition = this._idlIx.args.findIndex(
-      (argDesc: any) => argDesc.safecoin === seedArgName
+      (argDesc: any) => argDesc.name === seedArgName
     );
     if (idlArgPosition === -1) {
       throw new Error(`Unable to find argument for seed: ${seedArgName}`);
@@ -223,19 +223,19 @@ export class AccountsResolver<IDL extends Idl, I extends AllInstructions<IDL>> {
 export class AccountStore<IDL extends Idl> {
   private _cache = new Map<string, any>();
 
-  // todo: don't use the progrma use the account safecoinspace.
+  // todo: don't use the progrma use the account namespace.
   constructor(
     private _provider: Provider,
     private _accounts: AccountNamespace<IDL>
   ) {}
 
   public async fetchAccount<T = any>(
-    safecoin: string,
+    name: string,
     publicKey: PublicKey
   ): Promise<T> {
     const address = publicKey.toString();
     if (this._cache.get(address) === undefined) {
-      if (safecoin === "TokenAccount") {
+      if (name === "TokenAccount") {
         const accountInfo = await this._provider.connection.getAccountInfo(
           publicKey
         );
@@ -245,7 +245,7 @@ export class AccountStore<IDL extends Idl> {
         const data = coder().accounts.decode("Token", accountInfo.data);
         this._cache.set(address, data);
       } else {
-        const account = this._accounts[camelCase(safecoin)].fetch(publicKey);
+        const account = this._accounts[camelCase(name)].fetch(publicKey);
         this._cache.set(address, account);
       }
     }

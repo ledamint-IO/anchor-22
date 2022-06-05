@@ -1,5 +1,5 @@
 {
-  "safecoin": "@project-serum/anchor",
+  "name": "@project-serum/anchor",
   "version": "0.22.0",
   "description": "Anchor client",
   "module": "./dist/esm/index.js",

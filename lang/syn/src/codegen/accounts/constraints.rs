@@ -148,7 +148,7 @@ pub fn generate_constraint_init(f: &Field, c: &ConstraintInitGroup) -> proc_macr
 
 pub fn generate_constraint_zeroed(f: &Field, _c: &ConstraintZeroed) -> proc_macro2::TokenStream {
     let field = &f.ident;
-    let safecoin_str = field.to_string();
+    let name_str = field.to_string();
     let ty_decl = f.ty_decl();
     let from_account_info = f.from_account_info_unchecked(None);
     quote! {
@@ -158,7 +158,7 @@ pub fn generate_constraint_zeroed(f: &Field, _c: &ConstraintZeroed) -> proc_macr
             __disc_bytes.copy_from_slice(&__data[..8]);
             let __discriminator = u64::from_le_bytes(__disc_bytes);
             if __discriminator != 0 {
-                return Err(anchor_lang::anchor_attribute_error::error_with_account_safecoin!(anchor_lang::error::ErrorCode::ConstraintZero, #safecoin_str));
+                return Err(anchor_lang::anchor_attribute_error::error_with_account_name!(anchor_lang::error::ErrorCode::ConstraintZero, #name_str));
             }
             #from_account_info
         };
@@ -167,11 +167,11 @@ pub fn generate_constraint_zeroed(f: &Field, _c: &ConstraintZeroed) -> proc_macr
 
 pub fn generate_constraint_close(f: &Field, c: &ConstraintClose) -> proc_macro2::TokenStream {
     let field = &f.ident;
-    let safecoin_str = field.to_string();
+    let name_str = field.to_string();
     let target = &c.sol_dest;
     quote! {
         if #field.key() == #target.key() {
-            return Err(anchor_lang::anchor_attribute_error::error_with_account_safecoin!(anchor_lang::error::ErrorCode::ConstraintClose, #safecoin_str));
+            return Err(anchor_lang::anchor_attribute_error::error_with_account_name!(anchor_lang::error::ErrorCode::ConstraintClose, #name_str));
         }
     }
 }
@@ -225,7 +225,7 @@ pub fn generate_constraint_literal(
     ident: &Ident,
     c: &ConstraintLiteral,
 ) -> proc_macro2::TokenStream {
-    let safecoin_str = ident.to_string();
+    let name_str = ident.to_string();
     let lit: proc_macro2::TokenStream = {
         let lit = &c.lit;
         let constraint = lit.value().replace('\"', "");
@@ -238,7 +238,7 @@ pub fn generate_constraint_literal(
     };
     quote! {
         if !(#lit) {
-            return Err(anchor_lang::anchor_attribute_error::error_with_account_safecoin!(anchor_lang::error::ErrorCode::Deprecated, #safecoin_str));
+            return Err(anchor_lang::anchor_attribute_error::error_with_account_name!(anchor_lang::error::ErrorCode::Deprecated, #name_str));
         }
     }
 }
@@ -269,7 +269,7 @@ pub fn generate_constraint_rent_exempt(
     c: &ConstraintRentExempt,
 ) -> proc_macro2::TokenStream {
     let ident = &f.ident;
-    let safecoin_str = ident.to_string();
+    let name_str = ident.to_string();
     let info = quote! {
         #ident.to_account_info()
     };
@@ -277,7 +277,7 @@ pub fn generate_constraint_rent_exempt(
         ConstraintRentExempt::Skip => quote! {},
         ConstraintRentExempt::Enforce => quote! {
             if !__anchor_rent.is_exempt(#info.lamports(), #info.try_data_len()?) {
-                return Err(anchor_lang::anchor_attribute_error::error_with_account_safecoin!(anchor_lang::error::ErrorCode::ConstraintRentExempt, #safecoin_str));
+                return Err(anchor_lang::anchor_attribute_error::error_with_account_name!(anchor_lang::error::ErrorCode::ConstraintRentExempt, #name_str));
             }
         },
     }
@@ -285,7 +285,7 @@ pub fn generate_constraint_rent_exempt(
 
 fn generate_constraint_init_group(f: &Field, c: &ConstraintInitGroup) -> proc_macro2::TokenStream {
     let field = &f.ident;
-    let safecoin_str = f.ident.to_string();
+    let name_str = f.ident.to_string();
     let ty_decl = f.ty_decl();
     let if_needed = if c.if_needed {
         quote! {true}
@@ -327,7 +327,7 @@ fn generate_constraint_init_group(f: &Field, c: &ConstraintInitGroup) -> proc_ma
                         &[#maybe_seeds_plus_comma],
                         program_id,
                     );
-                    __bumps.insert(#safecoin_str.to_string(), __bump);
+                    __bumps.insert(#name_str.to_string(), __bump);
                 },
                 quote! {
                     &[
@@ -352,7 +352,7 @@ fn generate_constraint_init_group(f: &Field, c: &ConstraintInitGroup) -> proc_ma
                 #find_pda
 
                 let #field: #ty_decl = {
-                    if !#if_needed || #field.as_ref().owner == &anchor_lang::solana_program::system_program::ID {
+                    if !#if_needed || #field.as_ref().owner == &anchor_lang::safecoin_program::system_program::ID {
                         // Define payer variable.
                         #payer
 
@@ -374,10 +374,10 @@ fn generate_constraint_init_group(f: &Field, c: &ConstraintInitGroup) -> proc_ma
                     let pa: #ty_decl = #from_account_info;
                     if #if_needed {
                         if pa.mint != #mint.key() {
-                            return Err(anchor_lang::anchor_attribute_error::error_with_account_safecoin!(anchor_lang::error::ErrorCode::ConstraintTokenMint, #safecoin_str));
+                            return Err(anchor_lang::anchor_attribute_error::error_with_account_name!(anchor_lang::error::ErrorCode::ConstraintTokenMint, #name_str));
                         }
                         if pa.owner != #owner.key() {
-                            return Err(anchor_lang::anchor_attribute_error::error_with_account_safecoin!(anchor_lang::error::ErrorCode::ConstraintTokenOwner, #safecoin_str));
+                            return Err(anchor_lang::anchor_attribute_error::error_with_account_name!(anchor_lang::error::ErrorCode::ConstraintTokenOwner, #name_str));
                         }
                     }
                     pa
@@ -390,7 +390,7 @@ fn generate_constraint_init_group(f: &Field, c: &ConstraintInitGroup) -> proc_ma
                 #find_pda
 
                 let #field: #ty_decl = {
-                    if !#if_needed || #field.as_ref().owner == &anchor_lang::solana_program::system_program::ID {
+                    if !#if_needed || #field.as_ref().owner == &anchor_lang::safecoin_program::system_program::ID {
                         #payer
 
                         let cpi_program = associated_token_program.to_account_info();
@@ -409,14 +409,14 @@ fn generate_constraint_init_group(f: &Field, c: &ConstraintInitGroup) -> proc_ma
                     let pa: #ty_decl = #from_account_info;
                     if #if_needed {
                         if pa.mint != #mint.key() {
-                            return Err(anchor_lang::anchor_attribute_error::error_with_account_safecoin!(anchor_lang::error::ErrorCode::ConstraintTokenMint, #safecoin_str));
+                            return Err(anchor_lang::anchor_attribute_error::error_with_account_name!(anchor_lang::error::ErrorCode::ConstraintTokenMint, #name_str));
                         }
                         if pa.owner != #owner.key() {
-                            return Err(anchor_lang::anchor_attribute_error::error_with_account_safecoin!(anchor_lang::error::ErrorCode::ConstraintTokenOwner, #safecoin_str));
+                            return Err(anchor_lang::anchor_attribute_error::error_with_account_name!(anchor_lang::error::ErrorCode::ConstraintTokenOwner, #name_str));
                         }
 
                         if pa.key() != anchor_spl::associated_token::get_associated_token_address(&#owner.key(), &#mint.key()) {
-                            return Err(anchor_lang::anchor_attribute_error::error_with_account_safecoin!(anchor_lang::error::ErrorCode::AccountNotAssociatedTokenAccount, #safecoin_str));
+                            return Err(anchor_lang::anchor_attribute_error::error_with_account_name!(anchor_lang::error::ErrorCode::AccountNotAssociatedTokenAccount, #name_str));
                         }
                     }
                     pa
@@ -443,7 +443,7 @@ fn generate_constraint_init_group(f: &Field, c: &ConstraintInitGroup) -> proc_ma
                 #find_pda
 
                 let #field: #ty_decl = {
-                    if !#if_needed || #field.as_ref().owner == &anchor_lang::solana_program::system_program::ID {
+                    if !#if_needed || #field.as_ref().owner == &anchor_lang::safecoin_program::system_program::ID {
                         // Define payer variable.
                         #payer
 
@@ -461,17 +461,17 @@ fn generate_constraint_init_group(f: &Field, c: &ConstraintInitGroup) -> proc_ma
                     }
                     let pa: #ty_decl = #from_account_info;
                     if #if_needed {
-                        if pa.mint_authority != anchor_lang::solana_program::program_option::COption::Some(#owner.key()) {
-                            return Err(anchor_lang::anchor_attribute_error::error_with_account_safecoin!(anchor_lang::error::ErrorCode::ConstraintMintMintAuthority, #safecoin_str));
+                        if pa.mint_authority != anchor_lang::safecoin_program::program_option::COption::Some(#owner.key()) {
+                            return Err(anchor_lang::anchor_attribute_error::error_with_account_name!(anchor_lang::error::ErrorCode::ConstraintMintMintAuthority, #name_str));
                         }
                         if pa.freeze_authority
                             .as_ref()
                             .map(|fa| #freeze_authority.as_ref().map(|expected_fa| fa != *expected_fa).unwrap_or(true))
                             .unwrap_or(#freeze_authority.is_some()) {
-                            return Err(anchor_lang::anchor_attribute_error::error_with_account_safecoin!(anchor_lang::error::ErrorCode::ConstraintMintFreezeAuthority, #safecoin_str));
+                            return Err(anchor_lang::anchor_attribute_error::error_with_account_name!(anchor_lang::error::ErrorCode::ConstraintMintFreezeAuthority, #name_str));
                         }
                         if pa.decimals != #decimals {
-                            return Err(anchor_lang::anchor_attribute_error::error_with_account_safecoin!(anchor_lang::error::ErrorCode::ConstraintMintDecimals, #safecoin_str));
+                            return Err(anchor_lang::anchor_attribute_error::error_with_account_name!(anchor_lang::error::ErrorCode::ConstraintMintDecimals, #name_str));
                         }
                     }
                     pa
@@ -533,7 +533,7 @@ fn generate_constraint_init_group(f: &Field, c: &ConstraintInitGroup) -> proc_ma
 
                     // Create the account. Always do this in the event
                     // if needed is not specified or the system program is the owner.
-                    if !#if_needed || actual_owner == &anchor_lang::solana_program::system_program::ID {
+                    if !#if_needed || actual_owner == &anchor_lang::safecoin_program::system_program::ID {
                         // Define the payer variable.
                         #payer
 
@@ -547,17 +547,17 @@ fn generate_constraint_init_group(f: &Field, c: &ConstraintInitGroup) -> proc_ma
                     // Assert the account was created correctly.
                     if #if_needed {
                         if space != actual_field.data_len() {
-                            return Err(anchor_lang::anchor_attribute_error::error_with_account_safecoin!(anchor_lang::error::ErrorCode::ConstraintSpace, #safecoin_str));
+                            return Err(anchor_lang::anchor_attribute_error::error_with_account_name!(anchor_lang::error::ErrorCode::ConstraintSpace, #name_str));
                         }
 
                         if actual_owner != #owner {
-                            return Err(anchor_lang::anchor_attribute_error::error_with_account_safecoin!(anchor_lang::error::ErrorCode::ConstraintOwner, #safecoin_str));
+                            return Err(anchor_lang::anchor_attribute_error::error_with_account_name!(anchor_lang::error::ErrorCode::ConstraintOwner, #name_str));
                         }
 
                         {
                             let required_lamports = __anchor_rent.minimum_balance(space);
                             if pa.to_account_info().lamports() < required_lamports {
-                                return Err(anchor_lang::anchor_attribute_error::error_with_account_safecoin!(anchor_lang::error::ErrorCode::ConstraintRentExempt, #safecoin_str));
+                                return Err(anchor_lang::anchor_attribute_error::error_with_account_name!(anchor_lang::error::ErrorCode::ConstraintRentExempt, #name_str));
                             }
                         }
                     }
@@ -571,8 +571,8 @@ fn generate_constraint_init_group(f: &Field, c: &ConstraintInitGroup) -> proc_ma
 }
 
 fn generate_constraint_seeds(f: &Field, c: &ConstraintSeedsGroup) -> proc_macro2::TokenStream {
-    let safecoin = &f.ident;
-    let safecoin_str = safecoin.to_string();
+    let name = &f.ident;
+    let name_str = name.to_string();
 
     let s = &mut c.seeds.clone();
 
@@ -598,11 +598,11 @@ fn generate_constraint_seeds(f: &Field, c: &ConstraintSeedsGroup) -> proc_macro2
     if c.is_init && c.bump.is_some() {
         let b = c.bump.as_ref().unwrap();
         quote! {
-            if #safecoin.key() != __pda_address {
-                return Err(anchor_lang::anchor_attribute_error::error_with_account_safecoin!(anchor_lang::error::ErrorCode::ConstraintSeeds, #safecoin_str));
+            if #name.key() != __pda_address {
+                return Err(anchor_lang::anchor_attribute_error::error_with_account_name!(anchor_lang::error::ErrorCode::ConstraintSeeds, #name_str));
             }
             if __bump != #b {
-                return Err(anchor_lang::anchor_attribute_error::error_with_account_safecoin!(anchor_lang::error::ErrorCode::ConstraintSeeds, #safecoin_str));
+                return Err(anchor_lang::anchor_attribute_error::error_with_account_name!(anchor_lang::error::ErrorCode::ConstraintSeeds, #name_str));
             }
         }
     }
@@ -613,8 +613,8 @@ fn generate_constraint_seeds(f: &Field, c: &ConstraintSeedsGroup) -> proc_macro2
     // been run in the init constraint.
     else if c.is_init {
         quote! {
-            if #safecoin.key() != __pda_address {
-                return Err(anchor_lang::anchor_attribute_error::error_with_account_safecoin!(anchor_lang::error::ErrorCode::ConstraintSeeds, #safecoin_str));
+            if #name.key() != __pda_address {
+                return Err(anchor_lang::anchor_attribute_error::error_with_account_name!(anchor_lang::error::ErrorCode::ConstraintSeeds, #name_str));
             }
         }
     }
@@ -631,14 +631,14 @@ fn generate_constraint_seeds(f: &Field, c: &ConstraintSeedsGroup) -> proc_macro2
                     &[#maybe_seeds_plus_comma],
                     &#deriving_program_id,
                 );
-                __bumps.insert(#safecoin_str.to_string(), __bump);
+                __bumps.insert(#name_str.to_string(), __bump);
             },
             // Bump target given. Use it.
             Some(b) => quote! {
                 let __pda_address = Pubkey::create_program_address(
                     &[#maybe_seeds_plus_comma &[#b][..]],
                     &#deriving_program_id,
-                ).map_err(|_| anchor_lang::anchor_attribute_error::error_with_account_safecoin!(anchor_lang::error::ErrorCode::ConstraintSeeds, #safecoin_str))?;
+                ).map_err(|_| anchor_lang::anchor_attribute_error::error_with_account_name!(anchor_lang::error::ErrorCode::ConstraintSeeds, #name_str))?;
             },
         };
         quote! {
@@ -646,8 +646,8 @@ fn generate_constraint_seeds(f: &Field, c: &ConstraintSeedsGroup) -> proc_macro2
             #define_pda
 
             // Check it.
-            if #safecoin.key() != __pda_address {
-                return Err(anchor_lang::anchor_attribute_error::error_with_account_safecoin!(anchor_lang::error::ErrorCode::ConstraintSeeds, #safecoin_str));
+            if #name.key() != __pda_address {
+                return Err(anchor_lang::anchor_attribute_error::error_with_account_name!(anchor_lang::error::ErrorCode::ConstraintSeeds, #name_str));
             }
         }
     }
@@ -657,17 +657,17 @@ fn generate_constraint_associated_token(
     f: &Field,
     c: &ConstraintAssociatedToken,
 ) -> proc_macro2::TokenStream {
-    let safecoin = &f.ident;
-    let safecoin_str = safecoin.to_string();
+    let name = &f.ident;
+    let name_str = name.to_string();
     let wallet_address = &c.wallet;
     let spl_token_mint_address = &c.mint;
     quote! {
-        if #safecoin.owner != #wallet_address.key() {
-            return Err(anchor_lang::anchor_attribute_error::error_with_account_safecoin!(anchor_lang::error::ErrorCode::ConstraintTokenOwner, #safecoin_str));
+        if #name.owner != #wallet_address.key() {
+            return Err(anchor_lang::anchor_attribute_error::error_with_account_name!(anchor_lang::error::ErrorCode::ConstraintTokenOwner, #name_str));
         }
         let __associated_token_address = anchor_spl::associated_token::get_associated_token_address(&#wallet_address.key(), &#spl_token_mint_address.key());
-        if #safecoin.key() != __associated_token_address {
-            return Err(anchor_lang::anchor_attribute_error::error_with_account_safecoin!(anchor_lang::error::ErrorCode::ConstraintAssociated, #safecoin_str));
+        if #name.key() != __associated_token_address {
+            return Err(anchor_lang::anchor_attribute_error::error_with_account_name!(anchor_lang::error::ErrorCode::ConstraintAssociated, #name_str));
         }
     }
 }
@@ -692,8 +692,8 @@ pub fn generate_create_account(
         if __current_lamports == 0 {
             // Create the token account with right amount of lamports and space, and the correct owner.
             let lamports = __anchor_rent.minimum_balance(#space);
-            anchor_lang::solana_program::program::invoke_signed(
-                &anchor_lang::solana_program::system_instruction::create_account(
+            anchor_lang::safecoin_program::program::invoke_signed(
+                &anchor_lang::safecoin_program::system_instruction::create_account(
                     &payer.key(),
                     &#field.key(),
                     lamports,
@@ -714,8 +714,8 @@ pub fn generate_create_account(
                 .max(1)
                 .saturating_sub(__current_lamports);
             if required_lamports > 0 {
-                anchor_lang::solana_program::program::invoke(
-                    &anchor_lang::solana_program::system_instruction::transfer(
+                anchor_lang::safecoin_program::program::invoke(
+                    &anchor_lang::safecoin_program::system_instruction::transfer(
                         &payer.key(),
                         &#field.key(),
                         required_lamports,
@@ -728,8 +728,8 @@ pub fn generate_create_account(
                 )?;
             }
             // Allocate space.
-            anchor_lang::solana_program::program::invoke_signed(
-                &anchor_lang::solana_program::system_instruction::allocate(
+            anchor_lang::safecoin_program::program::invoke_signed(
+                &anchor_lang::safecoin_program::system_instruction::allocate(
                     &#field.key(),
                     #space as u64,
                 ),
@@ -740,8 +740,8 @@ pub fn generate_create_account(
                 &[#seeds_with_nonce],
             )?;
             // Assign to the spl token program.
-            anchor_lang::solana_program::program::invoke_signed(
-                &anchor_lang::solana_program::system_instruction::assign(
+            anchor_lang::safecoin_program::program::invoke_signed(
+                &anchor_lang::safecoin_program::system_instruction::assign(
                     &#field.key(),
                     #owner,
                 ),
@@ -759,11 +759,11 @@ pub fn generate_constraint_executable(
     f: &Field,
     _c: &ConstraintExecutable,
 ) -> proc_macro2::TokenStream {
-    let safecoin = &f.ident;
-    let safecoin_str = safecoin.to_string();
+    let name = &f.ident;
+    let name_str = name.to_string();
     quote! {
-        if !#safecoin.to_account_info().executable {
-            return Err(anchor_lang::anchor_attribute_error::error_with_account_safecoin!(anchor_lang::error::ErrorCode::ConstraintExecutable, #safecoin_str));
+        if !#name.to_account_info().executable {
+            return Err(anchor_lang::anchor_attribute_error::error_with_account_name!(anchor_lang::error::ErrorCode::ConstraintExecutable, #name_str));
         }
     }
 }
@@ -771,7 +771,7 @@ pub fn generate_constraint_executable(
 pub fn generate_constraint_state(f: &Field, c: &ConstraintState) -> proc_macro2::TokenStream {
     let program_target = c.program_target.clone();
     let ident = &f.ident;
-    let safecoin_str = ident.to_string();
+    let name_str = ident.to_string();
     let account_ty = match &f.ty {
         Ty::CpiState(ty) => &ty.account_type_path,
         _ => panic!("Invalid state constraint"),
@@ -780,26 +780,26 @@ pub fn generate_constraint_state(f: &Field, c: &ConstraintState) -> proc_macro2:
         // Checks the given state account is the canonical state account for
         // the target program.
         if #ident.key() != anchor_lang::accounts::cpi_state::CpiState::<#account_ty>::address(&#program_target.key()) {
-            return Err(anchor_lang::anchor_attribute_error::error_with_account_safecoin!(anchor_lang::error::ErrorCode::ConstraintState, #safecoin_str));
+            return Err(anchor_lang::anchor_attribute_error::error_with_account_name!(anchor_lang::error::ErrorCode::ConstraintState, #name_str));
         }
         if #ident.as_ref().owner != &#program_target.key() {
-            return Err(anchor_lang::anchor_attribute_error::error_with_account_safecoin!(anchor_lang::error::ErrorCode::ConstraintState, #safecoin_str));
+            return Err(anchor_lang::anchor_attribute_error::error_with_account_name!(anchor_lang::error::ErrorCode::ConstraintState, #name_str));
         }
     }
 }
 
 fn generate_custom_error(
-    account_safecoin: &Ident,
+    account_name: &Ident,
     custom_error: &Option<Expr>,
     error: proc_macro2::TokenStream,
 ) -> proc_macro2::TokenStream {
-    let account_safecoin = account_safecoin.to_string();
+    let account_name = account_name.to_string();
     match custom_error {
         Some(error) => {
-            quote! { Err(anchor_lang::anchor_attribute_error::error_with_account_safecoin!(#error, #account_safecoin)) }
+            quote! { Err(anchor_lang::anchor_attribute_error::error_with_account_name!(#error, #account_name)) }
         }
         None => {
-            quote! { Err(anchor_lang::anchor_attribute_error::error_with_account_safecoin!(anchor_lang::error::ErrorCode::#error, #account_safecoin)) }
+            quote! { Err(anchor_lang::anchor_attribute_error::error_with_account_name!(anchor_lang::error::ErrorCode::#error, #account_name)) }
         }
     }
 }

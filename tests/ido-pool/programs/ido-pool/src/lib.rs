@@ -18,7 +18,7 @@ pub mod ido_pool {
     #[access_control(validate_ido_times(ido_times))]
     pub fn initialize_pool(
         ctx: Context<InitializePool>,
-        ido_safecoin: String,
+        ido_name: String,
         _bumps: PoolBumps, // No longer used.
         num_ido_tokens: u64,
         ido_times: IdoTimes,
@@ -27,11 +27,11 @@ pub mod ido_pool {
 
         let ido_account = &mut ctx.accounts.ido_account;
 
-        let safecoin_bytes = ido_safecoin.as_bytes();
-        let mut safecoin_data = [b' '; 10];
-        safecoin_data[..safecoin_bytes.len()].copy_from_slice(safecoin_bytes);
+        let name_bytes = ido_name.as_bytes();
+        let mut name_data = [b' '; 10];
+        name_data[..name_bytes.len()].copy_from_slice(name_bytes);
 
-        ido_account.ido_safecoin = safecoin_data;
+        ido_account.ido_name = name_data;
         ido_account.bumps = PoolBumps {
             ido_account: *ctx.bumps.get("ido_account").unwrap(),
             redeemable_mint: *ctx.bumps.get("redeemable_mint").unwrap(),
@@ -90,9 +90,9 @@ pub mod ido_pool {
         token::transfer(cpi_ctx, amount)?;
 
         // Mint Redeemable to user Redeemable account.
-        let ido_safecoin = ctx.accounts.ido_account.ido_safecoin.as_ref();
+        let ido_name = ctx.accounts.ido_account.ido_name.as_ref();
         let seeds = &[
-            ido_safecoin.trim_ascii_whitespace(),
+            ido_name.trim_ascii_whitespace(),
             &[ctx.accounts.ido_account.bumps.ido_account],
         ];
         let signer = &[&seeds[..]];
@@ -125,9 +125,9 @@ pub mod ido_pool {
             return err!(ErrorCode::LowRedeemable);
         }
 
-        let ido_safecoin = ctx.accounts.ido_account.ido_safecoin.as_ref();
+        let ido_name = ctx.accounts.ido_account.ido_name.as_ref();
         let seeds = &[
-            ido_safecoin.trim_ascii_whitespace(),
+            ido_name.trim_ascii_whitespace(),
             &[ctx.accounts.ido_account.bumps.ido_account],
         ];
         let signer = &[&seeds[..]];
@@ -173,9 +173,9 @@ pub mod ido_pool {
             .checked_div(ctx.accounts.redeemable_mint.supply as u128)
             .unwrap();
 
-        let ido_safecoin = ctx.accounts.ido_account.ido_safecoin.as_ref();
+        let ido_name = ctx.accounts.ido_account.ido_name.as_ref();
         let seeds = &[
-            ido_safecoin.trim_ascii_whitespace(),
+            ido_name.trim_ascii_whitespace(),
             &[ctx.accounts.ido_account.bumps.ido_account],
         ];
         let signer = &[&seeds[..]];
@@ -220,9 +220,9 @@ pub mod ido_pool {
     pub fn withdraw_pool_usdc(ctx: Context<WithdrawPoolUsdc>) -> Result<()> {
         msg!("WITHDRAW POOL USDC");
         // Transfer total USDC from pool account to ido_authority account.
-        let ido_safecoin = ctx.accounts.ido_account.ido_safecoin.as_ref();
+        let ido_name = ctx.accounts.ido_account.ido_name.as_ref();
         let seeds = &[
-            ido_safecoin.trim_ascii_whitespace(),
+            ido_name.trim_ascii_whitespace(),
             &[ctx.accounts.ido_account.bumps.ido_account],
         ];
         let signer = &[&seeds[..]];
@@ -246,9 +246,9 @@ pub mod ido_pool {
             return err!(ErrorCode::LowUsdc);
         }
 
-        let ido_safecoin = ctx.accounts.ido_account.ido_safecoin.as_ref();
+        let ido_name = ctx.accounts.ido_account.ido_name.as_ref();
         let seeds = &[
-            ido_safecoin.trim_ascii_whitespace(),
+            ido_name.trim_ascii_whitespace(),
             &[ctx.accounts.ido_account.bumps.ido_account],
         ];
         let signer = &[&seeds[..]];
@@ -281,7 +281,7 @@ pub mod ido_pool {
 }
 
 #[derive(Accounts)]
-#[instruction(ido_safecoin: String, bumps: PoolBumps)]
+#[instruction(ido_name: String, bumps: PoolBumps)]
 pub struct InitializePool<'info> {
     // IDO Authority accounts
     #[account(mut)]
@@ -293,7 +293,7 @@ pub struct InitializePool<'info> {
     pub ido_authority_watermelon: Box<Account<'info, TokenAccount>>,
     // IDO Accounts
     #[account(init,
-        seeds = [ido_safecoin.as_bytes()],
+        seeds = [ido_name.as_bytes()],
         bump,
         payer = ido_authority)]
     pub ido_account: Box<Account<'info, IdoAccount>>,
@@ -303,7 +303,7 @@ pub struct InitializePool<'info> {
     #[account(init,
         mint::decimals = DECIMALS,
         mint::authority = ido_account,
-        seeds = [ido_safecoin.as_bytes(), b"redeemable_mint".as_ref()],
+        seeds = [ido_name.as_bytes(), b"redeemable_mint".as_ref()],
         bump,
         payer = ido_authority)]
     pub redeemable_mint: Box<Account<'info, Mint>>,
@@ -312,14 +312,14 @@ pub struct InitializePool<'info> {
     #[account(init,
         token::mint = watermelon_mint,
         token::authority = ido_account,
-        seeds = [ido_safecoin.as_bytes(), b"pool_watermelon"],
+        seeds = [ido_name.as_bytes(), b"pool_watermelon"],
         bump,
         payer = ido_authority)]
     pub pool_watermelon: Box<Account<'info, TokenAccount>>,
     #[account(init,
         token::mint = usdc_mint,
         token::authority = ido_account,
-        seeds = [ido_safecoin.as_bytes(), b"pool_usdc"],
+        seeds = [ido_name.as_bytes(), b"pool_usdc"],
         bump,
         payer = ido_authority)]
     pub pool_usdc: Box<Account<'info, TokenAccount>>,
@@ -338,16 +338,16 @@ pub struct InitUserRedeemable<'info> {
         token::mint = redeemable_mint,
         token::authority = ido_account,
         seeds = [user_authority.key().as_ref(),
-            ido_account.ido_safecoin.as_ref().trim_ascii_whitespace(),
+            ido_account.ido_name.as_ref().trim_ascii_whitespace(),
             b"user_redeemable"],
         bump,
         payer = user_authority)]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
     // IDO Accounts
-    #[account(seeds = [ido_account.ido_safecoin.as_ref().trim_ascii_whitespace()],
+    #[account(seeds = [ido_account.ido_name.as_ref().trim_ascii_whitespace()],
         bump = ido_account.bumps.ido_account)]
     pub ido_account: Box<Account<'info, IdoAccount>>,
-    #[account(seeds = [ido_account.ido_safecoin.as_ref().trim_ascii_whitespace(), b"redeemable_mint"],
+    #[account(seeds = [ido_account.ido_name.as_ref().trim_ascii_whitespace(), b"redeemable_mint"],
         bump = ido_account.bumps.redeemable_mint)]
     pub redeemable_mint: Box<Account<'info, Mint>>,
     // Programs and Sysvars
@@ -367,22 +367,22 @@ pub struct ExchangeUsdcForRedeemable<'info> {
     pub user_usdc: Box<Account<'info, TokenAccount>>,
     #[account(mut,
         seeds = [user_authority.key().as_ref(),
-            ido_account.ido_safecoin.as_ref().trim_ascii_whitespace(),
+            ido_account.ido_name.as_ref().trim_ascii_whitespace(),
             b"user_redeemable"],
         bump)]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
     // IDO Accounts
-    #[account(seeds = [ido_account.ido_safecoin.as_ref().trim_ascii_whitespace()],
+    #[account(seeds = [ido_account.ido_name.as_ref().trim_ascii_whitespace()],
         bump = ido_account.bumps.ido_account,
         has_one = usdc_mint)]
     pub ido_account: Box<Account<'info, IdoAccount>>,
     pub usdc_mint: Box<Account<'info, Mint>>,
     #[account(mut,
-        seeds = [ido_account.ido_safecoin.as_ref().trim_ascii_whitespace(), b"redeemable_mint"],
+        seeds = [ido_account.ido_name.as_ref().trim_ascii_whitespace(), b"redeemable_mint"],
         bump = ido_account.bumps.redeemable_mint)]
     pub redeemable_mint: Box<Account<'info, Mint>>,
     #[account(mut,
-        seeds = [ido_account.ido_safecoin.as_ref().trim_ascii_whitespace(), b"pool_usdc"],
+        seeds = [ido_account.ido_name.as_ref().trim_ascii_whitespace(), b"pool_usdc"],
         bump = ido_account.bumps.pool_usdc)]
     pub pool_usdc: Box<Account<'info, TokenAccount>>,
     // Programs and Sysvars
@@ -398,12 +398,12 @@ pub struct InitEscrowUsdc<'info> {
         token::mint = usdc_mint,
         token::authority = ido_account,
         seeds =  [user_authority.key().as_ref(),
-            ido_account.ido_safecoin.as_ref().trim_ascii_whitespace(),
+            ido_account.ido_name.as_ref().trim_ascii_whitespace(),
             b"escrow_usdc"],
         bump,
         payer = user_authority)]
     pub escrow_usdc: Box<Account<'info, TokenAccount>>,
-    #[account(seeds = [ido_account.ido_safecoin.as_ref().trim_ascii_whitespace()],
+    #[account(seeds = [ido_account.ido_name.as_ref().trim_ascii_whitespace()],
         bump = ido_account.bumps.ido_account,
         has_one = usdc_mint)]
     pub ido_account: Box<Account<'info, IdoAccount>>,
@@ -420,29 +420,29 @@ pub struct ExchangeRedeemableForUsdc<'info> {
     pub user_authority: Signer<'info>,
     #[account(mut,
         seeds = [user_authority.key().as_ref(),
-            ido_account.ido_safecoin.as_ref().trim_ascii_whitespace(),
+            ido_account.ido_name.as_ref().trim_ascii_whitespace(),
             b"escrow_usdc"],
         bump)]
     pub escrow_usdc: Box<Account<'info, TokenAccount>>,
     #[account(mut,
         seeds = [user_authority.key().as_ref(),
-            ido_account.ido_safecoin.as_ref().trim_ascii_whitespace(),
+            ido_account.ido_name.as_ref().trim_ascii_whitespace(),
             b"user_redeemable"],
         bump)]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
     // IDO Accounts
-    #[account(seeds = [ido_account.ido_safecoin.as_ref().trim_ascii_whitespace()],
+    #[account(seeds = [ido_account.ido_name.as_ref().trim_ascii_whitespace()],
         bump = ido_account.bumps.ido_account,
         has_one = usdc_mint)]
     pub ido_account: Box<Account<'info, IdoAccount>>,
     pub usdc_mint: Box<Account<'info, Mint>>,
     pub watermelon_mint: Box<Account<'info, Mint>>,
     #[account(mut,
-        seeds = [ido_account.ido_safecoin.as_ref().trim_ascii_whitespace(), b"redeemable_mint"],
+        seeds = [ido_account.ido_name.as_ref().trim_ascii_whitespace(), b"redeemable_mint"],
         bump = ido_account.bumps.redeemable_mint)]
     pub redeemable_mint: Box<Account<'info, Mint>>,
     #[account(mut,
-        seeds = [ido_account.ido_safecoin.as_ref().trim_ascii_whitespace(), b"pool_usdc"],
+        seeds = [ido_account.ido_name.as_ref().trim_ascii_whitespace(), b"pool_usdc"],
         bump = ido_account.bumps.pool_usdc)]
     pub pool_usdc: Box<Account<'info, TokenAccount>>,
     // Programs and Sysvars
@@ -464,22 +464,22 @@ pub struct ExchangeRedeemableForWatermelon<'info> {
     pub user_watermelon: Box<Account<'info, TokenAccount>>,
     #[account(mut,
         seeds = [user_authority.key().as_ref(),
-            ido_account.ido_safecoin.as_ref().trim_ascii_whitespace(),
+            ido_account.ido_name.as_ref().trim_ascii_whitespace(),
             b"user_redeemable"],
         bump)]
     pub user_redeemable: Box<Account<'info, TokenAccount>>,
     // IDO Accounts
-    #[account(seeds = [ido_account.ido_safecoin.as_ref().trim_ascii_whitespace()],
+    #[account(seeds = [ido_account.ido_name.as_ref().trim_ascii_whitespace()],
         bump = ido_account.bumps.ido_account,
         has_one = watermelon_mint)]
     pub ido_account: Box<Account<'info, IdoAccount>>,
     pub watermelon_mint: Box<Account<'info, Mint>>,
     #[account(mut,
-        seeds = [ido_account.ido_safecoin.as_ref().trim_ascii_whitespace(), b"redeemable_mint"],
+        seeds = [ido_account.ido_name.as_ref().trim_ascii_whitespace(), b"redeemable_mint"],
         bump = ido_account.bumps.redeemable_mint)]
     pub redeemable_mint: Box<Account<'info, Mint>>,
     #[account(mut,
-        seeds = [ido_account.ido_safecoin.as_ref().trim_ascii_whitespace(), b"pool_watermelon"],
+        seeds = [ido_account.ido_name.as_ref().trim_ascii_whitespace(), b"pool_watermelon"],
         bump = ido_account.bumps.pool_watermelon)]
     pub pool_watermelon: Box<Account<'info, TokenAccount>>,
     // Programs and Sysvars
@@ -496,7 +496,7 @@ pub struct WithdrawPoolUsdc<'info> {
         constraint = ido_authority_usdc.mint == usdc_mint.key())]
     pub ido_authority_usdc: Box<Account<'info, TokenAccount>>,
     // IDO Accounts
-    #[account(seeds = [ido_account.ido_safecoin.as_ref().trim_ascii_whitespace()],
+    #[account(seeds = [ido_account.ido_name.as_ref().trim_ascii_whitespace()],
         bump = ido_account.bumps.ido_account,
         has_one = ido_authority,
         has_one = usdc_mint,
@@ -505,7 +505,7 @@ pub struct WithdrawPoolUsdc<'info> {
     pub usdc_mint: Box<Account<'info, Mint>>,
     pub watermelon_mint: Box<Account<'info, Mint>>,
     #[account(mut,
-        seeds = [ido_account.ido_safecoin.as_ref().trim_ascii_whitespace(), b"pool_usdc"],
+        seeds = [ido_account.ido_name.as_ref().trim_ascii_whitespace(), b"pool_usdc"],
         bump = ido_account.bumps.pool_usdc)]
     pub pool_usdc: Box<Account<'info, TokenAccount>>,
     // Program and Sysvars
@@ -526,12 +526,12 @@ pub struct WithdrawFromEscrow<'info> {
     pub user_usdc: Box<Account<'info, TokenAccount>>,
     #[account(mut,
         seeds = [user_authority.key().as_ref(),
-            ido_account.ido_safecoin.as_ref().trim_ascii_whitespace(),
+            ido_account.ido_name.as_ref().trim_ascii_whitespace(),
             b"escrow_usdc"],
         bump)]
     pub escrow_usdc: Box<Account<'info, TokenAccount>>,
     // IDO Accounts
-    #[account(seeds = [ido_account.ido_safecoin.as_ref().trim_ascii_whitespace()],
+    #[account(seeds = [ido_account.ido_name.as_ref().trim_ascii_whitespace()],
         bump = ido_account.bumps.ido_account,
         has_one = usdc_mint)]
     pub ido_account: Box<Account<'info, IdoAccount>>,
@@ -543,7 +543,7 @@ pub struct WithdrawFromEscrow<'info> {
 #[account]
 #[derive(Default)]
 pub struct IdoAccount {
-    pub ido_safecoin: [u8; 10], // Setting an arbitrary max of ten characters in the ido safecoin.
+    pub ido_name: [u8; 10], // Setting an arbitrary max of ten characters in the ido name.
     pub bumps: PoolBumps,
     pub ido_authority: Pubkey,
 

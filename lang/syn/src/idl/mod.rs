@@ -7,7 +7,7 @@ pub mod pda;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Idl {
     pub version: String,
-    pub safecoin: String,
+    pub name: String,
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub constants: Vec<IdlConst>,
     pub instructions: Vec<IdlInstruction>,
@@ -27,30 +27,30 @@ pub struct Idl {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct IdlConst {
-    pub safecoin: String,
-    #[serde(resafecoin = "type")]
+    pub name: String,
+    #[serde(rename = "type")]
     pub ty: IdlType,
     pub value: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct IdlState {
-    #[serde(resafecoin = "struct")]
+    #[serde(rename = "struct")]
     pub strct: IdlTypeDefinition,
     pub methods: Vec<IdlInstruction>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct IdlInstruction {
-    pub safecoin: String,
+    pub name: String,
     pub accounts: Vec<IdlAccountItem>,
     pub args: Vec<IdlField>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(resafecoin_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
 pub struct IdlAccounts {
-    pub safecoin: String,
+    pub name: String,
     pub accounts: Vec<IdlAccountItem>,
 }
 
@@ -62,9 +62,9 @@ pub enum IdlAccountItem {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(resafecoin_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
 pub struct IdlAccount {
-    pub safecoin: String,
+    pub name: String,
     pub is_mut: bool,
     pub is_signer: bool,
     #[serde(skip_serializing_if = "Option::is_none", default)]
@@ -72,7 +72,7 @@ pub struct IdlAccount {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(resafecoin_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
 pub struct IdlPda {
     pub seeds: Vec<IdlSeed>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
@@ -80,7 +80,7 @@ pub struct IdlPda {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(resafecoin_all = "camelCase", tag = "kind")]
+#[serde(rename_all = "camelCase", tag = "kind")]
 pub enum IdlSeed {
     Const(IdlSeedConst),
     Arg(IdlSeedArg),
@@ -88,9 +88,9 @@ pub enum IdlSeed {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(resafecoin_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
 pub struct IdlSeedAccount {
-    #[serde(resafecoin = "type")]
+    #[serde(rename = "type")]
     pub ty: IdlType,
     // account_ty points to the entry in the "accounts" section.
     // Some only if the `Account<T>` type is used.
@@ -100,51 +100,51 @@ pub struct IdlSeedAccount {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(resafecoin_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
 pub struct IdlSeedArg {
-    #[serde(resafecoin = "type")]
+    #[serde(rename = "type")]
     pub ty: IdlType,
     pub path: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(resafecoin_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
 pub struct IdlSeedConst {
-    #[serde(resafecoin = "type")]
+    #[serde(rename = "type")]
     pub ty: IdlType,
     pub value: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct IdlField {
-    pub safecoin: String,
-    #[serde(resafecoin = "type")]
+    pub name: String,
+    #[serde(rename = "type")]
     pub ty: IdlType,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct IdlEvent {
-    pub safecoin: String,
+    pub name: String,
     pub fields: Vec<IdlEventField>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct IdlEventField {
-    pub safecoin: String,
-    #[serde(resafecoin = "type")]
+    pub name: String,
+    #[serde(rename = "type")]
     pub ty: IdlType,
     pub index: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct IdlTypeDefinition {
-    pub safecoin: String,
-    #[serde(resafecoin = "type")]
+    pub name: String,
+    #[serde(rename = "type")]
     pub ty: IdlTypeDefinitionTy,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(resafecoin_all = "lowercase", tag = "kind")]
+#[serde(rename_all = "lowercase", tag = "kind")]
 pub enum IdlTypeDefinitionTy {
     Struct { fields: Vec<IdlField> },
     Enum { variants: Vec<IdlEnumVariant> },
@@ -152,7 +152,7 @@ pub enum IdlTypeDefinitionTy {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct IdlEnumVariant {
-    pub safecoin: String,
+    pub name: String,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub fields: Option<EnumFields>,
 }
@@ -165,7 +165,7 @@ pub enum EnumFields {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(resafecoin_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
 pub enum IdlType {
     Bool,
     U8,
@@ -259,7 +259,7 @@ impl std::str::FromStr for IdlType {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct IdlErrorCode {
     pub code: u32,
-    pub safecoin: String,
+    pub name: String,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub msg: Option<String>,
 }

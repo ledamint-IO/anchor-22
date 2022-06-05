@@ -4,9 +4,9 @@
 
 use crate::error::ErrorCode;
 use crate::{Accounts, AccountsExit, Result, ToAccountInfos, ToAccountMetas};
-use solana_program::account_info::AccountInfo;
-use solana_program::instruction::AccountMeta;
-use solana_program::pubkey::Pubkey;
+use safecoin_program::account_info::AccountInfo;
+use safecoin_program::instruction::AccountMeta;
+use safecoin_program::pubkey::Pubkey;
 use std::collections::BTreeMap;
 
 impl<'info> Accounts<'info> for AccountInfo<'info> {

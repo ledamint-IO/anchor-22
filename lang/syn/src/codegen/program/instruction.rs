@@ -58,7 +58,7 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                 methods
                     .iter()
                     .map(|method| {
-                        let ix_safecoin_camel: proc_macro2::TokenStream = method
+                        let ix_name_camel: proc_macro2::TokenStream = method
                             .raw_method
                             .sig
                             .ident
@@ -77,12 +77,12 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                             .collect();
 
                         let ix_data_trait = {
-                            let safecoin = method.raw_method.sig.ident.to_string();
-                            let sighash_arr = sighash(SIGHASH_STATE_NAMESPACE, &safecoin);
+                            let name = method.raw_method.sig.ident.to_string();
+                            let sighash_arr = sighash(SIGHASH_STATE_NAMESPACE, &name);
                             let sighash_tts: proc_macro2::TokenStream =
                                 format!("{:?}", sighash_arr).parse().unwrap();
                             quote! {
-                                impl anchor_lang::InstructionData for #ix_safecoin_camel {
+                                impl anchor_lang::InstructionData for #ix_name_camel {
                                     fn data(&self) -> Vec<u8> {
                                         let mut d = #sighash_tts.to_vec();
                                         d.append(&mut self.try_to_vec().expect("Should always serialize"));
@@ -97,7 +97,7 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                             quote! {
                                 /// Anchor generated instruction.
                                 #[derive(AnchorSerialize, AnchorDeserialize)]
-                                pub struct #ix_safecoin_camel;
+                                pub struct #ix_name_camel;
 
                                 #ix_data_trait
                             }
@@ -105,7 +105,7 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                             quote! {
                                 /// Anchor generated instruction.
                                 #[derive(AnchorSerialize, AnchorDeserialize)]
-                                pub struct #ix_safecoin_camel {
+                                pub struct #ix_name_camel {
                                     #(#raw_args),*
                                 }
 
@@ -121,9 +121,9 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
         .ixs
         .iter()
         .map(|ix| {
-            let safecoin = &ix.raw_method.sig.ident.to_string();
-            let ix_safecoin_camel =
-                proc_macro2::Ident::new(&safecoin.to_camel_case(), ix.raw_method.sig.ident.span());
+            let name = &ix.raw_method.sig.ident.to_string();
+            let ix_name_camel =
+                proc_macro2::Ident::new(&name.to_camel_case(), ix.raw_method.sig.ident.span());
             let raw_args: Vec<proc_macro2::TokenStream> = ix
                 .args
                 .iter()
@@ -134,11 +134,11 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                 })
                 .collect();
             let ix_data_trait = {
-                let sighash_arr = sighash(SIGHASH_GLOBAL_NAMESPACE, safecoin);
+                let sighash_arr = sighash(SIGHASH_GLOBAL_NAMESPACE, name);
                 let sighash_tts: proc_macro2::TokenStream =
                     format!("{:?}", sighash_arr).parse().unwrap();
                 quote! {
-                    impl anchor_lang::InstructionData for #ix_safecoin_camel {
+                    impl anchor_lang::InstructionData for #ix_name_camel {
                         fn data(&self) -> Vec<u8> {
                             let mut d = #sighash_tts.to_vec();
                             d.append(&mut self.try_to_vec().expect("Should always serialize"));
@@ -152,7 +152,7 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                 quote! {
                     /// Instruction.
                     #[derive(AnchorSerialize, AnchorDeserialize)]
-                    pub struct #ix_safecoin_camel;
+                    pub struct #ix_name_camel;
 
                     #ix_data_trait
                 }
@@ -160,7 +160,7 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                 quote! {
                     /// Instruction.
                     #[derive(AnchorSerialize, AnchorDeserialize)]
-                    pub struct #ix_safecoin_camel {
+                    pub struct #ix_name_camel {
                         #(#raw_args),*
                     }
 
