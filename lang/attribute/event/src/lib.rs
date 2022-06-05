@@ -14,10 +14,10 @@ pub fn event(
 ) -> proc_macro::TokenStream {
     let event_strct = parse_macro_input!(input as syn::ItemStruct);
 
-    let event_name = &event_strct.ident;
+    let event_safecoin = &event_strct.ident;
 
     let discriminator: proc_macro2::TokenStream = {
-        let discriminator_preimage = format!("event:{}", event_name);
+        let discriminator_preimage = format!("event:{}", event_safecoin);
         let mut discriminator = [0u8; 8];
         discriminator.copy_from_slice(
             &anchor_syn::hash::hash(discriminator_preimage.as_bytes()).to_bytes()[..8],
@@ -29,7 +29,7 @@ pub fn event(
         #[derive(anchor_lang::__private::EventIndex, AnchorSerialize, AnchorDeserialize)]
         #event_strct
 
-        impl anchor_lang::Event for #event_name {
+        impl anchor_lang::Event for #event_safecoin {
             fn data(&self) -> Vec<u8> {
                 let mut d = #discriminator.to_vec();
                 d.append(&mut self.try_to_vec().unwrap());
@@ -37,7 +37,7 @@ pub fn event(
             }
         }
 
-        impl anchor_lang::Discriminator for #event_name {
+        impl anchor_lang::Discriminator for #event_safecoin {
             fn discriminator() -> [u8; 8] {
                 #discriminator
             }

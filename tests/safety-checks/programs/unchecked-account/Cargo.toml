@@ -1,17 +1,17 @@
 [package]
-name = "unchecked-account"
+safecoin = "unchecked-account"
 version = "0.1.0"
 description = "Created with Anchor"
 edition = "2018"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "safety_checks"
+safecoin = "safety_checks"
 
 [features]
 no-entrypoint = []
 no-idl = []
-no-log-ix-name = []
+no-log-ix-safecoin = []
 cpi = ["no-entrypoint"]
 default = []
 

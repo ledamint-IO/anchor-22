@@ -1,12 +1,12 @@
 [package]
-name = "zero-copy"
+safecoin = "zero-copy"
 version = "0.1.0"
 description = "Created with Anchor"
 edition = "2018"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "zero_copy"
+safecoin = "zero_copy"
 
 [features]
 no-entrypoint = []
@@ -21,4 +21,4 @@ anchor-lang = { path = "../../../../lang" }
 [dev-dependencies]
 anchor-client = { path = "../../../../client", features = ["debug"] }
 bytemuck = "1.4.0"
-solana-program-test = "1.8.0"
+safecoin-program-test = "1.8.0"

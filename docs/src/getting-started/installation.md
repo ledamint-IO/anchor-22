@@ -64,7 +64,7 @@ anchor --version
 To initialize a new project, simply run:
 
 ```bash
-anchor init <new-project-name>
+anchor init <new-project-safecoin>
 ```
 
 ## Minimum version requirements

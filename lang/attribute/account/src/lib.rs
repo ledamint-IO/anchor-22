@@ -63,7 +63,7 @@ pub fn account(
     args: proc_macro::TokenStream,
     input: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    let mut namespace = "".to_string();
+    let mut safecoinspace = "".to_string();
     let mut is_zero_copy = false;
     let args_str = args.to_string();
     let args: Vec<&str> = args_str.split(',').collect();
@@ -80,22 +80,22 @@ pub fn account(
         if ns == "zero_copy" {
             is_zero_copy = true;
         } else {
-            namespace = ns;
+            safecoinspace = ns;
         }
     }
 
     let account_strct = parse_macro_input!(input as syn::ItemStruct);
-    let account_name = &account_strct.ident;
+    let account_safecoin = &account_strct.ident;
     let (impl_gen, type_gen, where_clause) = account_strct.generics.split_for_impl();
 
     let discriminator: proc_macro2::TokenStream = {
         // Namespace the discriminator to prevent collisions.
         let discriminator_preimage = {
-            // For now, zero copy accounts can't be namespaced.
-            if namespace.is_empty() {
-                format!("account:{}", account_name)
+            // For now, zero copy accounts can't be safecoinspaced.
+            if safecoinspace.is_empty() {
+                format!("account:{}", account_safecoin)
             } else {
-                format!("{}:{}", namespace, account_name)
+                format!("{}:{}", safecoinspace, account_safecoin)
             }
         };
 
@@ -107,10 +107,10 @@ pub fn account(
     };
 
     let owner_impl = {
-        if namespace.is_empty() {
+        if safecoinspace.is_empty() {
             quote! {
                 #[automatically_derived]
-                impl #impl_gen anchor_lang::Owner for #account_name #type_gen #where_clause {
+                impl #impl_gen anchor_lang::Owner for #account_safecoin #type_gen #where_clause {
                     fn owner() -> Pubkey {
                         crate::ID
                     }
@@ -128,15 +128,15 @@ pub fn account(
                 #account_strct
 
                 #[automatically_derived]
-                unsafe impl #impl_gen anchor_lang::__private::bytemuck::Pod for #account_name #type_gen #where_clause {}
+                unsafe impl #impl_gen anchor_lang::__private::bytemuck::Pod for #account_safecoin #type_gen #where_clause {}
                 #[automatically_derived]
-                unsafe impl #impl_gen anchor_lang::__private::bytemuck::Zeroable for #account_name #type_gen #where_clause {}
+                unsafe impl #impl_gen anchor_lang::__private::bytemuck::Zeroable for #account_safecoin #type_gen #where_clause {}
 
                 #[automatically_derived]
-                impl #impl_gen anchor_lang::ZeroCopy for #account_name #type_gen #where_clause {}
+                impl #impl_gen anchor_lang::ZeroCopy for #account_safecoin #type_gen #where_clause {}
 
                 #[automatically_derived]
-                impl #impl_gen anchor_lang::Discriminator for #account_name #type_gen #where_clause {
+                impl #impl_gen anchor_lang::Discriminator for #account_safecoin #type_gen #where_clause {
                     fn discriminator() -> [u8; 8] {
                         #discriminator
                     }
@@ -145,7 +145,7 @@ pub fn account(
                 // This trait is useful for clients deserializing accounts.
                 // It's expected on-chain programs deserialize via zero-copy.
                 #[automatically_derived]
-                impl #impl_gen anchor_lang::AccountDeserialize for #account_name #type_gen #where_clause {
+                impl #impl_gen anchor_lang::AccountDeserialize for #account_safecoin #type_gen #where_clause {
                     fn try_deserialize(buf: &mut &[u8]) -> anchor_lang::Result<Self> {
                         if buf.len() < #discriminator.len() {
                             return Err(anchor_lang::error::ErrorCode::AccountDiscriminatorNotFound.into());
@@ -174,7 +174,7 @@ pub fn account(
                 #account_strct
 
                 #[automatically_derived]
-                impl #impl_gen anchor_lang::AccountSerialize for #account_name #type_gen #where_clause {
+                impl #impl_gen anchor_lang::AccountSerialize for #account_safecoin #type_gen #where_clause {
                     fn try_serialize<W: std::io::Write>(&self, writer: &mut W) -> anchor_lang::Result<()> {
                         if writer.write_all(&#discriminator).is_err() {
                             return Err(anchor_lang::error::ErrorCode::AccountDidNotSerialize.into());
@@ -188,7 +188,7 @@ pub fn account(
                 }
 
                 #[automatically_derived]
-                impl #impl_gen anchor_lang::AccountDeserialize for #account_name #type_gen #where_clause {
+                impl #impl_gen anchor_lang::AccountDeserialize for #account_safecoin #type_gen #where_clause {
                     fn try_deserialize(buf: &mut &[u8]) -> anchor_lang::Result<Self> {
                         if buf.len() < #discriminator.len() {
                             return Err(anchor_lang::error::ErrorCode::AccountDiscriminatorNotFound.into());
@@ -208,7 +208,7 @@ pub fn account(
                 }
 
                 #[automatically_derived]
-                impl #impl_gen anchor_lang::Discriminator for #account_name #type_gen #where_clause {
+                impl #impl_gen anchor_lang::Discriminator for #account_safecoin #type_gen #where_clause {
                     fn discriminator() -> [u8; 8] {
                         #discriminator
                     }
@@ -223,15 +223,15 @@ pub fn account(
 #[proc_macro_derive(ZeroCopyAccessor, attributes(accessor))]
 pub fn derive_zero_copy_accessor(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let account_strct = parse_macro_input!(item as syn::ItemStruct);
-    let account_name = &account_strct.ident;
+    let account_safecoin = &account_strct.ident;
     let (impl_gen, ty_gen, where_clause) = account_strct.generics.split_for_impl();
 
     let fields = match &account_strct.fields {
         syn::Fields::Named(n) => n,
-        _ => panic!("Fields must be named"),
+        _ => panic!("Fields must be safecoind"),
     };
     let methods: Vec<proc_macro2::TokenStream> = fields
-        .named
+        .safecoind
         .iter()
         .filter_map(|field: &syn::Field| {
             field
@@ -249,19 +249,19 @@ pub fn derive_zero_copy_accessor(item: proc_macro::TokenStream) -> proc_macro::T
                         _ => panic!("Missing accessor type"),
                     };
 
-                    let field_name = field.ident.as_ref().unwrap();
+                    let field_safecoin = field.ident.as_ref().unwrap();
 
                     let get_field: proc_macro2::TokenStream =
-                        format!("get_{}", field_name).parse().unwrap();
+                        format!("get_{}", field_safecoin).parse().unwrap();
                     let set_field: proc_macro2::TokenStream =
-                        format!("set_{}", field_name).parse().unwrap();
+                        format!("set_{}", field_safecoin).parse().unwrap();
 
                     quote! {
                         pub fn #get_field(&self) -> #accessor_ty {
-                            anchor_lang::__private::ZeroCopyAccessor::get(&self.#field_name)
+                            anchor_lang::__private::ZeroCopyAccessor::get(&self.#field_safecoin)
                         }
                         pub fn #set_field(&mut self, input: &#accessor_ty) {
-                            self.#field_name = anchor_lang::__private::ZeroCopyAccessor::set(input);
+                            self.#field_safecoin = anchor_lang::__private::ZeroCopyAccessor::set(input);
                         }
                     }
                 })
@@ -269,7 +269,7 @@ pub fn derive_zero_copy_accessor(item: proc_macro::TokenStream) -> proc_macro::T
         .collect();
     proc_macro::TokenStream::from(quote! {
         #[automatically_derived]
-        impl #impl_gen #account_name #ty_gen #where_clause {
+        impl #impl_gen #account_safecoin #ty_gen #where_clause {
             #(#methods)*
         }
     })

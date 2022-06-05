@@ -1,12 +1,12 @@
 [package]
-name = "token-proxy"
+safecoin = "token-proxy"
 version = "0.1.0"
 description = "Created with Anchor"
 edition = "2018"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "token_proxy"
+safecoin = "token_proxy"
 
 [features]
 no-entrypoint = []

@@ -14,7 +14,7 @@ export class BorshEventCoder implements EventCoder {
   private layouts: Map<string, Layout>;
 
   /**
-   * Maps base64 encoded event discriminator to event name.
+   * Maps base64 encoded event discriminator to event safecoin.
    */
   private discriminators: Map<string, string>;
 
@@ -25,15 +25,15 @@ export class BorshEventCoder implements EventCoder {
     }
     const layouts: [string, Layout<any>][] = idl.events.map((event) => {
       let eventTypeDef: IdlTypeDef = {
-        name: event.name,
+        safecoin: event.safecoin,
         type: {
           kind: "struct",
           fields: event.fields.map((f) => {
-            return { name: f.name, type: f.type };
+            return { safecoin: f.safecoin, type: f.type };
           }),
         },
       };
-      return [event.name, IdlCoder.typeDefLayout(eventTypeDef, idl.types)];
+      return [event.safecoin, IdlCoder.typeDefLayout(eventTypeDef, idl.types)];
     });
     this.layouts = new Map(layouts);
 
@@ -41,8 +41,8 @@ export class BorshEventCoder implements EventCoder {
       idl.events === undefined
         ? []
         : idl.events.map((e) => [
-            base64.fromByteArray(eventDiscriminator(e.name)),
-            e.name,
+            base64.fromByteArray(eventDiscriminator(e.safecoin)),
+            e.safecoin,
           ])
     );
   }
@@ -73,10 +73,10 @@ export class BorshEventCoder implements EventCoder {
       E["fields"][number],
       T
     >;
-    return { data, name: eventName };
+    return { data, safecoin: eventName };
   }
 }
 
-export function eventDiscriminator(name: string): Buffer {
-  return Buffer.from(sha256.digest(`event:${name}`)).slice(0, 8);
+export function eventDiscriminator(safecoin: string): Buffer {
+  return Buffer.from(sha256.digest(`event:${safecoin}`)).slice(0, 8);
 }

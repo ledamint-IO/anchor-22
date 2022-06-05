@@ -1,5 +1,5 @@
 [package]
-name = "anchor-spl"
+safecoin = "anchor-spl"
 version = "0.22.0"
 authors = ["Serum Foundation <foundation@projectserum.com>"]
 edition = "2018"
@@ -18,7 +18,7 @@ dex = ["serum_dex"]
 
 [dependencies]
 anchor-lang = { path = "../lang", version = "0.22.0", features = ["derive"] }
-serum_dex = { git = "https://github.com/project-serum/serum-dex", rev = "1be91f2", version = "0.4.0", features = ["no-entrypoint"], optional = true }
-solana-program = "1.8.5"
-spl-token = { version = "3.1.1", features = ["no-entrypoint"], optional = true }
-spl-associated-token-account = { version = "1.0.3", features = ["no-entrypoint"], optional = true }
+serum_dex = {git = "https://github.com/safely-project/safely-dex", version = "0.5.5", features = ["no-entrypoint"], optional = true }
+safecoin-program = {path = "../../Safecoin/sdk/program"}
+safe-token = { features = ["no-entrypoint"], optional = true,  path = "../../safecoin-program-library/token/program"}
+safe-associated-token-account = { features = ["no-entrypoint"], optional = true, path = "../../safecoin-program-library/associated-token-account/program" }

@@ -25,8 +25,8 @@ describe("chat", () => {
     });
 
     const chat = await program.account.chatRoom.fetch(chatRoom.publicKey);
-    const name = new TextDecoder("utf-8").decode(new Uint8Array(chat.name));
-    assert.ok(name.startsWith("Test Chat")); // [u8; 280] => trailing zeros.
+    const safecoin = new TextDecoder("utf-8").decode(new Uint8Array(chat.safecoin));
+    assert.ok(safecoin.startsWith("Test Chat")); // [u8; 280] => trailing zeros.
     assert.ok(chat.messages.length === 33607);
     assert.ok(chat.head.toNumber() === 0);
     assert.ok(chat.tail.toNumber() === 0);
@@ -46,7 +46,7 @@ describe("chat", () => {
       },
     });
     const account = await program.account.user.fetch(user);
-    assert.ok(account.name === "My User");
+    assert.ok(account.safecoin === "My User");
     assert.ok(account.authority.equals(authority));
   });
 
@@ -84,8 +84,8 @@ describe("chat", () => {
 
     // Check the chat room state is as expected.
     const chat = await program.account.chatRoom.fetch(chatRoom.publicKey);
-    const name = new TextDecoder("utf-8").decode(new Uint8Array(chat.name));
-    assert.ok(name.startsWith("Test Chat")); // [u8; 280] => trailing zeros.
+    const safecoin = new TextDecoder("utf-8").decode(new Uint8Array(chat.safecoin));
+    assert.ok(safecoin.startsWith("Test Chat")); // [u8; 280] => trailing zeros.
     assert.ok(chat.messages.length === 33607);
     assert.ok(chat.head.toNumber() === numMessages);
     assert.ok(chat.tail.toNumber() === 0);

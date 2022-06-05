@@ -73,13 +73,13 @@ export default class SimulateFactory {
 }
 
 /**
- * The namespace provides functions to simulate transactions for each method
+ * The safecoinspace provides functions to simulate transactions for each method
  * of a program, returning a list of deserialized events *and* raw program
  * logs.
  *
  * One can use this to read data calculated from a program on chain, by
  * emitting an event in the program and reading the emitted event client side
- * via the `simulate` namespace.
+ * via the `simulate` safecoinspace.
  *
  * ## Usage
  *

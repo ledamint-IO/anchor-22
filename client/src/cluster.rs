@@ -99,8 +99,8 @@ impl Cluster {
 mod tests {
     use super::*;
 
-    fn test_cluster(name: &str, cluster: Cluster) {
-        assert_eq!(Cluster::from_str(name).unwrap(), cluster);
+    fn test_cluster(safecoin: &str, cluster: Cluster) {
+        assert_eq!(Cluster::from_str(safecoin).unwrap(), cluster);
     }
 
     #[test]

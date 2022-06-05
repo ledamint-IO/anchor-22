@@ -88,7 +88,7 @@ If run inside a program folder, expands the macros of the program.
 
 If run in the workspace but outside a program folder, expands the macros of the workspace.
 
-If run with the `--program-name` option, expand only the given program.
+If run with the `--program-safecoin` option, expand only the given program.
 
 ## Idl
 
@@ -196,7 +196,7 @@ and only support this simple deploy script at the moment.
 ## New
 
 ```
-anchor new <program-name>
+anchor new <program-safecoin>
 ```
 
 Creates a new program in the workspace's `programs/` directory initialized with boilerplate.
@@ -219,7 +219,7 @@ Be sure to shutdown any other local validators, otherwise `anchor test` will fai
 If you'd prefer to run the program against your local validator use `anchor test --skip-local-validator`.
 :::
 
-When running tests we stream program logs to `.anchor/program-logs/<address>.<program-name>.log`
+When running tests we stream program logs to `.anchor/program-logs/<address>.<program-safecoin>.log`
 
 ::: tip Note
 The Anchor workflow [recommends](https://www.parity.io/paritys-checklist-for-secure-smart-contract-development/)

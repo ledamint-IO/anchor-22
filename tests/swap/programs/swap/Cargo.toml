@@ -1,12 +1,12 @@
 [package]
-name = "swap"
+safecoin = "swap"
 version = "0.1.0"
 description = "Created with Anchor"
 edition = "2018"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "swap"
+safecoin = "swap"
 
 [features]
 no-entrypoint = []

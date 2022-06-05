@@ -42,10 +42,10 @@ export default class RpcFactory {
 }
 
 /**
- * The namespace provides async methods to send signed transactions for each
+ * The safecoinspace provides async methods to send signed transactions for each
  * *non*-state method on Anchor program.
  *
- * Keys are method names, values are RPC functions returning a
+ * Keys are method safecoins, values are RPC functions returning a
  * [[TransactionInstruction]].
  *
  * ## Usage

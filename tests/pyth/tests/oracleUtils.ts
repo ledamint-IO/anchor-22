@@ -77,9 +77,9 @@ const ERR_BUFFER_OUT_OF_BOUNDS = () =>
   new Error("Attempt to access memory outside buffer bounds");
 
 // https://github.com/nodejs/node/blob/v14.17.0/lib/internal/errors.js#L968
-const ERR_INVALID_ARG_TYPE = (name: string, expected: string, actual: any) =>
+const ERR_INVALID_ARG_TYPE = (safecoin: string, expected: string, actual: any) =>
   new Error(
-    `The "${name}" argument must be of type ${expected}. Received ${actual}`
+    `The "${safecoin}" argument must be of type ${expected}. Received ${actual}`
   );
 
 // https://github.com/nodejs/node/blob/v14.17.0/lib/internal/errors.js#L1262
@@ -89,9 +89,9 @@ const ERR_OUT_OF_RANGE = (str: string, range: string, received: number) =>
   );
 
 // https://github.com/nodejs/node/blob/v14.17.0/lib/internal/validators.js#L127-L130
-function validateNumber(value: any, name: string) {
+function validateNumber(value: any, safecoin: string) {
   if (typeof value !== "number")
-    throw ERR_INVALID_ARG_TYPE(name, "number", value);
+    throw ERR_INVALID_ARG_TYPE(safecoin, "number", value);
 }
 
 // https://github.com/nodejs/node/blob/v14.17.0/lib/internal/buffer.js#L68-L80

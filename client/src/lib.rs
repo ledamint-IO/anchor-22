@@ -400,7 +400,7 @@ pub struct RequestBuilder<'a> {
     instruction_data: Option<Vec<u8>>,
     signers: Vec<&'a dyn Signer>,
     // True if the user is sending a state instruction.
-    namespace: RequestNamespace,
+    safecoinspace: RequestNamespace,
 }
 
 #[derive(PartialEq)]
@@ -419,7 +419,7 @@ impl<'a> RequestBuilder<'a> {
         cluster: &str,
         payer: Rc<dyn Signer>,
         options: Option<CommitmentConfig>,
-        namespace: RequestNamespace,
+        safecoinspace: RequestNamespace,
     ) -> Self {
         Self {
             program_id,
@@ -430,7 +430,7 @@ impl<'a> RequestBuilder<'a> {
             instructions: Vec::new(),
             instruction_data: None,
             signers: Vec::new(),
-            namespace,
+            safecoinspace,
         }
     }
 
@@ -481,8 +481,8 @@ impl<'a> RequestBuilder<'a> {
     #[allow(clippy::wrong_self_convention)]
     #[must_use]
     pub fn new(mut self, args: impl InstructionData) -> Self {
-        assert!(self.namespace == RequestNamespace::State { new: false });
-        self.namespace = RequestNamespace::State { new: true };
+        assert!(self.safecoinspace == RequestNamespace::State { new: false });
+        self.safecoinspace = RequestNamespace::State { new: true };
         self.instruction_data = Some(args.data());
         self
     }
@@ -494,7 +494,7 @@ impl<'a> RequestBuilder<'a> {
     }
 
     pub fn instructions(&self) -> Result<Vec<Instruction>, ClientError> {
-        let mut accounts = match self.namespace {
+        let mut accounts = match self.safecoinspace {
             RequestNamespace::State { new } => match new {
                 false => vec![AccountMeta::new(
                     anchor_lang::__private::state::address(&self.program_id),

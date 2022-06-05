@@ -1,12 +1,12 @@
 [package]
-name = "system-accounts"
+safecoin = "system-accounts"
 version = "0.1.0"
 description = "Created with Anchor"
 edition = "2018"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "system_accounts"
+safecoin = "system_accounts"
 
 [features]
 no-entrypoint = []

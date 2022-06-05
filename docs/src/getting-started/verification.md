@@ -23,10 +23,10 @@ anchor build --verifiable
 To verify a build against a program deployed on mainnet, run
 
 ```bash
-anchor verify -p <lib-name> <program-id>
+anchor verify -p <lib-safecoin> <program-id>
 ```
 
-where the `<lib-name>` is defined by your program's Cargo.toml.
+where the `<lib-safecoin>` is defined by your program's Cargo.toml.
 
 If the program has an IDL, it will also check the IDL deployed on chain matches.
 
@@ -48,5 +48,5 @@ To remove, run
 docker rm -f anchor-program
 ```
 
-where `anchor-program` is the name of the image created by default from within
+where `anchor-program` is the safecoin of the image created by default from within
 the Anchor CLI.

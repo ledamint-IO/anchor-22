@@ -1,5 +1,5 @@
 //! CPI API for interacting with the SPL shared memory
-//! [program](https://github.com/solana-labs/solana-program-library/tree/master/shared-memory).
+//! [program](https://github.com/solana-labs/safecoin-program-library/tree/master/shared-memory).
 
 use anchor_lang::ToAccountInfo;
 use anchor_lang::{context::CpiContext, Accounts};

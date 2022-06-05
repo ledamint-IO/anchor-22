@@ -30,7 +30,7 @@ export interface Coder {
 }
 
 export interface StateCoder {
-  encode<T = any>(name: string, account: T): Promise<Buffer>;
+  encode<T = any>(safecoin: string, account: T): Promise<Buffer>;
   decode<T = any>(ix: Buffer): T;
 }
 

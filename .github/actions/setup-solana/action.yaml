@@ -1,10 +1,10 @@
-name: "Setup Solana"
+safecoin: "Setup Solana"
 description: "Setup Solana"
 runs:
   using: "composite"
   steps:
       - uses: actions/cache@v2
-        name: Cache Solana Tool Suite
+        safecoin: Cache Solana Tool Suite
         id: cache-solana
         with:
           path: |

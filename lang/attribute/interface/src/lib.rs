@@ -127,7 +127,7 @@ use syn::parse_macro_input;
 /// The caller above uses a `Result` to act as a boolean. However, in order
 /// for this feature to be maximally useful, we need a way to return values from
 /// interfaces. For now, one can do this by writing to a shared account, e.g.,
-/// with the SPL's [Shared Memory Program](https://github.com/solana-labs/solana-program-library/tree/master/shared-memory).
+/// with the SPL's [Shared Memory Program](https://github.com/solana-labs/safecoin-program-library/tree/master/shared-memory).
 /// In the future, Anchor will add the ability to return values across CPI
 /// without having to worry about the details of shared memory accounts.
 #[proc_macro_attribute]
@@ -137,8 +137,8 @@ pub fn interface(
 ) -> proc_macro::TokenStream {
     let item_trait = parse_macro_input!(input as syn::ItemTrait);
 
-    let trait_name = item_trait.ident.to_string();
-    let mod_name: proc_macro2::TokenStream = item_trait
+    let trait_safecoin = item_trait.ident.to_string();
+    let mod_safecoin: proc_macro2::TokenStream = item_trait
         .ident
         .to_string()
         .to_snake_case()
@@ -153,7 +153,7 @@ pub fn interface(
             _ => None,
         })
         .map(|method: &syn::TraitItemMethod| {
-            let method_name = &method.sig.ident;
+            let method_safecoin = &method.sig.ident;
             let args: Vec<&syn::PatType> = method
                 .sig
                 .inputs
@@ -193,11 +193,11 @@ pub fn interface(
                 }
             };
 
-            let sighash_arr = anchor_syn::codegen::program::common::sighash(&trait_name, &method_name.to_string());
+            let sighash_arr = anchor_syn::codegen::program::common::sighash(&trait_safecoin, &method_safecoin.to_string());
             let sighash_tts: proc_macro2::TokenStream =
                 format!("{:?}", sighash_arr).parse().unwrap();
             quote! {
-                pub fn #method_name<'a,'b, 'c, 'info, T: anchor_lang::Accounts<'info> + anchor_lang::ToAccountMetas + anchor_lang::ToAccountInfos<'info>>(
+                pub fn #method_safecoin<'a,'b, 'c, 'info, T: anchor_lang::Accounts<'info> + anchor_lang::ToAccountMetas + anchor_lang::ToAccountInfos<'info>>(
                     ctx: anchor_lang::context::CpiContext<'a, 'b, 'c, 'info, T>,
                     #(#args),*
                 ) -> anchor_lang::Result<()> {
@@ -235,7 +235,7 @@ pub fn interface(
 
         /// Anchor generated module for invoking programs implementing an
         /// `#[interface]` via CPI.
-        mod #mod_name {
+        mod #mod_safecoin {
             use super::*;
             #(#methods)*
         }

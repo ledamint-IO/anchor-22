@@ -10,7 +10,7 @@ declare module 'buffer-layout' {
     decode(b: Buffer | string, offset?: number): T;
     encode(src: T, b: Buffer, offset?: number): number;
     getSpan(b: Buffer, offset?: number): number;
-    replicate(name: string): this;
+    replicate(safecoin: string): this;
   }
 	// TODO: remove any.
   export class Structure<T = any> extends Layout<T> {

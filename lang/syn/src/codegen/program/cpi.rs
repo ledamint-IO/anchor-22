@@ -23,12 +23,12 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                                 method.raw_method.sig.ident.to_string(),
                                 &method.args,
                             );
-                            let method_name = &method.ident;
+                            let method_safecoin = &method.ident;
                             let args: Vec<&syn::PatType> =
                                 method.args.iter().map(|arg| &arg.raw_arg).collect();
 
                             quote! {
-                                pub fn #method_name<'a, 'b, 'c, 'info>(
+                                pub fn #method_safecoin<'a, 'b, 'c, 'info>(
                                     ctx: anchor_lang::context::CpiStateContext<'a, 'b, 'c, 'info, #accounts_ident<'info>>,
                                     #(#args),*
                                 ) -> anchor_lang::Result<()> {
@@ -64,14 +64,14 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
             let accounts_ident: proc_macro2::TokenStream = format!("crate::cpi::accounts::{}", &ix.anchor_ident.to_string()).parse().unwrap();
             let cpi_method = {
                 let ix_variant = generate_ix_variant(ix.raw_method.sig.ident.to_string(), &ix.args);
-                let method_name = &ix.ident;
+                let method_safecoin = &ix.ident;
                 let args: Vec<&syn::PatType> = ix.args.iter().map(|arg| &arg.raw_arg).collect();
-                let name = &ix.raw_method.sig.ident.to_string();
-                let sighash_arr = sighash(SIGHASH_GLOBAL_NAMESPACE, name);
+                let safecoin = &ix.raw_method.sig.ident.to_string();
+                let sighash_arr = sighash(SIGHASH_GLOBAL_NAMESPACE, safecoin);
                 let sighash_tts: proc_macro2::TokenStream =
                     format!("{:?}", sighash_arr).parse().unwrap();
                 quote! {
-                    pub fn #method_name<'a, 'b, 'c, 'info>(
+                    pub fn #method_safecoin<'a, 'b, 'c, 'info>(
                         ctx: anchor_lang::context::CpiContext<'a, 'b, 'c, 'info, #accounts_ident<'info>>,
                         #(#args),*
                     ) -> anchor_lang::Result<()> {
@@ -129,22 +129,22 @@ pub fn generate_accounts(program: &Program) -> proc_macro2::TokenStream {
     if let Some(state) = &program.state {
         // Ctor.
         if let Some((_ctor, ctor_accounts)) = &state.ctor_and_anchor {
-            let macro_name = format!(
+            let macro_safecoin = format!(
                 "__cpi_client_accounts_{}",
                 ctor_accounts.to_string().to_snake_case()
             );
-            accounts.insert(macro_name);
+            accounts.insert(macro_safecoin);
         }
         // Methods.
         if let Some((_impl_block, methods)) = &state.impl_block_and_methods {
             for ix in methods {
                 let anchor_ident = &ix.anchor_ident;
                 // TODO: move to fn and share with accounts.rs.
-                let macro_name = format!(
+                let macro_safecoin = format!(
                     "__cpi_client_accounts_{}",
                     anchor_ident.to_string().to_snake_case()
                 );
-                accounts.insert(macro_name);
+                accounts.insert(macro_safecoin);
             }
         }
     }
@@ -153,20 +153,20 @@ pub fn generate_accounts(program: &Program) -> proc_macro2::TokenStream {
     for ix in &program.ixs {
         let anchor_ident = &ix.anchor_ident;
         // TODO: move to fn and share with accounts.rs.
-        let macro_name = format!(
+        let macro_safecoin = format!(
             "__cpi_client_accounts_{}",
             anchor_ident.to_string().to_snake_case()
         );
-        accounts.insert(macro_name);
+        accounts.insert(macro_safecoin);
     }
 
     // Build the tokens from all accounts
     let account_structs: Vec<proc_macro2::TokenStream> = accounts
         .iter()
-        .map(|macro_name: &String| {
-            let macro_name: proc_macro2::TokenStream = macro_name.parse().unwrap();
+        .map(|macro_safecoin: &String| {
+            let macro_safecoin: proc_macro2::TokenStream = macro_safecoin.parse().unwrap();
             quote! {
-                pub use crate::#macro_name::*;
+                pub use crate::#macro_safecoin::*;
             }
         })
         .collect();

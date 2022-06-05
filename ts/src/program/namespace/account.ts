@@ -27,8 +27,8 @@ export default class AccountFactory {
     const accountFns: AccountNamespace = {};
 
     idl.accounts?.forEach((idlAccount) => {
-      const name = camelCase(idlAccount.name);
-      accountFns[name] = new AccountClient<IDL>(
+      const safecoin = camelCase(idlAccount.safecoin);
+      accountFns[safecoin] = new AccountClient<IDL>(
         idl,
         idlAccount,
         programId,
@@ -46,7 +46,7 @@ type NullableIdlAccount<IDL extends Idl> = IDL["accounts"] extends undefined
   : NonNullable<IDL["accounts"]>[number];
 
 /**
- * The namespace provides handles to an [[AccountClient]] object for each
+ * The safecoinspace provides handles to an [[AccountClient]] object for each
  * account in a program.
  *
  * ## Usage
@@ -138,7 +138,7 @@ export class AccountClient<
       return null;
     }
     return this._coder.accounts.decode<T>(
-      this._idlAccount.name,
+      this._idlAccount.safecoin,
       accountInfo.data
     );
   }
@@ -178,7 +178,7 @@ export class AccountClient<
         return null;
       }
       return this._coder.accounts.decode(
-        this._idlAccount.name,
+        this._idlAccount.safecoin,
         account?.account.data
       );
     });
@@ -208,7 +208,7 @@ export class AccountClient<
         filters: [
           {
             memcmp: this.coder.accounts.memcmp(
-              this._idlAccount.name,
+              this._idlAccount.safecoin,
               filters instanceof Buffer ? filters : undefined
             ),
           },
@@ -220,7 +220,7 @@ export class AccountClient<
       return {
         publicKey: pubkey,
         account: this._coder.accounts.decode(
-          this._idlAccount.name,
+          this._idlAccount.safecoin,
           account.data
         ),
       };
@@ -243,7 +243,7 @@ export class AccountClient<
       address,
       (acc) => {
         const account = this._coder.accounts.decode(
-          this._idlAccount.name,
+          this._idlAccount.safecoin,
           acc.data
         );
         ee.emit("change", account);

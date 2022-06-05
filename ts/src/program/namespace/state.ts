@@ -94,7 +94,7 @@ export class StateClient<IDL extends Idl> {
     this._address = programStateAddress(programId);
     this._sub = null;
 
-    // Build namespaces.
+    // Build safecoinspaces.
     const [instruction, transaction, rpc] = ((): [
       InstructionNamespace<IDL, NullableMethods<IDL>[number]>,
       TransactionNamespace<IDL, NullableMethods<IDL>[number]>,
@@ -118,7 +118,7 @@ export class StateClient<IDL extends Idl> {
               InstructionNamespaceFactory.accountsArray(
                 accounts,
                 m.accounts,
-                m.name
+                m.safecoin
               )
             );
           };
@@ -132,11 +132,11 @@ export class StateClient<IDL extends Idl> {
             provider
           );
 
-          // Attach them all to their respective namespaces.
-          const name = camelCase(m.name);
-          instruction[name] = ixItem;
-          transaction[name] = txItem;
-          rpc[name] = rpcItem;
+          // Attach them all to their respective safecoinspaces.
+          const safecoin = camelCase(m.safecoin);
+          instruction[safecoin] = ixItem;
+          transaction[safecoin] = txItem;
+          rpc[safecoin] = rpcItem;
         }
       );
 
@@ -172,7 +172,7 @@ export class StateClient<IDL extends Idl> {
     if (!state) {
       throw new Error("State is not specified in IDL.");
     }
-    const expectedDiscriminator = await stateDiscriminator(state.struct.name);
+    const expectedDiscriminator = await stateDiscriminator(state.struct.safecoin);
     if (expectedDiscriminator.compare(accountInfo.data.slice(0, 8))) {
       throw new Error("Invalid account discriminator");
     }
@@ -242,7 +242,7 @@ function stateInstructionKeys<M extends IdlStateMethod>(
   m: M,
   accounts: Accounts<M["accounts"][number]>
 ): AccountMeta[] {
-  if (m.name === "new") {
+  if (m.safecoin === "new") {
     // Ctor `new` method.
     const [programSigner] = findProgramAddressSync([], programId);
     return [

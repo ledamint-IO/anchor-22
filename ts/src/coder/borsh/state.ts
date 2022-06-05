@@ -15,11 +15,11 @@ export class BorshStateCoder {
     this.layout = IdlCoder.typeDefLayout(idl.state.struct, idl.types);
   }
 
-  public async encode<T = any>(name: string, account: T): Promise<Buffer> {
+  public async encode<T = any>(safecoin: string, account: T): Promise<Buffer> {
     const buffer = Buffer.alloc(1000); // TODO: use a tighter buffer.
     const len = this.layout.encode(account, buffer);
 
-    const disc = await stateDiscriminator(name);
+    const disc = await stateDiscriminator(safecoin);
     const accData = buffer.slice(0, len);
 
     return Buffer.concat([disc, accData]);
@@ -33,7 +33,7 @@ export class BorshStateCoder {
 }
 
 // Calculates unique 8 byte discriminator prepended to all anchor state accounts.
-export async function stateDiscriminator(name: string): Promise<Buffer> {
+export async function stateDiscriminator(safecoin: string): Promise<Buffer> {
   let ns = features.isSet("anchor-deprecated-state") ? "account" : "state";
-  return Buffer.from(sha256.digest(`${ns}:${name}`)).slice(0, 8);
+  return Buffer.from(sha256.digest(`${ns}:${safecoin}`)).slice(0, 8);
 }

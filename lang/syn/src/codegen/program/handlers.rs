@@ -7,7 +7,7 @@ use quote::quote;
 // BPF max stack size can't handle reasonable sized dispatch trees without doing
 // so.
 pub fn generate(program: &Program) -> proc_macro2::TokenStream {
-    let program_name = &program.name;
+    let program_safecoin = &program.safecoin;
     let non_inlined_idl: proc_macro2::TokenStream = {
         quote! {
             // Entry for all IDL related instructions. Use the "no-idl" feature
@@ -77,7 +77,7 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                 accounts: &mut anchor_lang::idl::IdlCreateAccounts,
                 data_len: u64,
             ) -> anchor_lang::Result<()> {
-                #[cfg(not(feature = "no-log-ix-name"))]
+                #[cfg(not(feature = "no-log-ix-safecoin"))]
                 anchor_lang::prelude::msg!("Instruction: IdlCreateAccount");
 
                 if program_id != accounts.program.key {
@@ -140,7 +140,7 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                 program_id: &Pubkey,
                 accounts: &mut anchor_lang::idl::IdlCreateBuffer,
             ) -> anchor_lang::Result<()> {
-                #[cfg(not(feature = "no-log-ix-name"))]
+                #[cfg(not(feature = "no-log-ix-safecoin"))]
                 anchor_lang::prelude::msg!("Instruction: IdlCreateBuffer");
 
                 let mut buffer = &mut accounts.buffer;
@@ -154,7 +154,7 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                 accounts: &mut anchor_lang::idl::IdlAccounts,
                 idl_data: Vec<u8>,
             ) -> anchor_lang::Result<()> {
-                #[cfg(not(feature = "no-log-ix-name"))]
+                #[cfg(not(feature = "no-log-ix-safecoin"))]
                 anchor_lang::prelude::msg!("Instruction: IdlWrite");
 
                 let mut idl = &mut accounts.idl;
@@ -168,7 +168,7 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                 accounts: &mut anchor_lang::idl::IdlAccounts,
                 new_authority: Pubkey,
             ) -> anchor_lang::Result<()> {
-                #[cfg(not(feature = "no-log-ix-name"))]
+                #[cfg(not(feature = "no-log-ix-safecoin"))]
                 anchor_lang::prelude::msg!("Instruction: IdlSetAuthority");
 
                 accounts.idl.authority = new_authority;
@@ -180,7 +180,7 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                 program_id: &Pubkey,
                 accounts: &mut anchor_lang::idl::IdlSetBuffer,
             ) -> anchor_lang::Result<()> {
-                #[cfg(not(feature = "no-log-ix-name"))]
+                #[cfg(not(feature = "no-log-ix-safecoin"))]
                 anchor_lang::prelude::msg!("Instruction: IdlSetBuffer");
 
                 accounts.idl.data = accounts.buffer.data.clone();
@@ -195,23 +195,23 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
             None => quote! {},
             Some((_ctor, anchor_ident)) => {
                 let ctor_untyped_args = generate_ctor_args(state);
-                let name = &state.strct.ident;
-                let mod_name = &program.name;
+                let safecoin = &state.strct.ident;
+                let mod_safecoin = &program.safecoin;
                 let variant_arm = generate_ctor_variant(state);
-                let ix_name: proc_macro2::TokenStream =
-                    generate_ctor_variant_name().parse().unwrap();
-                let ix_name_log = format!("Instruction: {}", ix_name);
+                let ix_safecoin: proc_macro2::TokenStream =
+                    generate_ctor_variant_safecoin().parse().unwrap();
+                let ix_safecoin_log = format!("Instruction: {}", ix_safecoin);
                 if state.is_zero_copy {
                     quote! {
                         // One time state account initializer. Will faill on subsequent
                         // invocations.
                         #[inline(never)]
                         pub fn __ctor(program_id: &Pubkey, accounts: &[AccountInfo], ix_data: &[u8]) -> anchor_lang::Result<()> {
-                            #[cfg(not(feature = "no-log-ix-name"))]
-                            anchor_lang::prelude::msg!(#ix_name_log);
+                            #[cfg(not(feature = "no-log-ix-safecoin"))]
+                            anchor_lang::prelude::msg!(#ix_safecoin_log);
 
                             // Deserialize instruction data.
-                            let ix = instruction::state::#ix_name::deserialize(&mut &ix_data[..])
+                            let ix = instruction::state::#ix_safecoin::deserialize(&mut &ix_data[..])
                                 .map_err(|_| anchor_lang::error::ErrorCode::InstructionDidNotDeserialize)?;
                             let instruction::state::#variant_arm = ix;
 
@@ -230,7 +230,7 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                             let seed = anchor_lang::__private::PROGRAM_STATE_SEED;
                             let owner = ctor_accounts.program.key;
                             let to = Pubkey::create_with_seed(&base, seed, owner).unwrap();
-                            let space = 8 + std::mem::size_of::<#name>();
+                            let space = 8 + std::mem::size_of::<#safecoin>();
                             let rent = Rent::get()?;
                             let lamports = rent.minimum_balance(std::convert::TryInto::try_into(space).unwrap());
                             let seeds = &[&[nonce][..]];
@@ -255,7 +255,7 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                             )?;
 
                             // Zero copy deserialize.
-                            let loader: anchor_lang::accounts::loader::Loader<#mod_name::#name> = anchor_lang::accounts::loader::Loader::try_from_unchecked(program_id, &ctor_accounts.to)?;
+                            let loader: anchor_lang::accounts::loader::Loader<#mod_safecoin::#safecoin> = anchor_lang::accounts::loader::Loader::try_from_unchecked(program_id, &ctor_accounts.to)?;
 
                             // Invoke the ctor in a new lexical scope so that
                             // the zero-copy RefMut gets dropped. Required
@@ -286,11 +286,11 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                         // invocations.
                         #[inline(never)]
                         pub fn __ctor(program_id: &Pubkey, accounts: &[AccountInfo], ix_data: &[u8]) -> anchor_lang::Result<()> {
-                            #[cfg(not(feature = "no-log-ix-name"))]
-                            anchor_lang::prelude::msg!(#ix_name_log);
+                            #[cfg(not(feature = "no-log-ix-safecoin"))]
+                            anchor_lang::prelude::msg!(#ix_safecoin_log);
 
                             // Deserialize instruction data.
-                            let ix = instruction::state::#ix_name::deserialize(&mut &ix_data[..])
+                            let ix = instruction::state::#ix_safecoin::deserialize(&mut &ix_data[..])
                                 .map_err(|_| anchor_lang::error::ErrorCode::InstructionDidNotDeserialize)?;
                             let instruction::state::#variant_arm = ix;
 
@@ -304,7 +304,7 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                             #anchor_ident::try_accounts(program_id, &mut remaining_accounts, ix_data, &mut __bumps)?;
 
                             // Invoke the ctor.
-                            let instance = #mod_name::#name::new(
+                            let instance = #mod_safecoin::#safecoin::new(
                                 anchor_lang::context::Context::new(
                                     program_id,
                                     &mut ctor_user_def_accounts,
@@ -317,7 +317,7 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                             // Create the solana account for the ctor data.
                             let from = ctor_accounts.from.key;
                             let (base, nonce) = Pubkey::find_program_address(&[], ctor_accounts.program.key);
-                            let seed = anchor_lang::accounts::state::ProgramState::<#name>::seed();
+                            let seed = anchor_lang::accounts::state::ProgramState::<#safecoin>::seed();
                             let owner = ctor_accounts.program.key;
                             let to = Pubkey::create_with_seed(&base, seed, owner).unwrap();
                             let space = anchor_lang::__private::AccountSize::size(&instance)?;
@@ -369,36 +369,36 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                 methods
                     .iter()
                     .map(|ix| {
-                        let ix_arg_names: Vec<&syn::Ident> =
-                            ix.args.iter().map(|arg| &arg.name).collect();
-                        let private_ix_method_name: proc_macro2::TokenStream = {
+                        let ix_arg_safecoins: Vec<&syn::Ident> =
+                            ix.args.iter().map(|arg| &arg.safecoin).collect();
+                        let private_ix_method_safecoin: proc_macro2::TokenStream = {
                             let n = format!("__{}", &ix.raw_method.sig.ident.to_string());
                             n.parse().unwrap()
                         };
-                        let ix_method_name = &ix.raw_method.sig.ident;
-                        let state_ty: proc_macro2::TokenStream = state.name.parse().unwrap();
+                        let ix_method_safecoin = &ix.raw_method.sig.ident;
+                        let state_ty: proc_macro2::TokenStream = state.safecoin.parse().unwrap();
                         let anchor_ident = &ix.anchor_ident;
-                        let name = &state.strct.ident;
-                        let mod_name = &program.name;
+                        let safecoin = &state.strct.ident;
+                        let mod_safecoin = &program.safecoin;
 
                         let variant_arm =
                             generate_ix_variant(ix.raw_method.sig.ident.to_string(), &ix.args);
-                        let ix_name = generate_ix_variant_name(ix.raw_method.sig.ident.to_string());
-                        let ix_name_log = format!("Instruction: {}", ix_name);
+                        let ix_safecoin = generate_ix_variant_safecoin(ix.raw_method.sig.ident.to_string());
+                        let ix_safecoin_log = format!("Instruction: {}", ix_safecoin);
 
                         if state.is_zero_copy {
                             quote! {
                                 #[inline(never)]
-                                pub fn #private_ix_method_name(
+                                pub fn #private_ix_method_safecoin(
                                     program_id: &Pubkey,
                                     accounts: &[AccountInfo],
                                     ix_data: &[u8],
                                 ) -> anchor_lang::Result<()> {
-                                    #[cfg(not(feature = "no-log-ix-name"))]
-                                    anchor_lang::prelude::msg!(#ix_name_log);
+                                    #[cfg(not(feature = "no-log-ix-safecoin"))]
+                                    anchor_lang::prelude::msg!(#ix_safecoin_log);
 
                                     // Deserialize instruction.
-                                    let ix = instruction::state::#ix_name::deserialize(&mut &ix_data[..])
+                                    let ix = instruction::state::#ix_safecoin::deserialize(&mut &ix_data[..])
                                         .map_err(|_| anchor_lang::error::ErrorCode::InstructionDidNotDeserialize)?;
                                     let instruction::state::#variant_arm = ix;
 
@@ -410,7 +410,7 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                                     if remaining_accounts.is_empty() {
                                         return Err(anchor_lang::error::ErrorCode::AccountNotEnoughKeys.into());
                                     }
-                                    let loader: anchor_lang::accounts::loader::Loader<#mod_name::#name> = anchor_lang::accounts::loader::Loader::try_accounts(program_id, &mut remaining_accounts, &[], &mut __bumps)?;
+                                    let loader: anchor_lang::accounts::loader::Loader<#mod_safecoin::#safecoin> = anchor_lang::accounts::loader::Loader::try_accounts(program_id, &mut remaining_accounts, &[], &mut __bumps)?;
 
                                     // Deserialize accounts.
                                     let mut accounts = #anchor_ident::try_accounts(
@@ -430,9 +430,9 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                                     // Execute user defined function.
                                     {
                                         let mut state = loader.load_mut()?;
-                                        state.#ix_method_name(
+                                        state.#ix_method_safecoin(
                                             ctx,
-                                            #(#ix_arg_names),*
+                                            #(#ix_arg_safecoins),*
                                         )?;
                                     }
                                     // Serialize the state and save it to storage.
@@ -445,16 +445,16 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                         } else {
                             quote! {
                                 #[inline(never)]
-                                pub fn #private_ix_method_name(
+                                pub fn #private_ix_method_safecoin(
                                     program_id: &Pubkey,
                                     accounts: &[AccountInfo],
                                     ix_data: &[u8],
                                 ) -> anchor_lang::Result<()> {
-                                    #[cfg(not(feature = "no-log-ix-name"))]
-                                    anchor_lang::prelude::msg!(#ix_name_log);
+                                    #[cfg(not(feature = "no-log-ix-safecoin"))]
+                                    anchor_lang::prelude::msg!(#ix_safecoin_log);
 
                                     // Deserialize instruction.
-                                    let ix = instruction::state::#ix_name::deserialize(&mut &ix_data[..])
+                                    let ix = instruction::state::#ix_safecoin::deserialize(&mut &ix_data[..])
                                         .map_err(|_| anchor_lang::error::ErrorCode::InstructionDidNotDeserialize)?;
                                     let instruction::state::#variant_arm = ix;
 
@@ -489,9 +489,9 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                                         );
 
                                     // Execute user defined function.
-                                    state.#ix_method_name(
+                                    state.#ix_method_safecoin(
                                         ctx,
-                                        #(#ix_arg_names),*
+                                        #(#ix_arg_safecoins),*
                                     )?;
 
                                     // Serialize the state and save it to storage.
@@ -530,17 +530,17 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                                 // Feel free to open a PR.
                                 assert!(!state.is_zero_copy, "Trait implementations not yet implemented for zero copy state structs. Please file an issue.");
 
-                                let ix_arg_names: Vec<&syn::Ident> =
-                                    ix.args.iter().map(|arg| &arg.name).collect();
-                                let private_ix_method_name: proc_macro2::TokenStream = {
-                                    let n = format!("__{}_{}", iface.trait_name, &ix.raw_method.sig.ident.to_string());
+                                let ix_arg_safecoins: Vec<&syn::Ident> =
+                                    ix.args.iter().map(|arg| &arg.safecoin).collect();
+                                let private_ix_method_safecoin: proc_macro2::TokenStream = {
+                                    let n = format!("__{}_{}", iface.trait_safecoin, &ix.raw_method.sig.ident.to_string());
                                     n.parse().unwrap()
                                 };
-                                let ix_method_name = &ix.raw_method.sig.ident;
-                                let state_ty: proc_macro2::TokenStream = state.name.parse().unwrap();
+                                let ix_method_safecoin = &ix.raw_method.sig.ident;
+                                let state_ty: proc_macro2::TokenStream = state.safecoin.parse().unwrap();
                                 let anchor_ident = &ix.anchor_ident;
-                                let ix_name = generate_ix_variant_name(ix.raw_method.sig.ident.to_string());
-                                let ix_name_log = format!("Instruction: {}", ix_name);
+                                let ix_safecoin = generate_ix_variant_safecoin(ix.raw_method.sig.ident.to_string());
+                                let ix_safecoin_log = format!("Instruction: {}", ix_safecoin);
 
                                 let raw_args: Vec<&syn::PatType> = ix
                                     .args
@@ -568,20 +568,20 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                                     let ix = Args::deserialize(&mut &ix_data[..])
                                         .map_err(|_| anchor_lang::error::ErrorCode::InstructionDidNotDeserialize)?;
                                     let Args {
-                                        #(#ix_arg_names),*
+                                        #(#ix_arg_safecoins),*
                                     } = ix;
                                 };
 
                                 if ix.has_receiver {
                                     quote! {
                                         #[inline(never)]
-                                        pub fn #private_ix_method_name(
+                                        pub fn #private_ix_method_safecoin(
                                             program_id: &Pubkey,
                                             accounts: &[AccountInfo],
                                             ix_data: &[u8],
                                         ) -> anchor_lang::Result<()> {
-                                            #[cfg(not(feature = "no-log-ix-name"))]
-                                            anchor_lang::prelude::msg!(#ix_name_log);
+                                            #[cfg(not(feature = "no-log-ix-safecoin"))]
+                                            anchor_lang::prelude::msg!(#ix_safecoin_log);
 
                                             // Deserialize instruction.
                                             #deserialize_instruction
@@ -617,9 +617,9 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                                                 );
 
                                             // Execute user defined function.
-                                            state.#ix_method_name(
+                                            state.#ix_method_safecoin(
                                                 ctx,
-                                                #(#ix_arg_names),*
+                                                #(#ix_arg_safecoins),*
                                             )?;
 
                                             // Exit procedures.
@@ -634,16 +634,16 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                                         }
                                     }
                                 } else {
-                                    let state_name: proc_macro2::TokenStream = state.name.parse().unwrap();
+                                    let state_safecoin: proc_macro2::TokenStream = state.safecoin.parse().unwrap();
                                     quote! {
                                         #[inline(never)]
-                                        pub fn #private_ix_method_name(
+                                        pub fn #private_ix_method_safecoin(
                                             program_id: &Pubkey,
                                             accounts: &[AccountInfo],
                                             ix_data: &[u8],
                                         ) -> anchor_lang::Result<()> {
-                                            #[cfg(not(feature = "no-log-ix-name"))]
-                                            anchor_lang::prelude::msg!(#ix_name_log);
+                                            #[cfg(not(feature = "no-log-ix-safecoin"))]
+                                            anchor_lang::prelude::msg!(#ix_safecoin_log);
 
                                             // Deserialize instruction.
                                             #deserialize_instruction
@@ -661,14 +661,14 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                                             )?;
 
                                             // Execute user defined function.
-                                            #state_name::#ix_method_name(
+                                            #state_safecoin::#ix_method_safecoin(
                                                 anchor_lang::context::Context::new(
                                                     program_id,
                                                     &mut accounts,
                                                     remaining_accounts,
                                                     __bumps
                                                 ),
-                                                #(#ix_arg_names),*
+                                                #(#ix_arg_safecoins),*
                                             )?;
 
                                             // Exit procedure.
@@ -688,24 +688,24 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
         .ixs
         .iter()
         .map(|ix| {
-            let ix_arg_names: Vec<&syn::Ident> = ix.args.iter().map(|arg| &arg.name).collect();
-            let ix_name = generate_ix_variant_name(ix.raw_method.sig.ident.to_string());
-            let ix_method_name = &ix.raw_method.sig.ident;
+            let ix_arg_safecoins: Vec<&syn::Ident> = ix.args.iter().map(|arg| &arg.safecoin).collect();
+            let ix_safecoin = generate_ix_variant_safecoin(ix.raw_method.sig.ident.to_string());
+            let ix_method_safecoin = &ix.raw_method.sig.ident;
             let anchor = &ix.anchor_ident;
             let variant_arm = generate_ix_variant(ix.raw_method.sig.ident.to_string(), &ix.args);
-            let ix_name_log = format!("Instruction: {}", ix_name);
+            let ix_safecoin_log = format!("Instruction: {}", ix_safecoin);
             quote! {
                 #[inline(never)]
-                pub fn #ix_method_name(
+                pub fn #ix_method_safecoin(
                     program_id: &Pubkey,
                     accounts: &[AccountInfo],
                     ix_data: &[u8],
                 ) -> anchor_lang::Result<()> {
-                    #[cfg(not(feature = "no-log-ix-name"))]
-                    anchor_lang::prelude::msg!(#ix_name_log);
+                    #[cfg(not(feature = "no-log-ix-safecoin"))]
+                    anchor_lang::prelude::msg!(#ix_safecoin_log);
 
                     // Deserialize data.
-                    let ix = instruction::#ix_name::deserialize(&mut &ix_data[..])
+                    let ix = instruction::#ix_safecoin::deserialize(&mut &ix_data[..])
                         .map_err(|_| anchor_lang::error::ErrorCode::InstructionDidNotDeserialize)?;
                     let instruction::#variant_arm = ix;
 
@@ -722,14 +722,14 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                     )?;
 
                     // Invoke user defined handler.
-                    #program_name::#ix_method_name(
+                    #program_safecoin::#ix_method_safecoin(
                         anchor_lang::context::Context::new(
                             program_id,
                             &mut accounts,
                             remaining_accounts,
                             __bumps,
                         ),
-                        #(#ix_arg_names),*
+                        #(#ix_arg_safecoins),*
                     )?;
 
                     // Exit routine.
@@ -740,7 +740,7 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
         .collect();
 
     quote! {
-        /// Create a private module to not clutter the program's namespace.
+        /// Create a private module to not clutter the program's safecoinspace.
         /// Defines an entrypoint for each individual instruction handler
         /// wrapper.
         mod __private {
@@ -778,25 +778,25 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
     }
 }
 
-fn generate_ix_variant_name(name: String) -> proc_macro2::TokenStream {
-    let n = name.to_camel_case();
+fn generate_ix_variant_safecoin(safecoin: String) -> proc_macro2::TokenStream {
+    let n = safecoin.to_camel_case();
     n.parse().unwrap()
 }
 
-fn generate_ctor_variant_name() -> String {
+fn generate_ctor_variant_safecoin() -> String {
     "New".to_string()
 }
 
 fn generate_ctor_variant(state: &State) -> proc_macro2::TokenStream {
     let ctor_args = generate_ctor_args(state);
-    let ctor_variant_name: proc_macro2::TokenStream = generate_ctor_variant_name().parse().unwrap();
+    let ctor_variant_safecoin: proc_macro2::TokenStream = generate_ctor_variant_safecoin().parse().unwrap();
     if ctor_args.is_empty() {
         quote! {
-            #ctor_variant_name
+            #ctor_variant_safecoin
         }
     } else {
         quote! {
-            #ctor_variant_name {
+            #ctor_variant_safecoin {
                 #(#ctor_args),*
             }
         }

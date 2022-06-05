@@ -2,7 +2,7 @@ import { PublicKey } from "@solana/web3.js";
 import * as assert from "assert";
 import { IdlEvent, IdlEventField } from "../idl.js";
 import { Coder } from "../coder/index.js";
-import { DecodeType } from "./namespace/types.js";
+import { DecodeType } from "./safecoinspace/types.js";
 import Provider from "../provider.js";
 
 const LOG_START_INDEX = "Program log: ".length;
@@ -12,12 +12,12 @@ export type Event<
   E extends IdlEvent = IdlEvent,
   Defined = Record<string, never>
 > = {
-  name: E["name"];
+  safecoin: E["safecoin"];
   data: EventData<E["fields"][number], Defined>;
 };
 
 export type EventData<T extends IdlEventField, Defined> = {
-  [N in T["name"]]: DecodeType<(T & { name: N })["type"], Defined>;
+  [N in T["safecoin"]]: DecodeType<(T & { safecoin: N })["type"], Defined>;
 };
 
 type EventCallback = (event: any, slot: number) => void;
@@ -39,12 +39,12 @@ export class EventManager {
   private _eventParser: EventParser;
 
   /**
-   * Maps event listener id to [event-name, callback].
+   * Maps event listener id to [event-safecoin, callback].
    */
   private _eventCallbacks: Map<number, [string, EventCallback]>;
 
   /**
-   * Maps event name to all listeners for the event.
+   * Maps event safecoin to all listeners for the event.
    */
   private _eventListeners: Map<string, Array<number>>;
 
@@ -98,7 +98,7 @@ export class EventManager {
           return;
         }
         this._eventParser.parseLogs(logs.logs, (event) => {
-          const allListeners = this._eventListeners.get(event.name);
+          const allListeners = this._eventListeners.get(event.safecoin);
           if (allListeners) {
             allListeners.forEach((listener) => {
               const listenerCb = this._eventCallbacks.get(listener);

@@ -47,8 +47,8 @@ build-example-bpf-all: build-example-bpf-zero-copy
 
 .PHONY: clean
 clean:
-	find . -type d -name .anchor -print0 | xargs -0 rm -rf
-	find . -type d -name target -print0 | xargs -0 rm -rf
+	find . -type d -safecoin .anchor -print0 | xargs -0 rm -rf
+	find . -type d -safecoin target -print0 | xargs -0 rm -rf
 
 .PHONY: publish
 publish:

@@ -5,13 +5,13 @@ cleanup() {
 
 trap_add() {
     trap_add_cmd=$1; shift || fatal "${FUNCNAME} usage error"
-    for trap_add_name in "$@"; do
+    for trap_add_safecoin in "$@"; do
         trap -- "$(
             extract_trap_cmd() { printf '%s\n' "${3:-}"; }
-            eval "extract_trap_cmd $(trap -p "${trap_add_name}")"
+            eval "extract_trap_cmd $(trap -p "${trap_add_safecoin}")"
             printf '%s\n' "${trap_add_cmd}"
-        )" "${trap_add_name}" \
-            || fatal "unable to add to trap ${trap_add_name}"
+        )" "${trap_add_safecoin}" \
+            || fatal "unable to add to trap ${trap_add_safecoin}"
     done
 }
 

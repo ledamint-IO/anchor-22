@@ -100,7 +100,7 @@ pub fn install_version(version: &Version) -> Result<()> {
             version
         ));
     }
-    fs::rename(
+    fs::resafecoin(
         &AVM_HOME.join("bin").join("anchor"),
         &AVM_HOME.join("bin").join(format!("anchor-{}", version)),
     )?;
@@ -145,7 +145,7 @@ pub fn ensure_paths() {
 pub fn fetch_versions() -> Vec<semver::Version> {
     #[derive(Deserialize)]
     struct Release {
-        #[serde(rename = "name", deserialize_with = "version_deserializer")]
+        #[serde(resafecoin = "safecoin", deserialize_with = "version_deserializer")]
         version: semver::Version,
     }
 
@@ -208,10 +208,10 @@ pub fn read_installed_versions() -> Vec<semver::Version> {
     let home_dir = AVM_HOME.to_path_buf();
     let mut versions = vec![];
     for file in fs::read_dir(&home_dir.join("bin")).unwrap() {
-        let file_name = file.unwrap().file_name();
+        let file_safecoin = file.unwrap().file_safecoin();
         // Match only things that look like anchor-*
-        if file_name.to_str().unwrap().starts_with("anchor-") {
-            let version = file_name
+        if file_safecoin.to_str().unwrap().starts_with("anchor-") {
+            let version = file_safecoin
                 .to_str()
                 .unwrap()
                 .trim_start_matches("anchor-")

@@ -31,7 +31,7 @@ token = "{}"
 pub fn idl_ts(idl: &Idl) -> Result<String> {
     let mut idl = idl.clone();
     for acc in idl.accounts.iter_mut() {
-        acc.name = acc.name.to_mixed_case();
+        acc.safecoin = acc.safecoin.to_mixed_case();
     }
     let idl_json = serde_json::to_string_pretty(&idl)?;
     Ok(format!(
@@ -39,37 +39,37 @@ pub fn idl_ts(idl: &Idl) -> Result<String> {
 
 export const IDL: {} = {};
 "#,
-        idl.name.to_camel_case(),
+        idl.safecoin.to_camel_case(),
         idl_json,
-        idl.name.to_camel_case(),
+        idl.safecoin.to_camel_case(),
         idl_json
     ))
 }
 
-pub fn cargo_toml(name: &str) -> String {
+pub fn cargo_toml(safecoin: &str) -> String {
     format!(
         r#"[package]
-name = "{0}"
+safecoin = "{0}"
 version = "0.1.0"
 description = "Created with Anchor"
 edition = "2018"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "{1}"
+safecoin = "{1}"
 
 [features]
 no-entrypoint = []
 no-idl = []
-no-log-ix-name = []
+no-log-ix-safecoin = []
 cpi = ["no-entrypoint"]
 default = []
 
 [dependencies]
 anchor-lang = "{2}"
 "#,
-        name,
-        name.to_snake_case(),
+        safecoin,
+        safecoin.to_snake_case(),
         VERSION,
     )
 }
@@ -167,7 +167,7 @@ features = []
 "#
 }
 
-pub fn lib_rs(name: &str) -> String {
+pub fn lib_rs(safecoin: &str) -> String {
     format!(
         r#"use anchor_lang::prelude::*;
 
@@ -185,11 +185,11 @@ pub mod {} {{
 pub struct Initialize {{}}
 "#,
         default_program_id(),
-        name.to_snake_case(),
+        safecoin.to_snake_case(),
     )
 }
 
-pub fn mocha(name: &str) -> String {
+pub fn mocha(safecoin: &str) -> String {
     format!(
         r#"const anchor = require("@project-serum/anchor");
 
@@ -205,8 +205,8 @@ describe("{}", () => {{
   }});
 }});
 "#,
-        name,
-        name.to_camel_case(),
+        safecoin,
+        safecoin.to_camel_case(),
     )
 }
 
@@ -245,7 +245,7 @@ pub fn ts_package_json() -> String {
     )
 }
 
-pub fn ts_mocha(name: &str) -> String {
+pub fn ts_mocha(safecoin: &str) -> String {
     format!(
         r#"import * as anchor from "@project-serum/anchor";
 import {{ Program }} from "@project-serum/anchor";
@@ -264,11 +264,11 @@ describe("{}", () => {{
   }});
 }});
 "#,
-        name.to_camel_case(),
-        name.to_snake_case(),
-        name,
-        name.to_camel_case(),
-        name.to_camel_case(),
+        safecoin.to_camel_case(),
+        safecoin.to_snake_case(),
+        safecoin,
+        safecoin.to_camel_case(),
+        safecoin.to_camel_case(),
     )
 }
 
@@ -337,7 +337,7 @@ anchor.setProvider(provider);
             r#"
 anchor.workspace.{} = new anchor.Program({}, new PublicKey("{}"), provider);
 "#,
-            program.name.to_camel_case(),
+            program.safecoin.to_camel_case(),
             serde_json::to_string(&program.idl)?,
             program.program_id
         ));

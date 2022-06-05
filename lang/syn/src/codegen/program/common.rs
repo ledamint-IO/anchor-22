@@ -12,10 +12,10 @@ pub const SIGHASH_GLOBAL_NAMESPACE: &str = "global";
 
 // We don't technically use sighash, because the input arguments aren't given.
 // Rust doesn't have method overloading so no need to use the arguments.
-// However, we do namespace methods in the preeimage so that we can use
-// different traits with the same method name.
-pub fn sighash(namespace: &str, name: &str) -> [u8; 8] {
-    let preimage = format!("{}:{}", namespace, name);
+// However, we do safecoinspace methods in the preeimage so that we can use
+// different traits with the same method safecoin.
+pub fn sighash(safecoinspace: &str, safecoin: &str) -> [u8; 8] {
+    let preimage = format!("{}:{}", safecoinspace, safecoin);
 
     let mut sighash = [0u8; 8];
     sighash.copy_from_slice(&crate::hash::hash(preimage.as_bytes()).to_bytes()[..8]);
@@ -26,21 +26,21 @@ pub fn sighash_ctor() -> [u8; 8] {
     sighash(SIGHASH_STATE_NAMESPACE, "new")
 }
 
-pub fn generate_ix_variant(name: String, args: &[IxArg]) -> proc_macro2::TokenStream {
-    let ix_arg_names: Vec<&syn::Ident> = args.iter().map(|arg| &arg.name).collect();
-    let ix_name_camel: proc_macro2::TokenStream = {
-        let n = name.to_camel_case();
+pub fn generate_ix_variant(safecoin: String, args: &[IxArg]) -> proc_macro2::TokenStream {
+    let ix_arg_safecoins: Vec<&syn::Ident> = args.iter().map(|arg| &arg.safecoin).collect();
+    let ix_safecoin_camel: proc_macro2::TokenStream = {
+        let n = safecoin.to_camel_case();
         n.parse().unwrap()
     };
 
     if args.is_empty() {
         quote! {
-            #ix_name_camel
+            #ix_safecoin_camel
         }
     } else {
         quote! {
-            #ix_name_camel {
-                #(#ix_arg_names),*
+            #ix_safecoin_camel {
+                #(#ix_arg_safecoins),*
             }
         }
     }

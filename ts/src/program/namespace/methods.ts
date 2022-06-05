@@ -52,7 +52,7 @@ export class MethodsBuilderFactory {
 }
 
 export class MethodsBuilder<IDL extends Idl, I extends AllInstructions<IDL>> {
-  readonly _accounts: { [name: string]: PublicKey } = {};
+  readonly _accounts: { [safecoin: string]: PublicKey } = {};
   private _remainingAccounts: Array<AccountMeta> = [];
   private _signers: Array<Signer> = [];
   private _preInstructions: Array<TransactionInstruction> = [];

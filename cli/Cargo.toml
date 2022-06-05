@@ -1,11 +1,11 @@
 [package]
-name = "anchor-cli"
+safecoin = "anchor-cli"
 version = "0.22.0"
 authors = ["armaniferrante <armaniferrante@gmail.com>"]
 edition = "2018"
 
 [[bin]]
-name = "anchor"
+safecoin = "anchor"
 path = "src/bin/main.rs"
 
 [features]
@@ -24,10 +24,10 @@ shellexpand = "2.1.0"
 toml = "0.5.8"
 semver = "1.0.4"
 serde = { version = "1.0.122", features = ["derive"] }
-solana-sdk = "1.8.5"
-solana-program = "1.8.5"
-solana-client = "1.8.5"
-serum-common = { git = "https://github.com/project-serum/serum-dex", features = ["client"] }
+safecoin-sdk = { path = "../../Safecoin/sdk"}
+safecoin-program = {path = "../../Safecoin/sdk/program"}
+safecoin-client = { path = "../../Safecoin/client"}
+serum-common = { git = "https://github.com/safely-project/safely-dex", features = ["client"] }
 dirs = "3.0"
 heck = "0.3.1"
 flate2 = "1.0.19"
@@ -39,3 +39,4 @@ pathdiff = "0.2.0"
 cargo_toml = "0.9.2"
 walkdir = "2"
 chrono = "0.4.19"
+

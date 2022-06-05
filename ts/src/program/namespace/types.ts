@@ -17,14 +17,14 @@ import { Accounts, Context } from "../context";
 export type AllInstructions<IDL extends Idl> = IDL["instructions"][number];
 
 /**
- * Returns a type of instruction name to the IdlInstruction.
+ * Returns a type of instruction safecoin to the IdlInstruction.
  */
 export type InstructionMap<I extends IdlInstruction> = {
-  [K in I["name"]]: I & { name: K };
+  [K in I["safecoin"]]: I & { safecoin: K };
 };
 
 /**
- * Returns a type of instruction name to the IdlInstruction.
+ * Returns a type of instruction safecoin to the IdlInstruction.
  */
 export type AllInstructionsMap<IDL extends Idl> = InstructionMap<
   AllInstructions<IDL>
@@ -38,14 +38,14 @@ export type AllAccounts<IDL extends Idl> = IDL["accounts"] extends undefined
   : NonNullable<IDL["accounts"]>[number];
 
 /**
- * Returns a type of instruction name to the IdlInstruction.
+ * Returns a type of instruction safecoin to the IdlInstruction.
  */
 export type AccountMap<I extends IdlTypeDef> = {
-  [K in I["name"]]: I & { name: K };
+  [K in I["safecoin"]]: I & { safecoin: K };
 };
 
 /**
- * Returns a type of instruction name to the IdlInstruction.
+ * Returns a type of instruction safecoin to the IdlInstruction.
  */
 export type AllAccountsMap<IDL extends Idl> = AccountMap<AllAccounts<IDL>>;
 
@@ -133,14 +133,14 @@ type FieldsOfType<I extends IdlTypeDef> = NonNullable<
 >[number];
 
 export type TypeDef<I extends IdlTypeDef, Defined> = {
-  [F in FieldsOfType<I>["name"]]: DecodeType<
-    (FieldsOfType<I> & { name: F })["type"],
+  [F in FieldsOfType<I>["safecoin"]]: DecodeType<
+    (FieldsOfType<I> & { safecoin: F })["type"],
     Defined
   >;
 };
 
 type TypeDefDictionary<T extends IdlTypeDef[], Defined> = {
-  [K in T[number]["name"]]: TypeDef<T[number] & { name: K }, Defined>;
+  [K in T[number]["safecoin"]]: TypeDef<T[number] & { safecoin: K }, Defined>;
 };
 
 export type IdlTypes<T extends Idl> = TypeDefDictionary<

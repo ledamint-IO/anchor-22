@@ -158,11 +158,11 @@ describe("misc", () => {
     ];
 
     assert.ok(JSON.stringify(expectedRaw), resp.raw);
-    assert.ok(resp.events[0].name === "E1");
+    assert.ok(resp.events[0].safecoin === "E1");
     assert.ok(resp.events[0].data.data === 44);
-    assert.ok(resp.events[1].name === "E2");
+    assert.ok(resp.events[1].safecoin === "E2");
     assert.ok(resp.events[1].data.data === 1234);
-    assert.ok(resp.events[2].name === "E3");
+    assert.ok(resp.events[2].safecoin === "E3");
     assert.ok(resp.events[2].data.data === 9);
   });
 
@@ -914,7 +914,7 @@ describe("misc", () => {
   it("Should include BASE const in IDL", async () => {
     assert(
       miscIdl.constants.find(
-        (c) => c.name === "BASE" && c.type === "u128" && c.value === "1_000_000"
+        (c) => c.safecoin === "BASE" && c.type === "u128" && c.value === "1_000_000"
       ) !== undefined
     );
   });
@@ -922,14 +922,14 @@ describe("misc", () => {
   it("Should include DECIMALS const in IDL", async () => {
     assert(
       miscIdl.constants.find(
-        (c) => c.name === "DECIMALS" && c.type === "u8" && c.value === "6"
+        (c) => c.safecoin === "DECIMALS" && c.type === "u8" && c.value === "6"
       ) !== undefined
     );
   });
 
   it("Should not include NO_IDL const in IDL", async () => {
     assert.equal(
-      miscIdl.constants.find((c) => c.name === "NO_IDL"),
+      miscIdl.constants.find((c) => c.safecoin === "NO_IDL"),
       undefined
     );
   });

@@ -60,13 +60,13 @@ impl Manifest {
             .map_err(Into::into)
     }
 
-    pub fn lib_name(&self) -> Result<String> {
-        if self.lib.is_some() && self.lib.as_ref().unwrap().name.is_some() {
+    pub fn lib_safecoin(&self) -> Result<String> {
+        if self.lib.is_some() && self.lib.as_ref().unwrap().safecoin.is_some() {
             Ok(self
                 .lib
                 .as_ref()
                 .unwrap()
-                .name
+                .safecoin
                 .as_ref()
                 .unwrap()
                 .to_string()
@@ -76,7 +76,7 @@ impl Manifest {
                 .package
                 .as_ref()
                 .ok_or_else(|| anyhow!("package section not provided"))?
-                .name
+                .safecoin
                 .to_string()
                 .to_snake_case())
         }
@@ -101,8 +101,8 @@ impl Manifest {
         while let Some(cwd) = cwd_opt {
             for f in fs::read_dir(cwd)? {
                 let p = f?.path();
-                if let Some(filename) = p.file_name() {
-                    if filename.to_str() == Some("Cargo.toml") {
+                if let Some(filesafecoin) = p.file_safecoin() {
+                    if filesafecoin.to_str() == Some("Cargo.toml") {
                         let m = WithPath::new(Manifest::from_path(&p)?, p);
                         return Ok(Some(m));
                     }
@@ -160,7 +160,7 @@ impl WithPath<Config> {
         let mut r = vec![];
         for path in self.get_program_list()? {
             let cargo = Manifest::from_path(&path.join("Cargo.toml"))?;
-            let lib_name = cargo.lib_name()?;
+            let lib_safecoin = cargo.lib_safecoin()?;
             let version = cargo.version();
             let idl = anchor_syn::idl::file::parse(
                 path.join("src/lib.rs"),
@@ -169,7 +169,7 @@ impl WithPath<Config> {
                 false,
             )?;
             r.push(Program {
-                lib_name,
+                lib_safecoin,
                 path,
                 idl,
             });
@@ -207,7 +207,7 @@ impl WithPath<Config> {
         Ok((members, exclude))
     }
 
-    pub fn get_program(&self, name: &str) -> Result<Option<WithPath<Program>>> {
+    pub fn get_program(&self, safecoin: &str) -> Result<Option<WithPath<Program>>> {
         for program in self.read_all_programs()? {
             let cargo_toml = program.path.join("Cargo.toml");
             if !cargo_toml.exists() {
@@ -216,8 +216,8 @@ impl WithPath<Config> {
                     program.path.display()
                 ));
             }
-            let p_lib_name = Manifest::from_path(&cargo_toml)?.lib_name()?;
-            if name == p_lib_name {
+            let p_lib_safecoin = Manifest::from_path(&cargo_toml)?.lib_safecoin()?;
+            if safecoin == p_lib_safecoin {
                 let path = self
                     .path()
                     .parent()
@@ -341,8 +341,8 @@ impl Config {
         while let Some(cwd) = cwd_opt {
             for f in fs::read_dir(cwd)? {
                 let p = f?.path();
-                if let Some(filename) = p.file_name() {
-                    if filename.to_str() == Some("Anchor.toml") {
+                if let Some(filesafecoin) = p.file_safecoin() {
+                    if filesafecoin.to_str() == Some("Anchor.toml") {
                         let cfg = Config::from_path(&p)?;
                         return Ok(Some(WithPath::new(cfg, p)));
                     }
@@ -454,9 +454,9 @@ fn ser_programs(
             let cluster = cluster.to_string();
             let programs = programs
                 .iter()
-                .map(|(name, deployment)| {
+                .map(|(safecoin, deployment)| {
                     (
-                        name.clone(),
+                        safecoin.clone(),
                         to_value(&_ProgramDeployment::from(deployment)),
                     )
                 })
@@ -482,9 +482,9 @@ fn deser_programs(
             let cluster: Cluster = cluster.parse()?;
             let programs = programs
                 .iter()
-                .map(|(name, program_id)| {
+                .map(|(safecoin, program_id)| {
                     Ok((
-                        name.clone(),
+                        safecoin.clone(),
                         ProgramDeployment::try_from(match &program_id {
                             serde_json::Value::String(address) => _ProgramDeployment {
                                 address: address.parse()?,
@@ -531,7 +531,7 @@ pub struct AccountEntry {
     // Base58 pubkey string.
     pub address: String,
     // Name of JSON file containing the account data.
-    pub filename: String,
+    pub filesafecoin: String,
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
@@ -554,7 +554,7 @@ pub struct Validator {
     // Give the faucet address this much SOL in genesis. [default: 1000000]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub faucet_sol: Option<String>,
-    // Gossip DNS name or IP address for the validator to advertise in gossip. [default: 127.0.0.1]
+    // Gossip DNS safecoin or IP address for the validator to advertise in gossip. [default: 127.0.0.1]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub gossip_host: Option<String>,
     // Gossip port number for the validator
@@ -594,7 +594,7 @@ fn default_rpc_port() -> u16 {
 
 #[derive(Debug, Clone)]
 pub struct Program {
-    pub lib_name: String,
+    pub lib_safecoin: String,
     // Canonicalized path to the program directory.
     pub path: PathBuf,
     pub idl: Option<Idl>,
@@ -608,7 +608,7 @@ impl Program {
     pub fn keypair(&self) -> Result<Keypair> {
         let file = self.keypair_file()?;
         solana_sdk::signature::read_keypair_file(file.path())
-            .map_err(|_| anyhow!("failed to read keypair for program: {}", self.lib_name))
+            .map_err(|_| anyhow!("failed to read keypair for program: {}", self.lib_safecoin))
     }
 
     // Lazily initializes the keypair file with a new key if it doesn't exist.
@@ -616,7 +616,7 @@ impl Program {
         fs::create_dir_all("target/deploy/")?;
         let path = std::env::current_dir()
             .expect("Must have current dir")
-            .join(format!("target/deploy/{}-keypair.json", self.lib_name));
+            .join(format!("target/deploy/{}-keypair.json", self.lib_safecoin));
         if path.exists() {
             return Ok(WithPath::new(File::open(&path)?, path));
         }
@@ -629,7 +629,7 @@ impl Program {
     pub fn binary_path(&self) -> PathBuf {
         std::env::current_dir()
             .expect("Must have current dir")
-            .join(format!("target/deploy/{}.so", self.lib_name))
+            .join(format!("target/deploy/{}.so", self.lib_safecoin))
     }
 }
 
@@ -669,20 +669,20 @@ impl From<&ProgramDeployment> for _ProgramDeployment {
 }
 
 pub struct ProgramWorkspace {
-    pub name: String,
+    pub safecoin: String,
     pub program_id: Pubkey,
     pub idl: Idl,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AnchorPackage {
-    pub name: String,
+    pub safecoin: String,
     pub address: String,
     pub idl: Option<String>,
 }
 
 impl AnchorPackage {
-    pub fn from(name: String, cfg: &WithPath<Config>) -> Result<Self> {
+    pub fn from(safecoin: String, cfg: &WithPath<Config>) -> Result<Self> {
         let cluster = &cfg.provider.cluster;
         if cluster != &Cluster::Mainnet {
             return Err(anyhow!("Publishing requires the mainnet cluster"));
@@ -691,11 +691,11 @@ impl AnchorPackage {
             .programs
             .get(cluster)
             .ok_or_else(|| anyhow!("Program not provided in Anchor.toml"))?
-            .get(&name)
+            .get(&safecoin)
             .ok_or_else(|| anyhow!("Program not provided in Anchor.toml"))?;
         let idl = program_details.idl.clone();
         let address = program_details.address.to_string();
-        Ok(Self { name, address, idl })
+        Ok(Self { safecoin, address, idl })
     }
 }
 

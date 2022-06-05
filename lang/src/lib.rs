@@ -178,8 +178,8 @@ pub trait AccountDeserialize: Sized {
 pub trait ZeroCopy: Discriminator + Copy + Clone + Zeroable + Pod {}
 
 /// Calculates the data for an instruction invocation, where the data is
-/// `Sha256(<namespace>::<method_name>)[..8] || BorshSerialize(args)`.
-/// `args` is a borsh serialized struct of named fields for each argument given
+/// `Sha256(<safecoinspace>::<method_safecoin>)[..8] || BorshSerialize(args)`.
+/// `args` is a borsh serialized struct of safecoind fields for each argument given
 /// to an instruction.
 pub trait InstructionData: AnchorSerialize {
     fn data(&self) -> Vec<u8>;
@@ -401,7 +401,7 @@ macro_rules! err {
 macro_rules! source {
     () => {
         anchor_lang::error::Source {
-            filename: file!(),
+            filesafecoin: file!(),
             line: line!(),
         }
     };

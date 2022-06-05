@@ -1,4 +1,4 @@
-name: "Setup"
+safecoin: "Setup"
 description: "Setup"
 runs:
   using: "composite"

@@ -89,18 +89,18 @@ pub fn error(ts: proc_macro::TokenStream) -> TokenStream {
 }
 
 #[proc_macro]
-pub fn error_with_account_name(ts: proc_macro::TokenStream) -> TokenStream {
+pub fn error_with_account_safecoin(ts: proc_macro::TokenStream) -> TokenStream {
     let input = parse_macro_input!(ts as ErrorWithAccountNameInput);
     let error_code = input.error_code;
-    let account_name = input.account_name;
-    create_error(error_code, false, Some(account_name))
+    let account_safecoin = input.account_safecoin;
+    create_error(error_code, false, Some(account_safecoin))
 }
 
-fn create_error(error_code: Expr, source: bool, account_name: Option<Expr>) -> TokenStream {
+fn create_error(error_code: Expr, source: bool, account_safecoin: Option<Expr>) -> TokenStream {
     let source = if source {
         quote! {
             Some(anchor_lang::error::Source {
-                filename: file!(),
+                filesafecoin: file!(),
                 line: line!()
             })
         }
@@ -109,18 +109,18 @@ fn create_error(error_code: Expr, source: bool, account_name: Option<Expr>) -> T
             None
         }
     };
-    let account_name = match account_name {
-        Some(_) => quote! { Some(#account_name.to_string()) },
+    let account_safecoin = match account_safecoin {
+        Some(_) => quote! { Some(#account_safecoin.to_string()) },
         None => quote! { None },
     };
     TokenStream::from(quote! {
         anchor_lang::error::Error::from(
             anchor_lang::error::AnchorError {
-                error_name: #error_code.name(),
+                error_safecoin: #error_code.safecoin(),
                 error_code_number: #error_code.into(),
                 error_msg: #error_code.to_string(),
                 source: #source,
-                account_name: #account_name
+                account_safecoin: #account_safecoin
             }
         )
     })

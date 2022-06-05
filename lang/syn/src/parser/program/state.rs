@@ -46,11 +46,11 @@ pub fn parse(program_mod: &syn::ItemMod) -> ParseResult<Option<State>> {
             .filter_map(|item| match item {
                 syn::Item::Impl(item_impl) => {
                     let impl_ty_str = parser::tts_to_string(&item_impl.self_ty);
-                    let strct_name = strct.ident.to_string();
+                    let strct_safecoin = strct.ident.to_string();
                     if item_impl.trait_.is_some() {
                         return None;
                     }
-                    if strct_name != impl_ty_str {
+                    if strct_safecoin != impl_ty_str {
                         return None;
                     }
                     Some(item_impl.clone())
@@ -185,7 +185,7 @@ pub fn parse(program_mod: &syn::ItemMod) -> ParseResult<Option<State>> {
                                 }
                             };
                             Ok(IxArg {
-                                name: ident.clone(),
+                                safecoin: ident.clone(),
                                 raw_arg: raw_arg.clone(),
                             })
                         })
@@ -215,7 +215,7 @@ pub fn parse(program_mod: &syn::ItemMod) -> ParseResult<Option<State>> {
                     syn::Item::Impl(item_impl) => match &item_impl.trait_ {
                         None => None,
                         Some((_, path, _)) => {
-                            let trait_name = path
+                            let trait_safecoin = path
                                 .segments
                                 .iter()
                                 .next()
@@ -223,12 +223,12 @@ pub fn parse(program_mod: &syn::ItemMod) -> ParseResult<Option<State>> {
                                 .ident
                                 .clone()
                                 .to_string();
-                            Some((item_impl, trait_name))
+                            Some((item_impl, trait_safecoin))
                         }
                     },
                     _ => None,
                 })
-                .map(|(item_impl, trait_name)| {
+                .map(|(item_impl, trait_safecoin)| {
                     let methods = item_impl
                         .items
                         .iter()
@@ -261,7 +261,7 @@ pub fn parse(program_mod: &syn::ItemMod) -> ParseResult<Option<State>> {
                                                 _ => panic!("invalid syntax"),
                                             };
                                             IxArg {
-                                                name: ident.clone(),
+                                                safecoin: ident.clone(),
                                                 raw_arg: raw_arg.clone(),
                                             }
                                         })
@@ -282,7 +282,7 @@ pub fn parse(program_mod: &syn::ItemMod) -> ParseResult<Option<State>> {
                         })
                         .collect::<ParseResult<Vec<StateIx>>>()?;
                     Ok(StateInterface {
-                        trait_name,
+                        trait_safecoin,
                         methods,
                     })
                 })
@@ -299,7 +299,7 @@ pub fn parse(program_mod: &syn::ItemMod) -> ParseResult<Option<State>> {
         strct.attrs = vec![];
 
         State {
-            name: strct.ident.to_string(),
+            safecoin: strct.ident.to_string(),
             strct,
             interfaces: trait_impls,
             impl_block_and_methods: impl_block.map(|impl_block| (impl_block, methods.unwrap())),

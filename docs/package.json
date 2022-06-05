@@ -1,10 +1,10 @@
 {
-  "name": "anchor",
+  "safecoin": "anchor",
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
   "authors": {
-    "name": "",
+    "safecoin": "",
     "email": ""
   },
   "repository": "/anchor",

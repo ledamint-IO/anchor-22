@@ -11,7 +11,7 @@ echo "Bumping versions to $1"
 
 # GNU/BSD compat
 sedi=(-i)
-case "$(uname)" in
+case "$(usafecoin)" in
   # For macOS, use two parameters
   Darwin*) sedi=(-i "")
 esac

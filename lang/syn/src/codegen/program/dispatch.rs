@@ -35,15 +35,15 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                 methods
                     .iter()
                     .map(|ix: &crate::StateIx| {
-                        let name = &ix.raw_method.sig.ident.to_string();
-                        let ix_method_name: proc_macro2::TokenStream =
-                            { format!("__{}", name).parse().unwrap() };
-                        let sighash_arr = sighash(SIGHASH_STATE_NAMESPACE, name);
+                        let safecoin = &ix.raw_method.sig.ident.to_string();
+                        let ix_method_safecoin: proc_macro2::TokenStream =
+                            { format!("__{}", safecoin).parse().unwrap() };
+                        let sighash_arr = sighash(SIGHASH_STATE_NAMESPACE, safecoin);
                         let sighash_tts: proc_macro2::TokenStream =
                             format!("{:?}", sighash_arr).parse().unwrap();
                         quote! {
                             #sighash_tts => {
-                                __private::__state::#ix_method_name(
+                                __private::__state::#ix_method_safecoin(
                                     program_id,
                                     accounts,
                                     ix_data,
@@ -70,15 +70,15 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
                             .methods
                             .iter()
                             .map(|m: &crate::StateIx| {
-                                let sighash_arr = sighash(&iface.trait_name, &m.ident.to_string());
+                                let sighash_arr = sighash(&iface.trait_safecoin, &m.ident.to_string());
                                 let sighash_tts: proc_macro2::TokenStream =
                                     format!("{:?}", sighash_arr).parse().unwrap();
-                                let name = &m.raw_method.sig.ident.to_string();
-                                let ix_method_name: proc_macro2::TokenStream =
-                                    format!("__{}_{}", iface.trait_name, name).parse().unwrap();
+                                let safecoin = &m.raw_method.sig.ident.to_string();
+                                let ix_method_safecoin: proc_macro2::TokenStream =
+                                    format!("__{}_{}", iface.trait_safecoin, safecoin).parse().unwrap();
                                 quote! {
                                     #sighash_tts => {
-                                        __private::__interface::#ix_method_name(
+                                        __private::__interface::#ix_method_safecoin(
                                             program_id,
                                             accounts,
                                             ix_data,
@@ -98,13 +98,13 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
         .ixs
         .iter()
         .map(|ix| {
-            let ix_method_name = &ix.raw_method.sig.ident;
-            let sighash_arr = sighash(SIGHASH_GLOBAL_NAMESPACE, &ix_method_name.to_string());
+            let ix_method_safecoin = &ix.raw_method.sig.ident;
+            let sighash_arr = sighash(SIGHASH_GLOBAL_NAMESPACE, &ix_method_safecoin.to_string());
             let sighash_tts: proc_macro2::TokenStream =
                 format!("{:?}", sighash_arr).parse().unwrap();
             quote! {
                 #sighash_tts => {
-                    __private::__global::#ix_method_name(
+                    __private::__global::#ix_method_safecoin(
                         program_id,
                         accounts,
                         ix_data,
@@ -119,17 +119,17 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
     quote! {
         /// Performs method dispatch.
         ///
-        /// Each method in an anchor program is uniquely defined by a namespace
-        /// and a rust identifier (i.e., the name given to the method). These
+        /// Each method in an anchor program is uniquely defined by a safecoinspace
+        /// and a rust identifier (i.e., the safecoin given to the method). These
         /// two pieces can be combined to creater a method identifier,
         /// specifically, Anchor uses
         ///
-        /// Sha256("<namespace>::<rust-identifier>")[..8],
+        /// Sha256("<safecoinspace>::<rust-identifier>")[..8],
         ///
-        /// where the namespace can be one of three types. 1) "global" for a
+        /// where the safecoinspace can be one of three types. 1) "global" for a
         /// regular instruction, 2) "state" for a state struct instruction
-        /// handler and 3) a trait namespace (used in combination with the
-        /// `#[interface]` attribute), which is defined by the trait name, e..
+        /// handler and 3) a trait safecoinspace (used in combination with the
+        /// `#[interface]` attribute), which is defined by the trait safecoin, e..
         /// `MyTrait`.
         ///
         /// With this 8 byte identifier, Anchor performs method dispatch,
@@ -177,11 +177,11 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
 
 pub fn gen_fallback(program: &Program) -> Option<proc_macro2::TokenStream> {
     program.fallback_fn.as_ref().map(|fallback_fn| {
-        let program_name = &program.name;
+        let program_safecoin = &program.safecoin;
         let method = &fallback_fn.raw_method;
-        let fn_name = &method.sig.ident;
+        let fn_safecoin = &method.sig.ident;
         quote! {
-            #program_name::#fn_name(program_id, accounts, data)
+            #program_safecoin::#fn_safecoin(program_id, accounts, data)
         }
     })
 }

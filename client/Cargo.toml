@@ -1,5 +1,5 @@
 [package]
-name = "anchor-client"
+safecoin = "anchor-client"
 version = "0.22.0"
 authors = ["Serum Foundation <foundation@projectserum.com>"]
 edition = "2018"
@@ -14,8 +14,8 @@ anchor-lang = { path = "../lang", version = "0.22.0" }
 anyhow = "1.0.32"
 regex = "1.4.5"
 serde = { version = "1.0.122", features = ["derive"] }
-solana-client = "1.7.2"
-solana-sdk = "1.7.2"
-solana-account-decoder = "1.7.2"
+safecoin-client = { path = "../../Safecoin/client"}
+safecoin-sdk = { path = "../../Safecoin/sdk"}
+safecoin-account-decoder = { path = "../../Safecoin/account-decoder"}
 thiserror = "1.0.20"
 url = "2.2.2"

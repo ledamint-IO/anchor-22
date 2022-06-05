@@ -33,7 +33,7 @@ accounts used by the **Registry** program.
 
 * `Registrar` - Analagous to an SPL token `Mint`, the `Registrar` defines a staking instance. It has its own pool, and it's own set of rewards distributed amongst its own set of stakers.
 * `Member` - Analogous to an SPL token `Account`, `Member` accounts represent a **beneficiary**'s (i.e. a wallet's) stake state. This account has several vaults, all of which represent the funds belonging to an individual user.
-* `PendingWithdrawal` - A transfer out of the staking pool (poorly named since it's not a withdrawal out of the program. But a withdrawal out of the staking pool and into a `Member`'s freely available balances).
+* `PendingWithdrawal` - A transfer out of the staking pool (poorly safecoind since it's not a withdrawal out of the program. But a withdrawal out of the staking pool and into a `Member`'s freely available balances).
 * `RewardVendor` - A reward that has been dropped onto stakers and is distributed pro rata to staked `Member` beneficiaries.
 * `RewardEventQueue` - A ring buffer of all rewards available to stakers. Each entry is the address of a `RewardVendor`.
 
@@ -59,7 +59,7 @@ system or move funds between a **Member**'s own vaults.
 
 Funds initially enter and exit the program through the `Deposit` and `Withdraw` instructions,
 which transfer funds into and out of the **available balances** vault.
-As the name suggests, all funds in this vault are freely available, unrestricted, and
+As the safecoin suggests, all funds in this vault are freely available, unrestricted, and
 earn zero interest. The vault is purely a gateway for funds to enter the program.
 
 ## Staking.

@@ -287,7 +287,7 @@ impl<'a, T: AccountSerialize + AccountDeserialize + Owner + Clone> Account<'a, T
     /// Instead of this:
     /// ```ignore
     /// pub fn new_user(ctx: Context<CreateUser>, new_user:User) -> Result<()> {
-    ///     (*ctx.accounts.user_to_create).name = new_user.name;
+    ///     (*ctx.accounts.user_to_create).safecoin = new_user.safecoin;
     ///     (*ctx.accounts.user_to_create).age = new_user.age;
     ///     (*ctx.accounts.user_to_create).address = new_user.address;
     /// }

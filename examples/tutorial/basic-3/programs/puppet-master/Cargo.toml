@@ -1,12 +1,12 @@
 [package]
-name = "puppet-master"
+safecoin = "puppet-master"
 version = "0.1.0"
 description = "Created with Anchor"
 edition = "2018"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "puppet_master"
+safecoin = "puppet_master"
 
 [features]
 no-entrypoint = []

@@ -12,7 +12,7 @@ use std::ops::{Deref, DerefMut};
 /// Type validating that the account is a sysvar and deserializing it.
 ///
 /// If possible, sysvars should not be used via accounts
-/// but by using the [`get`](https://docs.rs/solana-program/latest/solana_program/sysvar/trait.Sysvar.html#method.get)
+/// but by using the [`get`](https://docs.rs/safecoin-program/latest/solana_program/sysvar/trait.Sysvar.html#method.get)
 /// function on the desired sysvar. This is because using `get`
 /// does not run the risk of Anchor having a bug in its `Sysvar` type
 /// and using `get` also decreases tx size, making space for other

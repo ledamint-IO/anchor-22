@@ -80,7 +80,7 @@ where
         *accounts = &accounts[1..];
 
         // No owner or address check is done here. One must use the
-        // #[account(state = <account-name>)] constraint.
+        // #[account(state = <account-safecoin>)] constraint.
 
         CpiState::try_from(account)
     }

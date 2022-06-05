@@ -4,7 +4,7 @@ use heck::CamelCase;
 use quote::quote;
 
 pub fn generate(program: &Program) -> proc_macro2::TokenStream {
-    let name: proc_macro2::TokenStream = program.name.to_string().to_camel_case().parse().unwrap();
+    let safecoin: proc_macro2::TokenStream = program.safecoin.to_string().to_camel_case().parse().unwrap();
     let fallback_maybe = dispatch::gen_fallback(program).unwrap_or(quote! {
         Err(anchor_lang::error::ErrorCode::InstructionMissing.into())
     });
@@ -18,7 +18,7 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
         /// executed on Solana.
         ///
         /// These methods fall into one of three categories, each of which
-        /// can be considered a different "namespace" of the program.
+        /// can be considered a different "safecoinspace" of the program.
         ///
         /// 1) Global methods - regular methods inside of the `#[program]`.
         /// 2) State methods - associated methods inside a `#[state]` struct.
@@ -26,7 +26,7 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
         ///    implementation of an `#[interface]` trait.
         ///
         /// Care must be taken by the codegen to prevent collisions between
-        /// methods in these different namespaces. For this reason, Anchor uses
+        /// methods in these different safecoinspaces. For this reason, Anchor uses
         /// a variant of sighash to perform method dispatch, rather than
         /// something like a simple enum variant discriminator.
         ///
@@ -78,9 +78,9 @@ pub fn generate(program: &Program) -> proc_macro2::TokenStream {
 
             /// Type representing the program.
             #[derive(Clone)]
-            pub struct #name;
+            pub struct #safecoin;
 
-            impl anchor_lang::Id for #name {
+            impl anchor_lang::Id for #safecoin {
                 fn id() -> Pubkey {
                     ID
                 }

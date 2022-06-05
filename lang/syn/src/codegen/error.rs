@@ -3,7 +3,7 @@ use quote::quote;
 
 pub fn generate(error: Error) -> proc_macro2::TokenStream {
     let error_enum = &error.raw_enum;
-    let enum_name = &error.ident;
+    let enum_safecoin = &error.ident;
     // Each arm of the `match` statement for implementing `std::fmt::Display`
     // on the user defined error code.
     let display_variant_dispatch: Vec<proc_macro2::TokenStream> = error
@@ -27,22 +27,22 @@ pub fn generate(error: Error) -> proc_macro2::TokenStream {
                 }
             };
             quote! {
-                #enum_name::#ident => #display_msg
+                #enum_safecoin::#ident => #display_msg
             }
         })
         .collect();
 
-    // Each arm of the `match` statement for implementing the `name` function
+    // Each arm of the `match` statement for implementing the `safecoin` function
     // on the user defined error code.
-    let name_variant_dispatch: Vec<proc_macro2::TokenStream> = error
+    let safecoin_variant_dispatch: Vec<proc_macro2::TokenStream> = error
         .raw_enum
         .variants
         .iter()
         .map(|variant| {
             let ident = &variant.ident;
-            let ident_name = ident.to_string();
+            let ident_safecoin = ident.to_string();
             quote! {
-                #enum_name::#ident => #ident_name.to_string()
+                #enum_safecoin::#ident => #ident_safecoin.to_string()
             }
         })
         .collect();
@@ -60,35 +60,35 @@ pub fn generate(error: Error) -> proc_macro2::TokenStream {
         #[repr(u32)]
         #error_enum
 
-        impl #enum_name {
-            pub fn name(&self) -> String {
+        impl #enum_safecoin {
+            pub fn safecoin(&self) -> String {
                 match self {
-                    #(#name_variant_dispatch),*
+                    #(#safecoin_variant_dispatch),*
                 }
             }
         }
 
-        impl From<#enum_name> for u32 {
-            fn from(e: #enum_name) -> u32 {
+        impl From<#enum_safecoin> for u32 {
+            fn from(e: #enum_safecoin) -> u32 {
                 e as u32 + #offset
             }
         }
 
-        impl From<#enum_name> for anchor_lang::error::Error {
-            fn from(error_code: #enum_name) -> Error {
+        impl From<#enum_safecoin> for anchor_lang::error::Error {
+            fn from(error_code: #enum_safecoin) -> Error {
                 anchor_lang::error::Error::from(
                     anchor_lang::error::AnchorError {
-                        error_name: error_code.name(),
+                        error_safecoin: error_code.safecoin(),
                         error_code_number: error_code.into(),
                         error_msg: error_code.to_string(),
                         source: None,
-                        account_name: None
+                        account_safecoin: None
                     }
                 )
             }
         }
 
-        impl std::fmt::Display for #enum_name {
+        impl std::fmt::Display for #enum_safecoin {
             fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
                 match self {
                     #(#display_variant_dispatch),*
