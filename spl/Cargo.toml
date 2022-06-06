@@ -9,8 +9,8 @@ description = "CPI clients for SPL programs"
 [features]
 default = ["mint", "token", "associated_token"]
 mint = []
-token = ["spl-token"]
-associated_token = ["spl-associated-token-account"]
+token = ["safe-token"]
+associated_token = ["safe-associated-token-account"]
 governance = []
 shmem = []
 devnet = []
@@ -18,7 +18,7 @@ dex = ["serum_dex"]
 
 [dependencies]
 anchor-lang = { path = "../lang", version = "0.22.0", features = ["derive"] }
-serum_dex = {git = "https://github.com/safely-project/safely-dex", version = "0.5.5", features = ["no-entrypoint"], optional = true }
+serum_dex = {path = "../../serumdex/dex", features = ["no-entrypoint"], optional = true }
 safecoin-program = {path = "../../Safecoin/sdk/program"}
 safe-token = { features = ["no-entrypoint"], optional = true,  path = "../../safecoin-program-library/token/program"}
 safe-associated-token-account = { features = ["no-entrypoint"], optional = true, path = "../../safecoin-program-library/associated-token-account/program" }
